@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.6</title>
+    <title>Friday-night-hawk-s Timer v5.7</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -296,7 +296,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.6</span>
+                FNH Timer <span class="version-tag">v5.7</span>
             </div>
             <button class="btn-share-header" onclick="shareSettings()">
                 💾 Save
@@ -502,6 +502,7 @@
     </div>
 
     <script>
+        // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
         let speechSettings = { 
@@ -580,10 +581,10 @@
 
             // AANGEPASTE PROMOTIETEKST
             let summary = `🦅 *Friday Night Hawks* @ Van Rheenen Sport\n`;
-            summary += `Elke vrijdag knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
+            summary += `Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
             summary += `We sluiten af met bitterballen & gezelligheid! 🍖🥳\n`;
             summary += `Iedereen is welkom (door leden, voor leden).\n\n`;
-            summary += `👇 *Hier is het schema voor vanavond:*\n`;
+            summary += `👇 *Hier het opgeslagen schema:*\n`;
 
             if (navigator.share) {
                 navigator.share({
