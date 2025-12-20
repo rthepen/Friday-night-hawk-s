@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.5</title>
+    <title>Friday-night-hawk-s Timer v5.6</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -47,9 +47,9 @@
         }
         
         .app-logo {
-            width: 120px; /* Pas grootte aan indien nodig */
+            width: 120px;
             height: auto;
-            border-radius: 50%; /* Rond maken (optioneel, haal weg voor vierkant) */
+            border-radius: 50%;
             border: 2px solid #333;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
@@ -296,7 +296,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.5</span>
+                FNH Timer <span class="version-tag">v5.6</span>
             </div>
             <button class="btn-share-header" onclick="shareSettings()">
                 💾 Save
@@ -396,7 +396,6 @@
         </div>
 
         <div id="speech-settings-panel" class="speech-options">
-            
             <div class="switch-row">
                 <span class="switch-label"><strong>Commando's</strong> (Start/Rust/Wissel)</span>
                 <label class="switch"><input type="checkbox" id="sp-commands" checked><span class="slider"></span></label>
@@ -418,34 +417,13 @@
                 </div>
             </div>
             <div id="sec-times" class="collapsible-content hidden">
-                <div class="switch-row">
-                    <span class="switch-label">"Halverwege!" (bij >30s)</span>
-                    <label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 1 minuut"</span>
-                    <label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 30 seconden"</span>
-                    <label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 20 seconden"</span>
-                    <label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 15 seconden"</span>
-                    <label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 10 seconden"</span>
-                    <label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">"Nog 5 seconden"</span>
-                    <label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label>
-                </div>
+                <div class="switch-row"><span class="switch-label">"Halverwege!" (bij >30s)</span><label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 1 minuut"</span><label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 30 seconden"</span><label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 20 seconden"</span><label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 15 seconden"</span><label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 10 seconden"</span><label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 5 seconden"</span><label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label></div>
             </div>
 
             <div class="collapsible-header" onclick="toggleSection('sec-milestones')">
@@ -456,22 +434,10 @@
                 </div>
             </div>
             <div id="sec-milestones" class="collapsible-content hidden">
-                <div class="switch-row">
-                    <span class="switch-label">25% ("Goede start")</span>
-                    <label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">50% ("Helft van training")</span>
-                    <label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">75% ("Eindsprint")</span>
-                    <label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">Laatste ronde</span>
-                    <label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label>
-                </div>
+                <div class="switch-row"><span class="switch-label">25% ("Goede start")</span><label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">50% ("Helft van training")</span><label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">75% ("Eindsprint")</span><label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Laatste ronde</span><label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label></div>
             </div>
 
             <div class="collapsible-header" onclick="toggleSection('sec-tips')">
@@ -482,24 +448,11 @@
                 </div>
             </div>
             <div id="sec-tips" class="collapsible-content hidden">
-                 <div class="switch-row">
-                    <span class="switch-label">Drinken ("Slok water")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">Losmaken ("Schud los")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">Ademhaling ("Diep in/uit")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label>
-                </div>
-                <div class="switch-row">
-                    <span class="switch-label">Focus ("Let op houding")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label>
-                </div>
+                 <div class="switch-row"><span class="switch-label">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Focus ("Let op houding")</span><label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label></div>
             </div>
-
         </div>
 
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
@@ -549,17 +502,14 @@
     </div>
 
     <script>
-        // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
-        
         let speechSettings = { 
             commands: true, countdown: true, nextInfo: true,
             halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
             m_start: true, m_half: true, m_end: true, m_last: true,
             t_drink: false, t_loose: false, t_breathe: false, t_focus: false
         };
-        
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
         let currentIndex = 0;
@@ -602,6 +552,72 @@
 
             calculateRealTime(); 
         });
+
+        // --- SHARE / SAVE LOGIC (AANGEPAST) ---
+        function shareSettings() {
+            const rounds = document.getElementById('rounds').value;
+            const exercises = document.getElementById('exercises').value;
+            const sets = document.getElementById('sets').value;
+            const restSec = document.getElementById('restSec').value;
+            const exerciseRestSec = document.getElementById('exerciseRestSec').value;
+            const roundRestSec = document.getElementById('roundRestSec').value;
+            const totalMin = document.getElementById('totalMin').value;
+            const endTimeVal = document.getElementById('endTimeValue').value;
+            
+            const params = new URLSearchParams();
+            params.set('r', rounds);
+            params.set('e', exercises);
+            params.set('s', sets);
+            params.set('rs', restSec);
+            params.set('re', exerciseRestSec);
+            params.set('rr', roundRestSec);
+            params.set('tm', totalMin);
+            params.set('m', mode);
+            params.set('et', endTimeVal);
+            
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = baseUrl + '?' + params.toString();
+
+            // AANGEPASTE PROMOTIETEKST
+            let summary = `🦅 *Friday Night Hawks* @ Van Rheenen Sport\n`;
+            summary += `Elke vrijdag knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
+            summary += `We sluiten af met bitterballen & gezelligheid! 🍖🥳\n`;
+            summary += `Iedereen is welkom (door leden, voor leden).\n\n`;
+            summary += `👇 *Hier is het schema voor vanavond:*\n`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'FNH Training Schema',
+                    text: summary,
+                    url: shareUrl
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(summary + shareUrl).then(() => {
+                    alert("Link met info gekopieerd naar klembord!");
+                });
+            }
+        }
+
+        function checkForSharedSettings() {
+            const params = new URLSearchParams(window.location.search);
+            if(params.has('r')) {
+                document.getElementById('rounds').value = params.get('r');
+                document.getElementById('exercises').value = params.get('e');
+                document.getElementById('sets').value = params.get('s');
+                document.getElementById('restSec').value = params.get('rs');
+                document.getElementById('exerciseRestSec').value = params.get('re');
+                document.getElementById('roundRestSec').value = params.get('rr');
+                document.getElementById('totalMin').value = params.get('tm');
+                
+                if(params.has('m')) {
+                    setMode(params.get('m'));
+                }
+                if(params.has('et')) {
+                    document.getElementById('endTimeValue').value = params.get('et');
+                }
+                saveToLocal();
+            }
+        }
 
         // --- LOCAL STORAGE ---
         function saveToLocal() {
@@ -660,71 +676,7 @@
             return map[id];
         }
 
-        // --- SHARE / SAVE LOGIC ---
-        function shareSettings() {
-            const rounds = document.getElementById('rounds').value;
-            const exercises = document.getElementById('exercises').value;
-            const sets = document.getElementById('sets').value;
-            const restSec = document.getElementById('restSec').value;
-            const exerciseRestSec = document.getElementById('exerciseRestSec').value;
-            const roundRestSec = document.getElementById('roundRestSec').value;
-            const totalMin = document.getElementById('totalMin').value;
-            const endTimeVal = document.getElementById('endTimeValue').value;
-            
-            const params = new URLSearchParams();
-            params.set('r', rounds);
-            params.set('e', exercises);
-            params.set('s', sets);
-            params.set('rs', restSec);
-            params.set('re', exerciseRestSec);
-            params.set('rr', roundRestSec);
-            params.set('tm', totalMin);
-            params.set('m', mode);
-            params.set('et', endTimeVal);
-            
-            const baseUrl = window.location.origin + window.location.pathname;
-            const shareUrl = baseUrl + '?' + params.toString();
-
-            // INFO VOOR HET BERICHT
-            let summary = `🏋️ *FNH Training*\n`;
-            summary += `▫️ ${rounds} Rondes • ${exercises} Oefeningen\n`;
-            summary += `🔥 Werk: ${workTimeSec}s | 💤 Rust: ${restSec}s\n`;
-            summary += `🔗 *Klik hier om te laden:*\n`;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'FNH Training',
-                    text: summary,
-                    url: shareUrl
-                }).catch(console.error);
-            } else {
-                navigator.clipboard.writeText(summary + shareUrl).then(() => {
-                    alert("Link met info gekopieerd naar klembord!");
-                });
-            }
-        }
-
-        function checkForSharedSettings() {
-            const params = new URLSearchParams(window.location.search);
-            if(params.has('r')) {
-                document.getElementById('rounds').value = params.get('r');
-                document.getElementById('exercises').value = params.get('e');
-                document.getElementById('sets').value = params.get('s');
-                document.getElementById('restSec').value = params.get('rs');
-                document.getElementById('exerciseRestSec').value = params.get('re');
-                document.getElementById('roundRestSec').value = params.get('rr');
-                document.getElementById('totalMin').value = params.get('tm');
-                
-                if(params.has('m')) {
-                    setMode(params.get('m'));
-                }
-                if(params.has('et')) {
-                    document.getElementById('endTimeValue').value = params.get('et');
-                }
-                saveToLocal();
-            }
-        }
-
+        // --- UTILS ---
         function toggleSection(id) {
             const el = document.getElementById(id);
             const header = el.previousElementSibling; 
@@ -795,7 +747,6 @@
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
-            
             const rst = parseInt(document.getElementById('restSec').value) || 0;
             const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0;
             const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
@@ -946,7 +897,6 @@
             });
         }
 
-        // --- AUDIO TRIGGER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
