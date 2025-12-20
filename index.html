@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.4</title>
+    <title>Friday-night-hawk-s Timer v5.5</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -39,12 +39,28 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- TITLE HEADER & SAVE --- */
+        /* --- LOGO & HEADER --- */
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .app-logo {
+            width: 120px; /* Pas grootte aan indien nodig */
+            height: auto;
+            border-radius: 50%; /* Rond maken (optioneel, haal weg voor vierkant) */
+            border: 2px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
         }
 
         .app-header {
@@ -274,9 +290,13 @@
 
     <div id="setup-screen" class="container">
         
+        <div class="logo-container">
+            <img src="FNH logo.jpg" alt="FNH Logo" class="app-logo">
+        </div>
+
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.4</span>
+                FNH Timer <span class="version-tag">v5.5</span>
             </div>
             <button class="btn-share-header" onclick="shareSettings()">
                 💾 Save
@@ -533,7 +553,6 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
-        // Default settings
         let speechSettings = { 
             commands: true, countdown: true, nextInfo: true,
             halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
@@ -550,7 +569,6 @@
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
 
-        // IDs of all switches
         const allSwitchIds = [
             'sp-commands', 'sp-countdown', 'sp-nextinfo',
             'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
@@ -559,19 +577,15 @@
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Load Local
             loadFromLocal();
-            // 2. Load URL (overwrites local)
             checkForSharedSettings();
 
-            // Set default time only if empty
             if(!document.getElementById('endTimeValue').value) {
                 const d = new Date(); d.setHours(d.getHours()+1);
                 const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('endTimeValue').value = timeString;
             }
 
-            // Init listeners
             document.querySelectorAll('input').forEach(i => {
                 if(i.type === 'checkbox') {
                     i.addEventListener('change', () => { updateSettings(); saveToLocal(); });
@@ -671,14 +685,15 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
 
-            // Bouw een informatief bericht voor in WhatsApp/Clipboard
-            let summary = `🏋️ FNH Training: ${rounds} Rondes • ${exercises} Oefeningen\n`;
+            // INFO VOOR HET BERICHT
+            let summary = `🏋️ *FNH Training*\n`;
+            summary += `▫️ ${rounds} Rondes • ${exercises} Oefeningen\n`;
             summary += `🔥 Werk: ${workTimeSec}s | 💤 Rust: ${restSec}s\n`;
-            summary += `🔗 Klik hier om te laden:\n`;
+            summary += `🔗 *Klik hier om te laden:*\n`;
 
             if (navigator.share) {
                 navigator.share({
-                    title: 'FNH Training Schema',
+                    title: 'FNH Training',
                     text: summary,
                     url: shareUrl
                 }).catch(console.error);
@@ -943,11 +958,9 @@
                 
                 let shouldSpeak = false;
 
-                // CHECK FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 
-                // Tijdmeldingen
                 if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
                 if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
                 if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
@@ -959,7 +972,6 @@
                 if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
-                // Mijlpaal Combo
                 if (type === 'milestone_combo') {
                     let fullSentence = "";
                     let allowMilestone = false;
@@ -978,7 +990,6 @@
                     }
                 }
 
-                // Rust Combo met Tips
                 if (type === 'rest_combo') {
                     let fullSentence = "";
                     if(speechSettings.commands) fullSentence += text.basic + ". ";
