@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.9</title>
+    <title>Friday-night-hawk-s Timer v6.0</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -29,7 +29,6 @@
             overscroll-behavior: none; 
         }
         
-        /* --- LAYOUT CONTAINERS --- */
         .container {
             padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom)) 10px;
             height: 100%;
@@ -37,6 +36,29 @@
             overflow-y: auto; 
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
+        }
+
+        /* --- INTRO BANNER (NIEUW) --- */
+        .intro-banner {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .intro-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #30D158;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .intro-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.4;
         }
 
         /* --- LOGO & HEADER --- */
@@ -83,10 +105,7 @@
             border: 1px solid #333;
         }
         
-        .header-buttons {
-            display: flex;
-            gap: 8px;
-        }
+        .header-buttons { display: flex; gap: 8px; }
 
         .btn-header {
             border: none;
@@ -101,7 +120,6 @@
             transition: opacity 0.2s;
         }
         .btn-header:active { opacity: 0.6; }
-        
         .btn-save { background: #0A84FF; color: white; }
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
 
@@ -114,19 +132,14 @@
             margin-bottom: 8px;
         }
         
-        .input-group {
-            display: flex; flex-direction: column;
-            min-width: 0;
-        }
+        .input-group { display: flex; flex-direction: column; min-width: 0; }
 
         label { 
             display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
         }
         
-        .input-wrapper {
-            display: flex; align-items: center; width: 100%;
-        }
+        .input-wrapper { display: flex; align-items: center; width: 100%; }
         .input-wrapper input {
             flex: 1; text-align: center; font-size: 18px; padding: 10px 0;
             background: #1c1c1e; border: 1px solid #333;
@@ -198,14 +211,8 @@
         .collapsible-content.hidden { display: none; }
         
         .master-toggle {
-            background: #48484a;
-            border: none;
-            color: #ccc;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 10px;
-            cursor: pointer;
+            background: #48484a; border: none; color: #ccc; font-size: 10px;
+            padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer;
         }
         .master-toggle:active { background: #666; }
 
@@ -214,8 +221,7 @@
 
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #2a2a2a;
+            padding: 8px 0; border-bottom: 1px solid #2a2a2a;
         }
         .switch-row:last-child { border-bottom: none; }
         .switch-label { font-size: 14px; color: #fff; }
@@ -236,8 +242,7 @@
         /* --- BUTTONS --- */
         button.action-btn {
             width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px;
-            flex-shrink: 0;
+            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
         .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
@@ -246,17 +251,12 @@
 
         /* --- INFO BOX --- */
         .info-bar {
-            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333;
-            flex-shrink: 0; margin-top: 5px;
+            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; flex-shrink: 0; margin-top: 5px;
         }
 
         /* --- LISTS --- */
         .schedule-list-wrapper {
-            flex: 1; 
-            text-align: left; background: #000;
-            border-top: 1px solid #222;
-            overflow-y: auto;
-            min-height: 100px;
+            flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px;
         }
         .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
         .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
@@ -265,19 +265,11 @@
         .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
         
         /* --- TIMER SCREEN --- */
-        #timer-screen { 
-            display: none; 
-            height: 100%; 
-            flex-direction: column; 
-            padding-bottom: var(--safe-bottom);
-        }
+        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); }
         .progress-container { width: 100%; height: 6px; background: #222; margin-top: var(--safe-top); }
         .progress-fill { height: 100%; background: #30D158; width: 0%; transition: width 0.2s linear; }
         
-        .timer-top { 
-            flex: 0 0 auto; 
-            padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; 
-        }
+        .timer-top { flex: 0 0 auto; padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; }
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
         .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
@@ -301,15 +293,19 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.9</span>
+                FNH Timer <span class="version-tag">v6.0</span>
             </div>
             <div class="header-buttons">
-                <button class="btn-header btn-reset" onclick="resetToDefaults()">
-                    🔄 Reset
-                </button>
-                <button class="btn-header btn-save" onclick="shareSettings()">
-                    💾 Save
-                </button>
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
+                <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
+            </div>
+        </div>
+
+        <div class="intro-banner">
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-text">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
             </div>
         </div>
 
@@ -421,10 +417,7 @@
             
             <div class="collapsible-header" onclick="toggleSection('sec-times')">
                 <div>TIJDMELDINGEN (WERKEN)</div>
-                <div>
-                    <button class="master-toggle" onclick="toggleAll(event, 'sec-times')">[Alles]</button>
-                    <span class="arrow">▼</span>
-                </div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-times')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-times" class="collapsible-content hidden">
                 <div class="switch-row"><span class="switch-label">"Halverwege!" (bij >30s)</span><label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label></div>
@@ -438,10 +431,7 @@
 
             <div class="collapsible-header" onclick="toggleSection('sec-milestones')">
                 <div>MIJLPALEN (TOTAAL)</div>
-                <div>
-                    <button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')">[Alles]</button>
-                    <span class="arrow">▼</span>
-                </div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-milestones" class="collapsible-content hidden">
                 <div class="switch-row"><span class="switch-label">25% ("Goede start")</span><label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label></div>
@@ -452,12 +442,10 @@
 
             <div class="collapsible-header" onclick="toggleSection('sec-tips')">
                 <div>TIPS (TIJDENS RUST)</div>
-                <div>
-                    <button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button>
-                    <span class="arrow">▼</span>
-                </div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-tips" class="collapsible-content hidden">
+                 <div class="switch-row"><span class="switch-label"><strong>Noem totaal aantal oefeningen</strong></span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
                  <div class="switch-row"><span class="switch-label">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
                 <div class="switch-row"><span class="switch-label">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
                 <div class="switch-row"><span class="switch-label">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
@@ -471,10 +459,7 @@
     </div>
 
     <div id="timer-screen">
-        <div class="progress-container">
-            <div class="progress-fill" id="total-progress"></div>
-        </div>
-
+        <div class="progress-container"><div class="progress-fill" id="total-progress"></div></div>
         <div class="timer-top">
             <div class="top-row">
                 <div style="text-align: left;">
@@ -486,7 +471,6 @@
                     <div style="font-size: 20px; font-weight: bold;" id="display-end-time">--:--</div>
                 </div>
             </div>
-            
             <div class="controls-row">
                 <button class="btn-nav" onclick="skipStep(-1)">❮</button>
                 <button class="btn-pause" id="btn-pause" onclick="handlePauseClick()">PAUZE</button>
@@ -494,7 +478,6 @@
                 <button class="btn-stop" style="margin-left: 10px;" onclick="resetApp()">STOP</button>
             </div>
         </div>
-
         <div class="schedule-list-wrapper" id="schedule-list-active"></div>
     </div>
 
@@ -502,12 +485,8 @@
         <div class="modal-content">
             <h2 style="margin-top:0;">Pauze voorbij</h2>
             <p style="color:#aaa;">Wat wil je doen?</p>
-            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">
-                ⏱️ Inhalen (korter werken)
-            </button>
-            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">
-                🐢 Eindtijd verzetten
-            </button>
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">⏱️ Inhalen (korter werken)</button>
+            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
         </div>
     </div>
 
@@ -519,6 +498,7 @@
             commands: true, countdown: true, nextInfo: true,
             halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
             m_start: true, m_half: true, m_end: true, m_last: true,
+            t_excount: true, // NIEUW
             t_drink: false, t_loose: false, t_breathe: false, t_focus: false
         };
         let schedule = [];
@@ -534,6 +514,7 @@
             'sp-commands', 'sp-countdown', 'sp-nextinfo',
             'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
             'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
+            'sp-tip-excount', // NIEUW
             'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
         ];
 
@@ -564,17 +545,17 @@
             calculateRealTime(); 
         });
 
-        // --- RESET FUNCTIE (MET NIEUWE DEFAULTS) ---
+        // --- RESET FUNCTIE ---
         function resetToDefaults() {
-            if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard? Alle opgeslagen instellingen gaan verloren.")) return;
+            if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
 
             document.getElementById('rounds').value = 1;
             document.getElementById('exercises').value = 8;
-            document.getElementById('sets').value = 2; // NEW DEFAULT
-            document.getElementById('restSec').value = 20; // NEW DEFAULT
-            document.getElementById('exerciseRestSec').value = 30; // NEW DEFAULT
+            document.getElementById('sets').value = 2; 
+            document.getElementById('restSec').value = 20; 
+            document.getElementById('exerciseRestSec').value = 30; 
             document.getElementById('roundRestSec').value = 90;
-            document.getElementById('totalMin').value = 30; // NEW DEFAULT
+            document.getElementById('totalMin').value = 30; 
             
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -587,14 +568,13 @@
                 commands: true, countdown: true, nextInfo: true,
                 halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
                 m_start: true, m_half: true, m_end: true, m_last: true,
+                t_excount: true, // NIEUW DEFAULT AAN
                 t_drink: false, t_loose: false, t_breathe: false, t_focus: false
             };
             
             allSwitchIds.forEach(id => {
                 const key = mapIdToKey(id);
-                if(document.getElementById(id)) {
-                    document.getElementById(id).checked = speechSettings[key];
-                }
+                if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
             });
 
             saveToLocal();
@@ -633,15 +613,9 @@
             summary += `👇 *Hier het opgeslagen schema:*\n`;
 
             if (navigator.share) {
-                navigator.share({
-                    title: 'FNH Training Schema',
-                    text: summary,
-                    url: shareUrl
-                }).catch(console.error);
+                navigator.share({ title: 'FNH Training Schema', text: summary, url: shareUrl }).catch(console.error);
             } else {
-                navigator.clipboard.writeText(summary + shareUrl).then(() => {
-                    alert("Link met info gekopieerd naar klembord!");
-                });
+                navigator.clipboard.writeText(summary + shareUrl).then(() => { alert("Link met info gekopieerd naar klembord!"); });
             }
         }
 
@@ -655,18 +629,12 @@
                 document.getElementById('exerciseRestSec').value = params.get('re');
                 document.getElementById('roundRestSec').value = params.get('rr');
                 document.getElementById('totalMin').value = params.get('tm');
-                
-                if(params.has('m')) {
-                    setMode(params.get('m'));
-                }
-                if(params.has('et')) {
-                    document.getElementById('endTimeValue').value = params.get('et');
-                }
+                if(params.has('m')) setMode(params.get('m'));
+                if(params.has('et')) document.getElementById('endTimeValue').value = params.get('et');
                 saveToLocal();
             }
         }
 
-        // --- LOCAL STORAGE ---
         function saveToLocal() {
             const data = {
                 rounds: document.getElementById('rounds').value,
@@ -690,22 +658,18 @@
                     const data = JSON.parse(saved);
                     document.getElementById('rounds').value = data.rounds || 1;
                     document.getElementById('exercises').value = data.exercises || 8;
-                    document.getElementById('sets').value = data.sets || 3;
-                    document.getElementById('restSec').value = data.restSec || 30;
-                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 60;
+                    document.getElementById('sets').value = data.sets || 2;
+                    document.getElementById('restSec').value = data.restSec || 20;
+                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
                     document.getElementById('roundRestSec').value = data.roundRestSec || 90;
-                    document.getElementById('totalMin').value = data.totalMin || 60;
-                    
+                    document.getElementById('totalMin').value = data.totalMin || 30;
                     if(data.mode) setMode(data.mode);
                     if(data.audioMode) setAudioMode(data.audioMode);
-                    
                     if(data.speechSettings) {
                         speechSettings = data.speechSettings;
                         allSwitchIds.forEach(id => {
                             const key = mapIdToKey(id);
-                            if(document.getElementById(id)) {
-                                document.getElementById(id).checked = speechSettings[key];
-                            }
+                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
                         });
                     }
                 } catch(e) { console.log("Error loading settings", e); }
@@ -718,6 +682,7 @@
                 'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
                 'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
                 'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
+                'sp-tip-excount': 't_excount', // NIEUW KEY
                 'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
             };
             return map[id];
@@ -727,13 +692,8 @@
         function toggleSection(id) {
             const el = document.getElementById(id);
             const header = el.previousElementSibling; 
-            if(el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                header.classList.add('open');
-            } else {
-                el.classList.add('hidden');
-                header.classList.remove('open');
-            }
+            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); header.classList.add('open'); }
+            else { el.classList.add('hidden'); header.classList.remove('open'); }
         }
 
         function toggleAll(event, sectionId) {
@@ -750,9 +710,7 @@
         function updateSettings() {
             allSwitchIds.forEach(id => {
                 const key = mapIdToKey(id);
-                if(document.getElementById(id)) {
-                    speechSettings[key] = document.getElementById(id).checked;
-                }
+                if(document.getElementById(id)) speechSettings[key] = document.getElementById(id).checked;
             });
         }
 
@@ -761,8 +719,7 @@
             document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
             document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
             const panel = document.getElementById('speech-settings-panel');
-            if(audioMode === 'speech') panel.classList.remove('hidden');
-            else panel.classList.add('hidden');
+            if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
         }
 
         function adjustValue(id, delta) {
@@ -779,7 +736,6 @@
             mode = newMode;
             document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
             document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
-            
             if (mode==='duration') {
                 document.getElementById('input-duration').classList.remove('hidden');
                 document.getElementById('input-endtime').classList.add('hidden');
@@ -794,7 +750,6 @@
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
-            
             const rst = parseInt(document.getElementById('restSec').value) || 0;
             const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0;
             const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
@@ -945,7 +900,6 @@
             });
         }
 
-        // --- AUDIO TRIGGER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -957,11 +911,9 @@
                 
                 let shouldSpeak = false;
 
-                // CHECK FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 
-                // Tijdmeldingen
                 if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
                 if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
                 if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
@@ -973,7 +925,6 @@
                 if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
-                // Mijlpaal Combo
                 if (type === 'milestone_combo') {
                     let fullSentence = "";
                     let allowMilestone = false;
@@ -992,7 +943,6 @@
                     }
                 }
 
-                // Rust Combo met Tips
                 if (type === 'rest_combo') {
                     let fullSentence = "";
                     if(speechSettings.commands) fullSentence += text.basic + ". ";
@@ -1099,7 +1049,13 @@
                     let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') {
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
-                        infoTxt = `Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal`;
+                        
+                        // NIEUWE LOGICA: OEFENING TELLER
+                        const totalEx = document.getElementById('exercises').value;
+                        let exCountMsg = "";
+                        if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
+                        
+                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}. Nog ${setsLeft} sets totaal`;
                     }
                     triggerAudio('rest_combo', { basic: "Rust", info: infoTxt });
                 }
@@ -1109,7 +1065,14 @@
                 if(audioMode==='beep') triggerAudio('end');
                 else {
                     let infoTxt = "";
-                    if (nextStep && nextStep.type === 'work') infoTxt = `Hierna oefening ${nextStep.info.exercise}`;
+                    if (nextStep && nextStep.type === 'work') {
+                        // NIEUWE LOGICA: OEFENING TELLER
+                        const totalEx = document.getElementById('exercises').value;
+                        let exCountMsg = "";
+                        if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
+                        
+                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}`;
+                    }
                     triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt });
                 }
             }
