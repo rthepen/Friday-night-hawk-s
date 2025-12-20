@@ -39,27 +39,48 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- TITLE HEADER --- */
-        .app-header {
-            font-size: 22px;
-            font-weight: 900;
+        /* --- TITLE HEADER & SHARE --- */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+        }
+
+        .app-header {
+            font-size: 18px;
+            font-weight: 900;
             color: #fff;
             text-transform: uppercase;
             letter-spacing: -0.5px;
-            line-height: 1.2;
+            text-align: left;
         }
         .version-tag {
             font-size: 11px;
             color: #30D158;
             background: #1c1c1e;
-            padding: 3px 6px;
-            border-radius: 6px;
+            padding: 2px 5px;
+            border-radius: 4px;
             vertical-align: middle;
             margin-left: 5px;
             font-weight: bold;
             border: 1px solid #333;
         }
+        
+        .btn-share-header {
+            background: #0A84FF;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-share-header:active { opacity: 0.7; }
 
         /* --- GRID SYSTEM --- */
         .grid-row {
@@ -252,8 +273,13 @@
 
     <div id="setup-screen" class="container">
         
-        <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v5.2</span>
+        <div class="header-row">
+            <div class="app-header">
+                FNH Timer <span class="version-tag">v5.2</span>
+            </div>
+            <button class="btn-share-header" onclick="shareSettings()">
+                📤 Delen
+            </button>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -522,91 +548,94 @@
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
 
-        // --- STORAGE & LOAD ---
-        function saveSettings() {
-            const settings = {
-                rounds: document.getElementById('rounds').value,
-                exercises: document.getElementById('exercises').value,
-                sets: document.getElementById('sets').value,
-                restSec: document.getElementById('restSec').value,
-                exerciseRestSec: document.getElementById('exerciseRestSec').value,
-                roundRestSec: document.getElementById('roundRestSec').value,
-                totalMin: document.getElementById('totalMin').value,
-                mode: mode,
-                audioMode: audioMode,
-                speechSettings: speechSettings
-            };
-            localStorage.setItem('fridayTimerSettings', JSON.stringify(settings));
-        }
-
-        function loadSettings() {
-            const saved = localStorage.getItem('fridayTimerSettings');
-            if (saved) {
-                try {
-                    const s = JSON.parse(saved);
-                    if(s.rounds) document.getElementById('rounds').value = s.rounds;
-                    if(s.exercises) document.getElementById('exercises').value = s.exercises;
-                    if(s.sets) document.getElementById('sets').value = s.sets;
-                    if(s.restSec) document.getElementById('restSec').value = s.restSec;
-                    if(s.exerciseRestSec) document.getElementById('exerciseRestSec').value = s.exerciseRestSec;
-                    if(s.roundRestSec) document.getElementById('roundRestSec').value = s.roundRestSec;
-                    if(s.totalMin) document.getElementById('totalMin').value = s.totalMin;
-                    
-                    if(s.mode) setMode(s.mode);
-                    if(s.audioMode) setAudioMode(s.audioMode);
-                    
-                    if(s.speechSettings) {
-                        speechSettings = s.speechSettings;
-                        // Sync Checkboxes
-                        const map = {
-                           'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
-                           'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 
-                           'sp-twentysec': 'time20', 'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
-                           'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
-                           'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
-                        };
-                        for (const [id, key] of Object.entries(map)) {
-                            const el = document.getElementById(id);
-                            if(el && speechSettings.hasOwnProperty(key)) {
-                                el.checked = speechSettings[key];
-                            }
-                        }
-                    }
-                } catch(e) { console.log("Settings load error", e); }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            // Listeners for inputs -> save & calc
-            document.querySelectorAll('input[type="number"], input[type="time"]').forEach(i => {
-                i.addEventListener('input', () => { calculateRealTime(); saveSettings(); });
-            });
+            // CHECK FOR SHARED URL PARAMETERS FIRST
+            checkForSharedSettings();
+
+            document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
             
-            // Listeners for switches -> save
             const switchIds = [
                 'sp-commands', 'sp-countdown', 'sp-nextinfo',
                 'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
                 'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
                 'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
             ];
+            
             switchIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.addEventListener('change', () => { updateSettings(); saveSettings(); });
+                if(el) el.addEventListener('change', updateSettings);
             });
 
-            // Init End Time default (always +1 hour from now as base, unless mode overrides visuals)
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('endTimeValue').value = timeString;
-
-            // Load saved settings
-            setMode('endtime'); // default
-            setAudioMode('speech'); // default
-            loadSettings(); // override with saved
+            // Only set default time if not loaded from URL
+            if(!document.getElementById('endTimeValue').value) {
+                document.getElementById('endTimeValue').value = timeString;
+            }
             
-            // Initial calculation
-            calculateRealTime();
+            setAudioMode('speech');
+            calculateRealTime(); // Recalc on load
         });
+
+        // --- SHARE LOGIC ---
+        function shareSettings() {
+            const rounds = document.getElementById('rounds').value;
+            const exercises = document.getElementById('exercises').value;
+            const sets = document.getElementById('sets').value;
+            const restSec = document.getElementById('restSec').value;
+            const exerciseRestSec = document.getElementById('exerciseRestSec').value;
+            const roundRestSec = document.getElementById('roundRestSec').value;
+            const totalMin = document.getElementById('totalMin').value;
+            
+            // Build URL
+            const params = new URLSearchParams();
+            params.set('r', rounds);
+            params.set('e', exercises);
+            params.set('s', sets);
+            params.set('rs', restSec);
+            params.set('re', exerciseRestSec);
+            params.set('rr', roundRestSec);
+            params.set('tm', totalMin);
+            
+            // Base URL (without query params)
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = baseUrl + '?' + params.toString();
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'FNH Training Schema',
+                    text: 'Hier zijn mijn instellingen voor de Friday Night Hawk training!',
+                    url: shareUrl
+                }).catch(console.error);
+            } else {
+                // Fallback for desktop/unsupported browsers
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert("Link gekopieerd naar klembord!");
+                });
+            }
+        }
+
+        function checkForSharedSettings() {
+            const params = new URLSearchParams(window.location.search);
+            if(params.has('r')) {
+                // Load settings from URL
+                document.getElementById('rounds').value = params.get('r');
+                document.getElementById('exercises').value = params.get('e');
+                document.getElementById('sets').value = params.get('s');
+                document.getElementById('restSec').value = params.get('rs');
+                document.getElementById('exerciseRestSec').value = params.get('re');
+                document.getElementById('roundRestSec').value = params.get('rr');
+                
+                if(params.has('tm')) {
+                     document.getElementById('totalMin').value = params.get('tm');
+                     setMode('duration'); // Force duration mode on shared link so times match
+                } else {
+                    setMode('endtime');
+                }
+            } else {
+                setMode('endtime'); // default
+            }
+        }
 
         function toggleSection(id) {
             const el = document.getElementById(id);
@@ -624,13 +653,10 @@
             event.stopPropagation();
             const section = document.getElementById(sectionId);
             const checkboxes = section.querySelectorAll('input[type="checkbox"]');
-            
             let anyUnchecked = false;
             checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
-            
             checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
             updateSettings();
-            saveSettings();
         }
 
         function updateSettings() {
@@ -661,12 +687,9 @@
             audioMode = newMode;
             document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
             document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
-            
             const panel = document.getElementById('speech-settings-panel');
             if(audioMode === 'speech') panel.classList.remove('hidden');
             else panel.classList.add('hidden');
-            
-            saveSettings();
         }
 
         function adjustValue(id, delta) {
@@ -676,7 +699,6 @@
             if (val < 1) val = 1; 
             el.value = val;
             calculateRealTime();
-            saveSettings();
         }
 
         function setMode(newMode) {
@@ -692,14 +714,12 @@
                 document.getElementById('input-endtime').classList.remove('hidden');
             }
             calculateRealTime();
-            saveSettings();
         }
 
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
-            
             const rst = parseInt(document.getElementById('restSec').value) || 0;
             const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0;
             const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
@@ -850,7 +870,7 @@
             });
         }
 
-        // --- AUDIO CONTROLLER ---
+        // --- AUDIO TRIGGER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -862,7 +882,7 @@
                 
                 let shouldSpeak = false;
 
-                // CHECK NEW FLAGS
+                // CHECK FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 
@@ -875,10 +895,10 @@
                 if (type === 'time10' && speechSettings.time10) shouldSpeak = true;
                 if (type === 'time5' && speechSettings.time5) shouldSpeak = true;
 
-                if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; // Final win always
+                if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
-                // Mijlpaal check
+                // Mijlpaal Combo
                 if (type === 'milestone_combo') {
                     let fullSentence = "";
                     let allowMilestone = false;
@@ -1048,8 +1068,10 @@
                     if (step.type === 'work') {
                         const init = step.initialTime;
                         
+                        // Halverwege (alleen als init >= 30)
                         if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway', "Halverwege");
                         
+                        // Specifieke tijden
                         if (step.time === 60 && init > 70) triggerAudio('time60', "Nog 1 minuut");
                         if (step.time === 30 && init > 40) triggerAudio('time30', "Nog 30 seconden");
                         if (step.time === 20 && init > 30) triggerAudio('time20', "Nog 20 seconden");
@@ -1130,7 +1152,7 @@
         }
 
         function updateTargetTimeFromNow() {
-            let secsLeft = 0;https://github.com/rthepen/Friday-night-hawk-s/blob/main/index.html
+            let secsLeft = 0;
             for(let i=currentIndex; i<schedule.length; i++) {
                 if(schedule[i].type !== 'finish') secsLeft += schedule[i].time;
             }
