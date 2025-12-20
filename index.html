@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v4.8</title>
+    <title>Friday-night-hawk-s Timer v4.9</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -130,26 +130,29 @@
             border: 1px solid #333;
             text-align: left;
         }
+        .switch-section-title {
+            font-size: 10px; color: #666; text-transform: uppercase; margin-top: 10px; margin-bottom: 5px; font-weight: bold;
+        }
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #2a2a2a;
         }
         .switch-row:last-child { border-bottom: none; }
         .switch-label { font-size: 14px; color: #fff; }
         
-        .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #333; transition: .4s; border-radius: 30px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px;
+            position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px;
             background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: #30D158; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        input:checked + .slider:before { transform: translateX(18px); }
 
         /* --- BUTTONS --- */
         button.action-btn {
@@ -214,7 +217,7 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v4.8</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v4.9</span>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -310,27 +313,40 @@
         </div>
 
         <div id="speech-settings-panel" class="speech-options">
+            
             <div class="switch-row">
-                <span class="switch-label">Commando's (Start/Rust)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-commands" checked>
-                    <span class="slider"></span>
-                </label>
+                <span class="switch-label"><strong>Commando's</strong> (Start/Rust/Wissel)</span>
+                <label class="switch"><input type="checkbox" id="sp-commands" checked><span class="slider"></span></label>
             </div>
             <div class="switch-row">
-                <span class="switch-label">Info (Mijlpalen/Tips)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-info" checked>
-                    <span class="slider"></span>
-                </label>
+                <span class="switch-label"><strong>Aftellen</strong> (3, 2, 1)</span>
+                <label class="switch"><input type="checkbox" id="sp-countdown" checked><span class="slider"></span></label>
+            </div>
+            
+            <div class="switch-section-title">TIJDENS HET WERKEN</div>
+            <div class="switch-row">
+                <span class="switch-label">"Halverwege!" (bij >30s)</span>
+                <label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label>
             </div>
             <div class="switch-row">
-                <span class="switch-label">Aftellen (3, 2, 1)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-countdown" checked>
-                    <span class="slider"></span>
-                </label>
+                <span class="switch-label">"Nog 10 seconden"</span>
+                <label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label>
             </div>
+
+            <div class="switch-section-title">TIJDENS RUST & INFO</div>
+            <div class="switch-row">
+                <span class="switch-label">Volgende info (Set x van y...)</span>
+                <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">Mijlpalen (Helft training/Laatste)</span>
+                <label class="switch"><input type="checkbox" id="sp-milestones" checked><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">Tips (Drink/Schud los)</span>
+                <label class="switch"><input type="checkbox" id="sp-tips" checked><span class="slider"></span></label>
+            </div>
+
         </div>
 
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
@@ -383,7 +399,16 @@
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
-        let speechSettings = { commands: true, info: true, countdown: true };
+        // Nieuwe settings structuur
+        let speechSettings = { 
+            commands: true, 
+            countdown: true,
+            halfway: true,
+            tenSec: true,
+            nextInfo: true,
+            milestones: true,
+            tips: true
+        };
         
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
@@ -397,9 +422,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
             
-            document.getElementById('opt-commands').addEventListener('change', updateSpeechSettings);
-            document.getElementById('opt-info').addEventListener('change', updateSpeechSettings);
-            document.getElementById('opt-countdown').addEventListener('change', updateSpeechSettings);
+            // Listeners voor alle nieuwe switches
+            const ids = ['sp-commands', 'sp-countdown', 'sp-halfway', 'sp-tensec', 'sp-nextinfo', 'sp-milestones', 'sp-tips'];
+            ids.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateSpeechSettings);
+            });
 
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -409,9 +436,13 @@
         });
 
         function updateSpeechSettings() {
-            speechSettings.commands = document.getElementById('opt-commands').checked;
-            speechSettings.info = document.getElementById('opt-info').checked;
-            speechSettings.countdown = document.getElementById('opt-countdown').checked;
+            speechSettings.commands = document.getElementById('sp-commands').checked;
+            speechSettings.countdown = document.getElementById('sp-countdown').checked;
+            speechSettings.halfway = document.getElementById('sp-halfway').checked;
+            speechSettings.tenSec = document.getElementById('sp-tensec').checked;
+            speechSettings.nextInfo = document.getElementById('sp-nextinfo').checked;
+            speechSettings.milestones = document.getElementById('sp-milestones').checked;
+            speechSettings.tips = document.getElementById('sp-tips').checked;
         }
 
         function setAudioMode(newMode) {
@@ -603,7 +634,7 @@
             });
         }
 
-        // --- AUDIO CONTROLLER ---
+        // --- AUDIO TRIGGER LOGIC ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -615,18 +646,37 @@
                 
                 let shouldSpeak = false;
 
+                // CHECK NEW FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
-                if (type === 'info' && speechSettings.info) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
+                if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
+                if (type === 'tensec' && speechSettings.tenSec) shouldSpeak = true;
+                if (type === 'milestone' && speechSettings.milestones) shouldSpeak = true;
+                if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true; // Algemene info
                 
-                if (type === 'mixed') {
-                    if (speechSettings.info) shouldSpeak = true; 
-                    else if (speechSettings.commands) {
-                        if(text.includes("Rust")) text = "Rust";
-                        if(text.includes("Wissel")) text = "Wissel oefening";
-                        if(text.includes("Grote")) text = "Grote pauze";
+                // Special case voor rust: we bouwen de zin op basis van wat aan staat
+                if (type === 'rest_combo') {
+                    // text = { basic: "Rust", info: "Straks set 3", tip: "Drink wat" }
+                    let fullSentence = "";
+                    if(speechSettings.commands) fullSentence += text.basic + ". ";
+                    if(speechSettings.nextInfo && text.info) fullSentence += text.info + ". ";
+                    if(speechSettings.tips && text.tip) fullSentence += text.tip + ". ";
+                    
+                    if(fullSentence.trim() !== "") {
+                        text = fullSentence;
                         shouldSpeak = true;
                     }
+                } else if (type === 'milestone_combo') {
+                     // Combinatie van Mijlpaal + Start Commando
+                     // text = { milestone: "Helft van training", command: "Start met werken" }
+                     let fullSentence = "";
+                     if(speechSettings.milestones && text.milestone) fullSentence += text.milestone + ". ";
+                     if(speechSettings.commands) fullSentence += text.command + ". ";
+                     
+                     if(fullSentence.trim() !== "") {
+                        text = fullSentence;
+                        shouldSpeak = true;
+                     }
                 }
 
                 if (shouldSpeak) {
@@ -692,50 +742,56 @@
 
             const statusEl = document.getElementById('current-status');
 
+            // --- UITGEBREIDE TRIGGER LOGICA ---
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 
-                // FEATURE 2: MIJLPALEN
-                let msg = "Start met werken";
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal/2)) msg = "Je bent op de helft van de training. Start met werken.";
-                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) msg = "Laatste ronde, alles geven. Start met werken.";
+                // Mijlpalen checken
+                let milestoneTxt = "";
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal/2)) milestoneTxt = "Je bent op de helft van de training";
+                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) milestoneTxt = "Laatste ronde, alles geven";
                 
-                triggerAudio('command', msg);
+                triggerAudio('milestone_combo', { milestone: milestoneTxt, command: "Start met werken" });
                 if(audioMode==='beep') triggerAudio('start');
             }
             else if (step.type==='rest') { 
                 statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
                 if(audioMode==='beep') triggerAudio('end');
                 else {
-                    let advice = "";
-                    // FEATURE 3: SLIMME RUST
-                    if(step.initialTime > 45) advice = " Vergeet niet te drinken.";
-                    if(step.initialTime < 20) advice = " Schud je spieren los.";
-
+                    let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') {
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
-                        triggerAudio('mixed', `Rust. Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal.${advice}`);
-                    } else { triggerAudio('command', `Rust.${advice}`); }
+                        infoTxt = `Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal`;
+                    }
+                    
+                    let tipTxt = "";
+                    if(step.initialTime > 45) tipTxt = "Vergeet niet te drinken";
+                    if(step.initialTime < 20) tipTxt = "Schud je spieren los";
+                    
+                    triggerAudio('rest_combo', { basic: "Rust", info: infoTxt, tip: tipTxt });
                 }
             }
             else if (step.type==='rest-exercise') {
                 statusEl.innerText="WISSEL OEFENING"; statusEl.style.color="#BF5AF2";
                 if(audioMode==='beep') triggerAudio('end');
                 else {
-                    let advice = (step.initialTime > 45) ? " Neem een slok water." : "";
-                    if (nextStep && nextStep.type === 'work') {
-                       triggerAudio('mixed', `Wissel van oefening. Hierna oefening ${nextStep.info.exercise}.${advice}`);
-                    } else { triggerAudio('command', `Wissel van oefening.${advice}`); }
+                    let infoTxt = "";
+                    if (nextStep && nextStep.type === 'work') infoTxt = `Hierna oefening ${nextStep.info.exercise}`;
+                    let tipTxt = (step.initialTime > 45) ? "Neem een slok water" : "";
+                    
+                    triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt, tip: tipTxt });
                 }
             }
             else if (step.type==='rest-long') { 
                 statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; 
                 if(audioMode==='beep') triggerAudio('end');
                 else {
+                    let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') {
                         const roundsLeft = totalRounds - nextStep.info.round;
-                        triggerAudio('mixed', `Grote pauze. Neem rust. Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan.`);
-                    } else { triggerAudio('command', "Grote pauze"); }
+                        infoTxt = `Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan`;
+                    }
+                    triggerAudio('rest_combo', { basic: "Grote pauze", info: infoTxt, tip: "Neem goed rust" });
                 }
             }
             else if (step.type==='prep') { 
@@ -753,13 +809,15 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
-                    // FEATURE 1: TIJD INDICATIE
+                    // EXTRA TRIGGERS TIJDENS HET WERKEN
                     if (step.type === 'work') {
+                        // Halverwege
                         if (step.time === Math.floor(step.initialTime / 2) && step.initialTime >= 30) {
-                            triggerAudio('info', "Halverwege");
+                            triggerAudio('halfway', "Halverwege");
                         }
+                        // 10 seconden
                         if (step.time === 10 && step.initialTime >= 20) {
-                            triggerAudio('info', "Nog 10 seconden");
+                            triggerAudio('tensec', "Nog 10 seconden");
                         }
                     }
 
@@ -827,7 +885,7 @@
                 for(let i=currentIndex; i<schedule.length; i++){
                     if (schedule[i].type==='work') {
                          schedule[i].time = newWork;
-                         schedule[i].initialTime = newWork; // Update initial too
+                         schedule[i].initialTime = newWork; 
                     }
                 }
                 document.getElementById('countdown').innerText = schedule[currentIndex].time;
@@ -860,7 +918,7 @@
             document.getElementById('current-status').style.color = "white";
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('btn-pause').style.display='none';
-            triggerAudio('win', "Gefeliciteerd, training voltooid");
+            triggerAudio('milestone', "Gefeliciteerd, training voltooid");
         }
         
         function resetApp() { clearInterval(timerInterval); location.reload(); }
