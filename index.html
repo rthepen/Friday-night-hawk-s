@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Roy's Ultimate Timer 4.2</title>
+    <title>Friday-night-hawk-s Timer v4.3</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -39,55 +39,69 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        /* --- TITLE HEADER --- */
+        .app-header {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        .version-tag {
+            font-size: 11px;
+            color: #30D158; /* Groen accent */
+            background: #1c1c1e;
+            padding: 3px 6px;
+            border-radius: 6px;
+            vertical-align: middle;
+            margin-left: 5px;
+            font-weight: bold;
+            letter-spacing: 0;
+            border: 1px solid #333;
+        }
+
         /* --- INPUTS & GRID SYSTEM --- */
         h1 { font-size: 14px; color: #666; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Nieuwe Grid Class voor inputs naast elkaar */
         .grid-row {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Precies 50/50 verdeling */
-            gap: 8px; /* Iets kleinere ruimte tussenin */
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             width: 100%;
             margin-bottom: 8px;
         }
         
         .input-group {
             display: flex; flex-direction: column;
-            min-width: 0; /* Cruciaal: zorgt dat flex items mogen krimpen */
+            min-width: 0;
         }
 
         label { 
-            display: block; 
-            font-size: 12px; 
-            color: #888; 
-            margin-bottom: 4px; 
-            text-align: left; 
-            white-space: nowrap; /* Voorkomt dat tekst breekt */
-            overflow: hidden;
-            text-overflow: ellipsis; 
+            display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
         }
         
         .input-wrapper {
-            display: flex; align-items: center;
-            width: 100%;
+            display: flex; align-items: center; width: 100%;
         }
         .input-wrapper input {
-            flex: 1; text-align: center; font-size: 18px; padding: 10px 0; /* Minder padding zijkant */
+            flex: 1; text-align: center; font-size: 18px; padding: 10px 0;
             background: #1c1c1e; border: 1px solid #333;
             border-left: none; border-right: none; color: white;
             border-radius: 0; 
             appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
-            min-width: 0;
-            width: 100%; /* Forceer breedte */
+            min-width: 0; width: 100%;
         }
         .btn-adjust {
             background: #333; color: #fff; border: 1px solid #333;
             font-size: 20px; font-weight: bold; 
-            width: 40px; height: 44px; /* Iets smaller (40px) voor betere fit */
+            width: 40px; height: 44px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; touch-action: manipulation;
             user-select: none;
-            flex-shrink: 0; /* Knoppen mogen niet krimpen */
+            flex-shrink: 0;
         }
         .btn-minus { border-radius: 8px 0 0 8px; }
         .btn-plus { border-radius: 0 8px 8px 0; }
@@ -169,6 +183,11 @@
 <body>
 
     <div id="setup-screen" class="container">
+        
+        <div class="app-header">
+            Friday-night-hawk-s Timer <span class="version-tag">v4.3</span>
+        </div>
+
         <div class="toggle-container">
             <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')">Eindtijd</button>
             <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
