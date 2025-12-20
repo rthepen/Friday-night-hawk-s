@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.0</title>
+    <title>Friday-night-hawk-s Timer v6.1</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -38,7 +38,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- INTRO BANNER (NIEUW) --- */
+        /* --- INTRO BANNER --- */
         .intro-banner {
             background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
             border: 1px solid #333;
@@ -293,7 +293,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v6.0</span>
+                FNH Timer <span class="version-tag">v6.1</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -407,6 +407,10 @@
                 <label class="switch"><input type="checkbox" id="sp-commands" checked><span class="slider"></span></label>
             </div>
             <div class="switch-row">
+                <span class="switch-label">Reclame bij start</span>
+                <label class="switch"><input type="checkbox" id="sp-promo-start" checked><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
                 <span class="switch-label"><strong>Aftellen</strong> (3, 2, 1)</span>
                 <label class="switch"><input type="checkbox" id="sp-countdown" checked><span class="slider"></span></label>
             </div>
@@ -445,7 +449,8 @@
                 <div><button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-tips" class="collapsible-content hidden">
-                 <div class="switch-row"><span class="switch-label"><strong>Noem totaal aantal oefeningen</strong></span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
+                 <div class="switch-row"><span class="switch-label">Noem totaal aantal oefeningen (Rust)</span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
+                 <div class="switch-row"><span class="switch-label">Noem "Oefening X van Y" (Wissel)</span><label class="switch"><input type="checkbox" id="sp-excount-switch" checked><span class="slider"></span></label></div>
                  <div class="switch-row"><span class="switch-label">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
                 <div class="switch-row"><span class="switch-label">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
                 <div class="switch-row"><span class="switch-label">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
@@ -496,9 +501,10 @@
         let audioMode = 'speech';
         let speechSettings = { 
             commands: true, countdown: true, nextInfo: true,
+            promo_start: true, // NIEUW
             halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
             m_start: true, m_half: true, m_end: true, m_last: true,
-            t_excount: true, // NIEUW
+            t_excount: true, t_excount_switch: true, // NIEUW
             t_drink: false, t_loose: false, t_breathe: false, t_focus: false
         };
         let schedule = [];
@@ -512,9 +518,10 @@
 
         const allSwitchIds = [
             'sp-commands', 'sp-countdown', 'sp-nextinfo',
+            'sp-promo-start', // NIEUW
             'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
             'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
-            'sp-tip-excount', // NIEUW
+            'sp-tip-excount', 'sp-excount-switch', // NIEUW
             'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
         ];
 
@@ -566,9 +573,10 @@
 
             speechSettings = { 
                 commands: true, countdown: true, nextInfo: true,
+                promo_start: true,
                 halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
                 m_start: true, m_half: true, m_end: true, m_last: true,
-                t_excount: true, // NIEUW DEFAULT AAN
+                t_excount: true, t_excount_switch: true,
                 t_drink: false, t_loose: false, t_breathe: false, t_focus: false
             };
             
@@ -679,10 +687,11 @@
         function mapIdToKey(id) {
             const map = {
                 'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
+                'sp-promo-start': 'promo_start', // NIEUW
                 'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
                 'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
                 'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
-                'sp-tip-excount': 't_excount', // NIEUW KEY
+                'sp-tip-excount': 't_excount', 'sp-excount-switch': 't_excount_switch', // NIEUW
                 'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
             };
             return map[id];
@@ -925,6 +934,9 @@
                 if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
+                // NIEUWE RECLAME BIJ START
+                if (type === 'promo_start' && speechSettings.promo_start) shouldSpeak = true;
+
                 if (type === 'milestone_combo') {
                     let fullSentence = "";
                     let allowMilestone = false;
@@ -1050,7 +1062,6 @@
                     if (nextStep && nextStep.type === 'work') {
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
                         
-                        // NIEUWE LOGICA: OEFENING TELLER
                         const totalEx = document.getElementById('exercises').value;
                         let exCountMsg = "";
                         if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
@@ -1066,10 +1077,10 @@
                 else {
                     let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') {
-                        // NIEUWE LOGICA: OEFENING TELLER
+                        // NIEUWE LOGICA VOOR WISSEL TELLER
                         const totalEx = document.getElementById('exercises').value;
                         let exCountMsg = "";
-                        if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
+                        if (speechSettings.t_excount_switch) exCountMsg = ` van de ${totalEx}`;
                         
                         infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}`;
                     }
@@ -1090,7 +1101,12 @@
             }
             else if (step.type==='prep') { 
                 statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; 
-                triggerAudio('info', "Maak je klaar voor de eerste set");
+                // NIEUWE RECLAME TEKST
+                if(speechSettings.promo_start) {
+                    triggerAudio('promo_start', "Welkom bij de Friday Night Hawks training. Spinning, Bootcamp en Zwemmen. Veel plezier!");
+                } else {
+                    triggerAudio('info', "Maak je klaar voor de eerste set");
+                }
             }
             else { finish(); return; }
 
