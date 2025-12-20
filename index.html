@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.8</title>
+    <title>Friday-night-hawk-s Timer v5.9</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -301,7 +301,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.8</span>
+                FNH Timer <span class="version-tag">v5.9</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">
@@ -329,7 +329,7 @@
             <label>Totale trainingstijd (min)</label>
             <div class="input-wrapper">
                 <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
-                <input type="number" id="totalMin" value="60" inputmode="numeric">
+                <input type="number" id="totalMin" value="30" inputmode="numeric">
                 <button class="btn-adjust btn-plus" onclick="adjustValue('totalMin', 5)">+</button>
             </div>
         </div>
@@ -357,7 +357,7 @@
             <label>Sets per oefening</label>
             <div class="input-wrapper">
                 <button class="btn-adjust btn-minus" onclick="adjustValue('sets', -1)">−</button>
-                <input type="number" id="sets" value="3" inputmode="numeric">
+                <input type="number" id="sets" value="2" inputmode="numeric">
                 <button class="btn-adjust btn-plus" onclick="adjustValue('sets', 1)">+</button>
             </div>
         </div>
@@ -367,7 +367,7 @@
                 <label>Rust (set)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('restSec', -5)">−</button>
-                    <input type="number" id="restSec" value="30" inputmode="numeric">
+                    <input type="number" id="restSec" value="20" inputmode="numeric">
                     <button class="btn-adjust btn-plus" onclick="adjustValue('restSec', 5)">+</button>
                 </div>
             </div>
@@ -375,7 +375,7 @@
                 <label>Rust (wissel)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('exerciseRestSec', -5)">−</button>
-                    <input type="number" id="exerciseRestSec" value="60" inputmode="numeric">
+                    <input type="number" id="exerciseRestSec" value="30" inputmode="numeric">
                     <button class="btn-adjust btn-plus" onclick="adjustValue('exerciseRestSec', 5)">+</button>
                 </div>
             </div>
@@ -564,18 +564,17 @@
             calculateRealTime(); 
         });
 
-        // --- RESET FUNCTIE ---
+        // --- RESET FUNCTIE (MET NIEUWE DEFAULTS) ---
         function resetToDefaults() {
             if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard? Alle opgeslagen instellingen gaan verloren.")) return;
 
-            // Standaard waarden (zoals in v5.1 gevraagd)
             document.getElementById('rounds').value = 1;
             document.getElementById('exercises').value = 8;
-            document.getElementById('sets').value = 3;
-            document.getElementById('restSec').value = 30;
-            document.getElementById('exerciseRestSec').value = 60;
+            document.getElementById('sets').value = 2; // NEW DEFAULT
+            document.getElementById('restSec').value = 20; // NEW DEFAULT
+            document.getElementById('exerciseRestSec').value = 30; // NEW DEFAULT
             document.getElementById('roundRestSec').value = 90;
-            document.getElementById('totalMin').value = 60;
+            document.getElementById('totalMin').value = 30; // NEW DEFAULT
             
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -584,7 +583,6 @@
             setMode('endtime');
             setAudioMode('speech');
 
-            // Speech defaults
             speechSettings = { 
                 commands: true, countdown: true, nextInfo: true,
                 halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
@@ -592,7 +590,6 @@
                 t_drink: false, t_loose: false, t_breathe: false, t_focus: false
             };
             
-            // Checkboxes updaten
             allSwitchIds.forEach(id => {
                 const key = mapIdToKey(id);
                 if(document.getElementById(id)) {
@@ -948,6 +945,7 @@
             });
         }
 
+        // --- AUDIO TRIGGER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -959,9 +957,11 @@
                 
                 let shouldSpeak = false;
 
+                // CHECK FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 
+                // Tijdmeldingen
                 if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
                 if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
                 if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
@@ -973,6 +973,7 @@
                 if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
+                // Mijlpaal Combo
                 if (type === 'milestone_combo') {
                     let fullSentence = "";
                     let allowMilestone = false;
@@ -991,6 +992,7 @@
                     }
                 }
 
+                // Rust Combo met Tips
                 if (type === 'rest_combo') {
                     let fullSentence = "";
                     if(speechSettings.commands) fullSentence += text.basic + ". ";
