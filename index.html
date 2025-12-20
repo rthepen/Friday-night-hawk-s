@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.7</title>
+    <title>Friday-night-hawk-s Timer v5.8</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -83,21 +83,27 @@
             border: 1px solid #333;
         }
         
-        .btn-share-header {
-            background: #0A84FF;
-            color: white;
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-header {
             border: none;
             border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 14px;
+            padding: 6px 12px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             transition: opacity 0.2s;
         }
-        .btn-share-header:active { opacity: 0.6; }
+        .btn-header:active { opacity: 0.6; }
+        
+        .btn-save { background: #0A84FF; color: white; }
+        .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
 
         /* --- GRID SYSTEM --- */
         .grid-row {
@@ -167,7 +173,6 @@
             text-align: left;
         }
         
-        /* Collapsible Styles */
         .collapsible-header {
             background: #2c2c2e;
             padding: 10px;
@@ -296,11 +301,16 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.7</span>
+                FNH Timer <span class="version-tag">v5.8</span>
             </div>
-            <button class="btn-share-header" onclick="shareSettings()">
-                💾 Save
-            </button>
+            <div class="header-buttons">
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">
+                    🔄 Reset
+                </button>
+                <button class="btn-header btn-save" onclick="shareSettings()">
+                    💾 Save
+                </button>
+            </div>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -554,7 +564,47 @@
             calculateRealTime(); 
         });
 
-        // --- SHARE / SAVE LOGIC (AANGEPAST) ---
+        // --- RESET FUNCTIE ---
+        function resetToDefaults() {
+            if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard? Alle opgeslagen instellingen gaan verloren.")) return;
+
+            // Standaard waarden (zoals in v5.1 gevraagd)
+            document.getElementById('rounds').value = 1;
+            document.getElementById('exercises').value = 8;
+            document.getElementById('sets').value = 3;
+            document.getElementById('restSec').value = 30;
+            document.getElementById('exerciseRestSec').value = 60;
+            document.getElementById('roundRestSec').value = 90;
+            document.getElementById('totalMin').value = 60;
+            
+            const d = new Date(); d.setHours(d.getHours()+1);
+            const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('endTimeValue').value = timeString;
+
+            setMode('endtime');
+            setAudioMode('speech');
+
+            // Speech defaults
+            speechSettings = { 
+                commands: true, countdown: true, nextInfo: true,
+                halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
+                m_start: true, m_half: true, m_end: true, m_last: true,
+                t_drink: false, t_loose: false, t_breathe: false, t_focus: false
+            };
+            
+            // Checkboxes updaten
+            allSwitchIds.forEach(id => {
+                const key = mapIdToKey(id);
+                if(document.getElementById(id)) {
+                    document.getElementById(id).checked = speechSettings[key];
+                }
+            });
+
+            saveToLocal();
+            calculateRealTime();
+        }
+
+        // --- SHARE / SAVE LOGIC ---
         function shareSettings() {
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
@@ -579,7 +629,6 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
 
-            // AANGEPASTE PROMOTIETEKST
             let summary = `🦅 *Friday Night Hawks* @ Van Rheenen Sport\n`;
             summary += `Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
             summary += `We sluiten af met bitterballen & gezelligheid! 🍖🥳\n`;
@@ -748,6 +797,7 @@
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
+            
             const rst = parseInt(document.getElementById('restSec').value) || 0;
             const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0;
             const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
