@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Roy's Ultimate Timer 4.1</title>
+    <title>Roy's Ultimate Timer 4.2</title>
     <style>
         :root {
-            /* Veilige zones voor notches en home-bars */
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
             --app-height: 100dvh;
@@ -23,49 +22,72 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             margin: 0; padding: 0;
-            /* Cruciaal: Gebruik dvh voor mobiele browsers */
             height: var(--app-height);
             width: 100vw;
             display: flex; flex-direction: column;
             overflow: hidden;
-            /* Voorkomt 'bouncen' van de hele pagina op iOS */
             overscroll-behavior: none; 
         }
         
         /* --- LAYOUT CONTAINERS --- */
         .container {
-            /* Rekening houden met safe areas */
             padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom)) 10px;
             height: 100%;
             display: flex; flex-direction: column;
             overflow-y: auto; 
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Soepel scrollen op iOS */
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* --- INPUTS --- */
+        /* --- INPUTS & GRID SYSTEM --- */
         h1 { font-size: 14px; color: #666; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
-        label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; margin-top: 6px;}
+        
+        /* Nieuwe Grid Class voor inputs naast elkaar */
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Precies 50/50 verdeling */
+            gap: 8px; /* Iets kleinere ruimte tussenin */
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .input-group {
+            display: flex; flex-direction: column;
+            min-width: 0; /* Cruciaal: zorgt dat flex items mogen krimpen */
+        }
+
+        label { 
+            display: block; 
+            font-size: 12px; 
+            color: #888; 
+            margin-bottom: 4px; 
+            text-align: left; 
+            white-space: nowrap; /* Voorkomt dat tekst breekt */
+            overflow: hidden;
+            text-overflow: ellipsis; 
+        }
         
         .input-wrapper {
-            display: flex; align-items: center; margin-bottom: 4px;
+            display: flex; align-items: center;
             width: 100%;
         }
         .input-wrapper input {
-            flex: 1; text-align: center; font-size: 18px; padding: 10px;
+            flex: 1; text-align: center; font-size: 18px; padding: 10px 0; /* Minder padding zijkant */
             background: #1c1c1e; border: 1px solid #333;
             border-left: none; border-right: none; color: white;
             border-radius: 0; 
-            /* Reset iOS default input styling */
             appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
             min-width: 0;
+            width: 100%; /* Forceer breedte */
         }
         .btn-adjust {
             background: #333; color: #fff; border: 1px solid #333;
-            font-size: 20px; font-weight: bold; width: 44px; height: 44px; /* Iets groter touch target */
+            font-size: 20px; font-weight: bold; 
+            width: 40px; height: 44px; /* Iets smaller (40px) voor betere fit */
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; touch-action: manipulation;
             user-select: none;
+            flex-shrink: 0; /* Knoppen mogen niet krimpen */
         }
         .btn-minus { border-radius: 8px 0 0 8px; }
         .btn-plus { border-radius: 0 8px 8px 0; }
@@ -90,7 +112,7 @@
         button.action-btn {
             width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
             border: none; border-radius: 12px; cursor: pointer; margin-top: 15px; margin-bottom: 15px;
-            flex-shrink: 0; /* Voorkomt dat knop plet */
+            flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
         .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
@@ -100,7 +122,7 @@
         /* --- INFO BOX --- */
         .info-bar {
             background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333;
-            flex-shrink: 0;
+            flex-shrink: 0; margin-top: 5px;
         }
 
         /* --- LIST (PREVIEW & ACTIVE) --- */
@@ -108,19 +130,19 @@
             flex: 1; 
             text-align: left; background: #000;
             border-top: 1px solid #222;
-            overflow-y: auto; /* Zelf scrollen */
-            min-height: 100px; /* Zorgt dat hij zichtbaar blijft */
+            overflow-y: auto;
+            min-height: 100px;
         }
         .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
         .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
-        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; }
-        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; }
-        .col-dur  { width: 40px; text-align: right; font-weight: bold; }
+        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; flex-shrink: 0; }
+        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
         
-        /* --- TIMER SCREEN SPECIFICS --- */
+        /* --- TIMER SCREEN --- */
         #timer-screen { 
             display: none; 
-            height: 100%; /* Pakt height van body */
+            height: 100%; 
             flex-direction: column; 
             padding-bottom: var(--safe-bottom);
         }
@@ -152,7 +174,7 @@
             <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
         </div>
 
-        <div id="input-endtime" style="margin-bottom: 5px;">
+        <div id="input-endtime" style="margin-bottom: 10px;">
             <label>Klaar om (HH:MM)</label>
             <input type="time" id="endTimeValue">
         </div>
@@ -166,8 +188,8 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1;">
+        <div class="grid-row">
+            <div class="input-group">
                 <label>Rondes</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('rounds', -1)">−</button>
@@ -175,7 +197,7 @@
                     <button class="btn-adjust btn-plus" onclick="adjustValue('rounds', 1)">+</button>
                 </div>
             </div>
-            <div style="flex:1;">
+            <div class="input-group">
                 <label>Oefeningen</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('exercises', -1)">−</button>
@@ -185,15 +207,17 @@
             </div>
         </div>
 
-        <label>Sets per oefening</label>
-        <div class="input-wrapper">
-            <button class="btn-adjust btn-minus" onclick="adjustValue('sets', -1)">−</button>
-            <input type="number" id="sets" value="3" inputmode="numeric">
-            <button class="btn-adjust btn-plus" onclick="adjustValue('sets', 1)">+</button>
+        <div class="input-group" style="margin-bottom: 8px;">
+            <label>Sets per oefening</label>
+            <div class="input-wrapper">
+                <button class="btn-adjust btn-minus" onclick="adjustValue('sets', -1)">−</button>
+                <input type="number" id="sets" value="3" inputmode="numeric">
+                <button class="btn-adjust btn-plus" onclick="adjustValue('sets', 1)">+</button>
+            </div>
         </div>
 
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1;">
+        <div class="grid-row">
+            <div class="input-group">
                 <label>Rust (set)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('restSec', -5)">−</button>
@@ -201,7 +225,7 @@
                     <button class="btn-adjust btn-plus" onclick="adjustValue('restSec', 5)">+</button>
                 </div>
             </div>
-            <div style="flex:1;">
+            <div class="input-group">
                 <label>Rust (ronde)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('roundRestSec', -10)">−</button>
@@ -221,7 +245,7 @@
         
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666;">VOORBEELD SCHEMA (VANAF NU):</div>
         <div id="preview-list" class="schedule-list-wrapper">
-            </div>
+        </div>
     </div>
 
     <div id="timer-screen">
@@ -456,7 +480,10 @@
         // --- START & TIMER LOGIC ---
         function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+            
+            // GELUID FIX: Context hervatten voor mobiele browsers
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
 
             generateScheduleData(); // Zeker zijn dat we de laatste versie hebben
             
