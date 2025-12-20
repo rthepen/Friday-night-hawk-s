@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v4.7</title>
+    <title>Friday-night-hawk-s Timer v4.8</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -121,7 +121,7 @@
         }
         .toggle-btn.active { background: #333; color: #fff; }
 
-        /* --- CHECKBOX SWITCHES (NEW) --- */
+        /* --- CHECKBOX SWITCHES --- */
         .speech-options {
             background: #1c1c1e;
             border-radius: 8px;
@@ -138,7 +138,6 @@
         .switch-row:last-child { border-bottom: none; }
         .switch-label { font-size: 14px; color: #fff; }
         
-        /* Custom Switch */
         .switch { position: relative; display: inline-block; width: 50px; height: 30px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -152,11 +151,10 @@
         input:checked + .slider { background-color: #30D158; }
         input:checked + .slider:before { transform: translateX(20px); }
 
-
         /* --- BUTTONS --- */
         button.action-btn {
             width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 12px; cursor: pointer; margin-top: 15px; margin-bottom: 15px;
+            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px;
             flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
@@ -216,41 +214,10 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v4.7</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v4.8</span>
         </div>
 
-        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN</div>
-        
-        <div class="toggle-container">
-            <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
-            <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
-        </div>
-
-        <div id="speech-settings-panel" class="speech-options">
-            <div class="switch-row">
-                <span class="switch-label">Commando's (Start/Rust)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-commands" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="switch-row">
-                <span class="switch-label">Info (Welke set/ronde)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-info" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="switch-row">
-                <span class="switch-label">Aftellen (3, 2, 1)</span>
-                <label class="switch">
-                    <input type="checkbox" id="opt-countdown" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px; margin-top:15px;">TIJDSINSTELLINGEN</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
         
         <div class="toggle-container">
             <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')">Eindtijd</button>
@@ -335,7 +302,38 @@
         
         <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
         
-        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666;">VOORBEELD SCHEMA (VANAF NU):</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN</div>
+        
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
+            <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
+        </div>
+
+        <div id="speech-settings-panel" class="speech-options">
+            <div class="switch-row">
+                <span class="switch-label">Commando's (Start/Rust)</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-commands" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">Info (Mijlpalen/Tips)</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-info" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">Aftellen (3, 2, 1)</span>
+                <label class="switch">
+                    <input type="checkbox" id="opt-countdown" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
         <div id="preview-list" class="schedule-list-wrapper">
         </div>
     </div>
@@ -384,7 +382,7 @@
     <script>
         // --- VARIABELEN ---
         let mode = 'endtime';
-        let audioMode = 'speech'; // 'speech' of 'beep'
+        let audioMode = 'speech';
         let speechSettings = { commands: true, info: true, countdown: true };
         
         let schedule = [];
@@ -394,12 +392,11 @@
         let isPaused = false;
         let workoutStartTime, targetEndTimeDate;
         let totalWorkSetsGlobal = 0; 
-        let audioCtx; // Voor piepjes
+        let audioCtx; 
 
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
             
-            // Checkbox listeners voor spraak
             document.getElementById('opt-commands').addEventListener('change', updateSpeechSettings);
             document.getElementById('opt-info').addEventListener('change', updateSpeechSettings);
             document.getElementById('opt-countdown').addEventListener('change', updateSpeechSettings);
@@ -422,7 +419,6 @@
             document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
             document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
             
-            // Verberg/toon detailopties
             const panel = document.getElementById('speech-settings-panel');
             if(audioMode === 'speech') panel.classList.remove('hidden');
             else panel.classList.add('hidden');
@@ -517,7 +513,7 @@
             let currentSetGlobal = 0;
 
             schedule = [];
-            schedule.push({ type: 'prep', time: 10, label: "Voorbereiden" });
+            schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10 });
 
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
@@ -526,6 +522,7 @@
                         
                         schedule.push({ 
                             type: 'work', time: workTimeSec, 
+                            initialTime: workTimeSec,
                             label: `Ronde ${r} | Oef ${e} (Set ${s})`,
                             info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal }
                         });
@@ -536,17 +533,17 @@
 
                         if (!isLastSetOfWorkout) {
                             if (isLastSetOfRound) {
-                                schedule.push({ type: 'rest-long', time: roundRestSec, label: "GROTE PAUZE" });
+                                schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: "GROTE PAUZE" });
                             } else if (isLastSetOfExercise) {
-                                schedule.push({ type: 'rest-exercise', time: exerciseRestSec, label: "WISSEL OEFENING" });
+                                schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: "WISSEL OEFENING" });
                             } else {
-                                schedule.push({ type: 'rest', time: restTimeSec, label: "Rust" });
+                                schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: "Rust" });
                             }
                         }
                     }
                 }
             }
-            schedule.push({ type: 'finish', time: 0, label: "KLAAR!" });
+            schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0 });
         }
 
         function renderPreviewList() {
@@ -609,28 +606,22 @@
         // --- AUDIO CONTROLLER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
-                // PIEPJES MODUS
                 if (type === 'start') playBeep(800, 'start');
                 else if (type === 'end') playBeep(400, 'end');
                 else if (type === 'tick') playBeep(600, 'tick');
                 else if (type === 'win') playBeep(1000, 'win');
             } else {
-                // SPRAAK MODUS
                 if (!window.speechSynthesis) return;
                 
-                // FILTER OP INSTELLINGEN
                 let shouldSpeak = false;
 
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'info' && speechSettings.info) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 
-                // Bij gemengde berichten (commando + info), check info
                 if (type === 'mixed') {
-                    // Als info aan staat, zeg alles. Als info uit staat, maar commando aan, zeg alleen de basis.
                     if (speechSettings.info) shouldSpeak = true; 
                     else if (speechSettings.commands) {
-                        // Strip de info tekst, zeg alleen basis (simpele hack)
                         if(text.includes("Rust")) text = "Rust";
                         if(text.includes("Wissel")) text = "Wissel oefening";
                         if(text.includes("Grote")) text = "Grote pauze";
@@ -661,12 +652,11 @@
         function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
             
-            // Audio init
             if(audioMode === 'beep') {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
             } else {
-                if(window.speechSynthesis) window.speechSynthesis.cancel(); // Wake up
+                if(window.speechSynthesis) window.speechSynthesis.cancel(); 
             }
 
             generateScheduleData();
@@ -693,36 +683,49 @@
         function runStep() {
             if (currentIndex >= schedule.length) return;
             const step = schedule[currentIndex];
+            const nextStep = schedule[currentIndex + 1];
+            const totalRounds = parseInt(document.getElementById('rounds').value);
 
             document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
             const activeItem = document.getElementById(`step-${currentIndex}`);
             if (activeItem) { activeItem.classList.add('active'); activeItem.scrollIntoView({behavior:'smooth', block:'center'}); }
 
             const statusEl = document.getElementById('current-status');
-            const nextStep = schedule[currentIndex + 1];
 
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
-                triggerAudio('command', "Start met werken");
+                
+                // FEATURE 2: MIJLPALEN
+                let msg = "Start met werken";
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal/2)) msg = "Je bent op de helft van de training. Start met werken.";
+                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) msg = "Laatste ronde, alles geven. Start met werken.";
+                
+                triggerAudio('command', msg);
                 if(audioMode==='beep') triggerAudio('start');
             }
             else if (step.type==='rest') { 
                 statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
                 if(audioMode==='beep') triggerAudio('end');
                 else {
+                    let advice = "";
+                    // FEATURE 3: SLIMME RUST
+                    if(step.initialTime > 45) advice = " Vergeet niet te drinken.";
+                    if(step.initialTime < 20) advice = " Schud je spieren los.";
+
                     if (nextStep && nextStep.type === 'work') {
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
-                        triggerAudio('mixed', `Rust. Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal.`);
-                    } else { triggerAudio('command', "Rust"); }
+                        triggerAudio('mixed', `Rust. Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal.${advice}`);
+                    } else { triggerAudio('command', `Rust.${advice}`); }
                 }
             }
             else if (step.type==='rest-exercise') {
                 statusEl.innerText="WISSEL OEFENING"; statusEl.style.color="#BF5AF2";
                 if(audioMode==='beep') triggerAudio('end');
                 else {
+                    let advice = (step.initialTime > 45) ? " Neem een slok water." : "";
                     if (nextStep && nextStep.type === 'work') {
-                       triggerAudio('mixed', `Wissel van oefening. Hierna oefening ${nextStep.info.exercise}.`);
-                    } else { triggerAudio('command', "Wissel van oefening"); }
+                       triggerAudio('mixed', `Wissel van oefening. Hierna oefening ${nextStep.info.exercise}.${advice}`);
+                    } else { triggerAudio('command', `Wissel van oefening.${advice}`); }
                 }
             }
             else if (step.type==='rest-long') { 
@@ -730,9 +733,8 @@
                 if(audioMode==='beep') triggerAudio('end');
                 else {
                     if (nextStep && nextStep.type === 'work') {
-                        const totalRounds = parseInt(document.getElementById('rounds').value);
                         const roundsLeft = totalRounds - nextStep.info.round;
-                        triggerAudio('mixed', `Grote pauze. Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan.`);
+                        triggerAudio('mixed', `Grote pauze. Neem rust. Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan.`);
                     } else { triggerAudio('command', "Grote pauze"); }
                 }
             }
@@ -751,6 +753,16 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
+                    // FEATURE 1: TIJD INDICATIE
+                    if (step.type === 'work') {
+                        if (step.time === Math.floor(step.initialTime / 2) && step.initialTime >= 30) {
+                            triggerAudio('info', "Halverwege");
+                        }
+                        if (step.time === 10 && step.initialTime >= 20) {
+                            triggerAudio('info', "Nog 10 seconden");
+                        }
+                    }
+
                     if (step.time <= 0) {
                         clearInterval(timerInterval);
                         currentIndex++;
@@ -804,9 +816,7 @@
             let workStepsLeft = 0; let fixedRest = 0;
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
-                if (schedule[i].type==='rest' || schedule[i].type==='rest-long' || schedule[i].type==='rest-exercise') {
-                    fixedRest += schedule[i].time;
-                }
+                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time;
                 else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
             }
 
@@ -815,7 +825,10 @@
                 let newWork = Math.floor(availableForWork / workStepsLeft);
                 if (newWork < 5) newWork = 5; 
                 for(let i=currentIndex; i<schedule.length; i++){
-                    if (schedule[i].type==='work') schedule[i].time = newWork;
+                    if (schedule[i].type==='work') {
+                         schedule[i].time = newWork;
+                         schedule[i].initialTime = newWork; // Update initial too
+                    }
                 }
                 document.getElementById('countdown').innerText = schedule[currentIndex].time;
             }
