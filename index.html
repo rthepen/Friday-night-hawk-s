@@ -2,480 +2,612 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Thailand Ultimate Guide v23 (Search Fixed)</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Roy's Ultimate Timer 4.1</title>
     <style>
-        /* --- BASIS STIJL --- */
-        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #f0f0f0; }
-        
-        /* De kaart moet altijd op de achtergrond blijven */
-        #map { height: 100vh; width: 100%; z-index: 0; position: relative; }
-        
-        /* --- MENU KNOP (FIXED POSITIE) --- */
-        #toggle-btn {
-            position: fixed; top: 20px; right: 20px;
-            background: #fff; color: #333;
-            padding: 12px 20px; border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            z-index: 99999 !important; border: none;
-            font-weight: 700; font-size: 15px;
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
-            -webkit-user-select: none; user-select: none;
+        :root {
+            /* Veilige zones voor notches en home-bars */
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --app-height: 100dvh;
+        }
+
+        * {
+            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        #toggle-btn:active { transform: scale(0.95); }
 
-        /* --- GPS KNOP OP KAART (FIXED POSITIE) --- */
-        #gps-btn-map {
-            position: fixed; bottom: 40px; right: 20px;
-            z-index: 99999 !important; 
-            width: 44px; height: 44px;
-            background: #fff; border: none; border-radius: 50%; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: #333;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: background 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        #gps-btn-map:hover { background: #f4f4f4; }
-        #gps-btn-map:active { background: #e0e0e0; }
-
-        /* --- SIDEBAR --- */
-        #controls {
-            position: fixed; top: 0; right: 0;
-            height: 100vh; width: 350px;
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: -5px 0 25px rgba(0,0,0,0.2);
-            z-index: 100000 !important;
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            margin: 0; padding: 0;
+            /* Cruciaal: Gebruik dvh voor mobiele browsers */
+            height: var(--app-height);
+            width: 100vw;
             display: flex; flex-direction: column;
-            transform: translateX(100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #controls.active { transform: translateX(0); }
-
-        @media (max-width: 600px) { #controls { width: 85%; max-width: 320px; } }
-
-        .sidebar-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
-        .sidebar-footer { padding: 15px 20px; border-top: 1px solid #eee; background: #fff; }
-
-        h2 { margin: 0; font-size: 18px; color: #222; }
-        h4 { margin: 20px 0 10px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
-        .close-btn { background: none; border: none; font-size: 28px; color: #555; padding: 0 10px; cursor: pointer; }
-
-        /* --- CALCULATOR --- */
-        .calc-box { background: #eef5ff; padding: 15px; border-radius: 12px; border: 1px solid #d0e3ff; }
-        .calc-row { display: flex; gap: 10px; margin-bottom: 5px; }
-        .calc-input { flex: 1; }
-        .calc-input label { display: block; font-size: 10px; font-weight: bold; color: #555; margin-bottom: 3px; }
-        .calc-input input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .rate-display { font-size: 13px; color: #0056b3; font-weight: bold; text-align: center; margin: 10px 0; }
-        .purchase-result { font-size: 16px; font-weight: bold; color: #28a745; text-align: center; line-height: 34px; }
-
-        /* --- FILTERS --- */
-        #searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
-        .filter-group label { display: flex; align-items: center; margin-bottom: 12px; cursor: pointer; font-size: 15px; color: #333; }
-        input[type="checkbox"] { width: 20px; height: 20px; margin-right: 12px; accent-color: #007bff; border-radius: 4px; }
-        input[type=range] { width: 100%; margin: 10px 0; accent-color: #007bff; }
-        select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 14px; }
-        
-        /* --- MARKERS --- */
-        .custom-pin {
-            border-radius: 50% 50% 50% 0; border: 3px solid #fff; width: 40px; height: 40px;
-            transform: rotate(-45deg); display: flex !important; align-items: center; justify-content: center;
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.3); position: relative; transition: transform 0.2s;
-        }
-        .pin-icon { transform: rotate(45deg); font-size: 18px; line-height: 1; }
-        .rank-badge {
-            position: absolute; top: -6px; right: -6px; background: #fff; color: #000; border: 2px solid #333;
-            border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 900;
-            display: flex; align-items: center; justify-content: center; transform: rotate(45deg); z-index: 10;
+            overflow: hidden;
+            /* Voorkomt 'bouncen' van de hele pagina op iOS */
+            overscroll-behavior: none; 
         }
         
-        .marker-sight { background-color: #007bff; }   /* Blauw */
-        .marker-food { background-color: #dc3545; }    /* Rood */
-        .marker-activity { background-color: #9c27b0; } /* Paars */
-        .marker-hike { background-color: #28a745; }    /* Groen */
-        
-        .legend-color { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
-        .c-sight { background-color: #007bff; } .c-food { background-color: #dc3545; } .c-act { background-color: #9c27b0; } .c-hike { background-color: #28a745; }
+        /* --- LAYOUT CONTAINERS --- */
+        .container {
+            /* Rekening houden met safe areas */
+            padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom)) 10px;
+            height: 100%;
+            display: flex; flex-direction: column;
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Soepel scrollen op iOS */
+        }
 
-        /* --- POPUP --- */
-        .leaflet-popup-content-wrapper { border-radius: 12px; }
-        .popup-content { min-width: 260px; padding-bottom: 5px; }
-        .popup-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-        .popup-header h3 { margin: 0; font-size: 16px; color: #222; width: 85%; }
-        .fav-btn { cursor: pointer; font-size: 20px; background: none; border: none; padding: 0; line-height: 1; transition: transform 0.2s; }
-        .fav-btn:active { transform: scale(1.3); }
-        .fav-active { color: red; } .fav-inactive { color: #ccc; }
-        .desc { font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4; }
-        .meta-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; font-weight: 600; }
-        .distance-tag { display: block; font-size: 11px; color: #666; margin-top: 4px; font-weight: normal; }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .full-width { grid-column: 1 / -1; }
-        .popup-btn { display: flex; align-items: center; justify-content: center; text-decoration: none; border-radius: 6px; padding: 10px; font-size: 12px; font-weight: bold; color: white; gap: 6px; transition: opacity 0.2s; }
-        .popup-btn:hover { opacity: 0.9; }
-        .btn-google { background: #4285F4; } .btn-nav { background: #34A853; } .btn-yt { background: #FF0000; } .btn-wiki { background: #555; }
+        /* --- INPUTS --- */
+        h1 { font-size: 14px; color: #666; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
+        label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; margin-top: 6px;}
         
-        .loc-btn { width: 100%; padding: 14px; background: #222; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .input-wrapper {
+            display: flex; align-items: center; margin-bottom: 4px;
+            width: 100%;
+        }
+        .input-wrapper input {
+            flex: 1; text-align: center; font-size: 18px; padding: 10px;
+            background: #1c1c1e; border: 1px solid #333;
+            border-left: none; border-right: none; color: white;
+            border-radius: 0; 
+            /* Reset iOS default input styling */
+            appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
+            min-width: 0;
+        }
+        .btn-adjust {
+            background: #333; color: #fff; border: 1px solid #333;
+            font-size: 20px; font-weight: bold; width: 44px; height: 44px; /* Iets groter touch target */
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation;
+            user-select: none;
+        }
+        .btn-minus { border-radius: 8px 0 0 8px; }
+        .btn-plus { border-radius: 0 8px 8px 0; }
+
+        input[type="time"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
+            background: #1c1c1e; color: white; font-size: 20px;
+            display: block;
+            appearance: none; -webkit-appearance: none;
+            font-family: inherit;
+        }
+
+        /* --- TOGGLES --- */
+        .toggle-container { display: flex; background: #1c1c1e; border-radius: 8px; padding: 4px; margin-bottom: 12px; flex-shrink: 0; }
+        .toggle-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: #666; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
+        }
+        .toggle-btn.active { background: #333; color: #fff; }
+
+        /* --- BUTTONS --- */
+        button.action-btn {
+            width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer; margin-top: 15px; margin-bottom: 15px;
+            flex-shrink: 0; /* Voorkomt dat knop plet */
+        }
+        .btn-start { background-color: #30D158; color: black; }
+        .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
+        .btn-pause { background-color: #FF9F0A; color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 18px; border:none;}
+        .btn-nav { background: #333; color: white; border: none; width: 55px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
+
+        /* --- INFO BOX --- */
+        .info-bar {
+            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        /* --- LIST (PREVIEW & ACTIVE) --- */
+        .schedule-list-wrapper {
+            flex: 1; 
+            text-align: left; background: #000;
+            border-top: 1px solid #222;
+            overflow-y: auto; /* Zelf scrollen */
+            min-height: 100px; /* Zorgt dat hij zichtbaar blijft */
+        }
+        .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
+        .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
+        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; }
+        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; }
+        .col-dur  { width: 40px; text-align: right; font-weight: bold; }
+        
+        /* --- TIMER SCREEN SPECIFICS --- */
+        #timer-screen { 
+            display: none; 
+            height: 100%; /* Pakt height van body */
+            flex-direction: column; 
+            padding-bottom: var(--safe-bottom);
+        }
+        .progress-container { width: 100%; height: 6px; background: #222; margin-top: var(--safe-top); }
+        .progress-fill { height: 100%; background: #30D158; width: 0%; transition: width 0.2s linear; }
+        
+        .timer-top { 
+            flex: 0 0 auto; 
+            padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; 
+        }
+        .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
+        .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
+        .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
+
+        /* --- MODAL --- */
+        #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <button id="toggle-btn">⚙️ Filters & Tools</button>
-
-    <button id="gps-btn-map" onclick="locateUser(true)">🎯</button>
-
-    <div id="controls">
-        <div class="sidebar-header">
-            <h2>🇹🇭 Thai Ultimate Guide</h2>
-            <button class="close-btn" onclick="toggleMenu()">×</button>
+    <div id="setup-screen" class="container">
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')">Eindtijd</button>
+            <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
         </div>
 
-        <div class="sidebar-content">
-            <input type="text" id="searchInput" placeholder="🔍 Zoek op naam of omschrijving..." oninput="renderMarkers()">
-
-            <h4>🧮 Wisselkoers & Aankoop</h4>
-            <div class="calc-box">
-                <div class="calc-row">
-                    <div class="calc-input">
-                        <label>Gepind (THB)</label>
-                        <input type="number" id="calcTHB" placeholder="10000" oninput="calculateRate()">
-                    </div>
-                    <div class="calc-input">
-                        <label>Afgeschreven (€)</label>
-                        <input type="number" id="calcEUR" placeholder="275" oninput="calculateRate()">
-                    </div>
-                </div>
-                <div id="rateResult" class="rate-display">Koers: 100 THB = € 2.70</div>
-                
-                <div style="border-top: 1px solid #ccc; margin-top: 10px; padding-top: 10px;">
-                    <label style="font-size: 12px; font-weight: bold; color: #333;">Wat kost het? (Aankoop)</label>
-                    <div class="calc-row">
-                        <div class="calc-input">
-                            <input type="number" id="purchaseTHB" placeholder="Prijs in THB" oninput="calcPurchase()">
-                        </div>
-                        <div class="calc-input" style="background: #fff; border: 1px solid #ccc; border-radius: 6px;">
-                            <div id="purchaseResult" class="purchase-result">€ 0.00</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <h4>❤️ Jouw Reis</h4>
-            <div class="filter-group">
-                <label><input type="checkbox" id="favFilter" onchange="renderMarkers()"> Toon alleen Favorieten</label>
-            </div>
-
-            <h4>🏆 Toplijst (1-200)</h4>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; color:#007bff; margin-bottom:5px;">
-                <span>Top</span><span id="rankVal">200</span>
-            </div>
-            <input type="range" id="rankSlider" min="1" max="200" value="200" oninput="updateSliderVal(); renderMarkers()">
-
-            <h4>Categorieën</h4>
-            <div class="filter-group">
-                <label><input type="checkbox" name="cat" value="sight" checked onchange="renderMarkers()"> <span class="legend-color c-sight"></span> Bezienswaardigheden</label>
-                <label><input type="checkbox" name="cat" value="food" checked onchange="renderMarkers()"> <span class="legend-color c-food"></span> Eten & Drinken</label>
-                <label><input type="checkbox" name="cat" value="activity" checked onchange="renderMarkers()"> <span class="legend-color c-act"></span> Activiteiten</label>
-                <label><input type="checkbox" name="cat" value="hike" checked onchange="renderMarkers()"> <span class="legend-color c-hike"></span> Wandelingen</label>
-            </div>
-
-            <h4>Type Ervaring</h4>
-            <div class="filter-group">
-                <label><input type="checkbox" name="tag" value="nature" checked onchange="renderMarkers()"> 🌳 Natuur</label>
-                <label><input type="checkbox" name="tag" value="culture" checked onchange="renderMarkers()"> 🏛️ Cultuur & Stad</label>
-            </div>
-
-            <h4>Prijsklasse (Geschat)</h4>
-            <select id="priceFilter" onchange="renderMarkers()">
-                <option value="all">Alle prijzen</option>
-                <option value="free">Gratis</option>
-                <option value="cheap">Budget (< €5)</option>
-                <option value="mid">Gemiddeld (€5 - €20)</option>
-                <option value="high">Luxe (> €20)</option>
-            </select>
+        <div id="input-endtime" style="margin-bottom: 5px;">
+            <label>Klaar om (HH:MM)</label>
+            <input type="time" id="endTimeValue">
         </div>
 
-        <div class="sidebar-footer">
-            <button class="loc-btn" onclick="locateUser(true)">📍 Mijn Locatie (Menu)</button>
-            <div id="user-status" style="font-size: 11px; margin-top: 5px; color: #666; text-align: center;"></div>
+        <div class="hidden" id="input-duration">
+            <label>Totale trainingstijd (min)</label>
+            <div class="input-wrapper">
+                <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
+                <input type="number" id="totalMin" value="60" inputmode="numeric">
+                <button class="btn-adjust btn-plus" onclick="adjustValue('totalMin', 5)">+</button>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Rondes</label>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('rounds', -1)">−</button>
+                    <input type="number" id="rounds" value="1" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('rounds', 1)">+</button>
+                </div>
+            </div>
+            <div style="flex:1;">
+                <label>Oefeningen</label>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('exercises', -1)">−</button>
+                    <input type="number" id="exercises" value="8" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('exercises', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <label>Sets per oefening</label>
+        <div class="input-wrapper">
+            <button class="btn-adjust btn-minus" onclick="adjustValue('sets', -1)">−</button>
+            <input type="number" id="sets" value="3" inputmode="numeric">
+            <button class="btn-adjust btn-plus" onclick="adjustValue('sets', 1)">+</button>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Rust (set)</label>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('restSec', -5)">−</button>
+                    <input type="number" id="restSec" value="30" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('restSec', 5)">+</button>
+                </div>
+            </div>
+            <div style="flex:1;">
+                <label>Rust (ronde)</label>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('roundRestSec', -10)">−</button>
+                    <input type="number" id="roundRestSec" value="90" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('roundRestSec', 10)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-bar">
+            <div style="font-size:12px; color:#888;">WERKTIJD PER SET</div>
+            <div style="font-size:30px; font-weight:bold; color:#30D158;" id="live-calc-result">--</div>
+            <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
+        </div>
+        
+        <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
+        
+        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666;">VOORBEELD SCHEMA (VANAF NU):</div>
+        <div id="preview-list" class="schedule-list-wrapper">
+            </div>
+    </div>
+
+    <div id="timer-screen">
+        <div class="progress-container">
+            <div class="progress-fill" id="total-progress"></div>
+        </div>
+
+        <div class="timer-top">
+            <div class="top-row">
+                <div style="text-align: left;">
+                    <div class="status-text" id="current-status">KLAARMAKEN</div>
+                    <div class="big-time" id="countdown">--</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="status-text">KLAAR OM</div>
+                    <div style="font-size: 20px; font-weight: bold;" id="display-end-time">--:--</div>
+                </div>
+            </div>
+            
+            <div class="controls-row">
+                <button class="btn-nav" onclick="skipStep(-1)">❮</button>
+                <button class="btn-pause" id="btn-pause" onclick="handlePauseClick()">PAUZE</button>
+                <button class="btn-nav" onclick="skipStep(1)">❯</button>
+                <button class="btn-stop" style="margin-left: 10px;" onclick="resetApp()">STOP</button>
+            </div>
+        </div>
+
+        <div class="schedule-list-wrapper" id="schedule-list-active"></div>
+    </div>
+
+    <div id="pause-modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">Pauze voorbij</h2>
+            <p style="color:#aaa;">Wat wil je doen?</p>
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">
+                ⏱️ Inhalen (korter werken)
+            </button>
+            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">
+                🐢 Eindtijd verzetten
+            </button>
         </div>
     </div>
 
-    <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <script src="database.js"></script>
-
     <script>
-        // --- 1. SETUP MAP ---
-        const isMobile = window.innerWidth < 600;
-        const initialZoom = isMobile ? 5 : 6;
-        
-        // Start altijd met zicht op heel Thailand
-        const map = L.map('map', { zoomControl: false }).setView([13.0000, 101.5000], initialZoom);
-        
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        // START IN ENDTIME MODE
+        let mode = 'endtime';
+        let schedule = [];
+        let workTimeSec = 0, restTimeSec = 0, roundRestSec = 0;
+        let currentIndex = 0;
+        let timerInterval;
+        let isPaused = false;
+        let audioCtx;
+        let workoutStartTime, targetEndTimeDate;
 
-        // --- MENU LOGICA ---
-        const controls = document.getElementById('controls');
-        const toggleBtn = document.getElementById('toggle-btn');
-
-        L.DomEvent.disableClickPropagation(controls);
-        L.DomEvent.disableScrollPropagation(controls);
-        L.DomEvent.disableClickPropagation(toggleBtn);
-
-        function toggleMenu(e) { 
-            if(e) e.stopPropagation(); 
-            controls.classList.toggle('active'); 
-        }
-        toggleBtn.addEventListener('click', toggleMenu);
-        map.on('click', function() { if (controls.classList.contains('active')) controls.classList.remove('active'); });
-
-        // --- 2. STATE & STORAGE ---
-        let favorites = JSON.parse(localStorage.getItem('thai_favs')) || [];
-        let userRate = parseFloat(localStorage.getItem('thai_rate')) || 2.70; 
-        let userLat = null;
-        let userLng = null;
-        let userMarker = null;
-
-        if(localStorage.getItem('calc_thb')) document.getElementById('calcTHB').value = localStorage.getItem('calc_thb');
-        if(localStorage.getItem('calc_eur')) document.getElementById('calcEUR').value = localStorage.getItem('calc_eur');
-        updateRateDisplay(userRate);
-
-        // --- 3. GPS LOCATIE ---
-        map.locate({setView: false, watch: true, enableHighAccuracy: true});
-
-        map.on('locationfound', function(e) {
-            userLat = e.latlng.lat;
-            userLng = e.latlng.lng;
-
-            if (!userMarker) {
-                userMarker = L.circleMarker(e.latlng, { radius: 8, fillColor: "#4285F4", color: "#ffffff", weight: 3, opacity: 1, fillOpacity: 1 }).addTo(map).bindPopup("Jouw Locatie");
-            } else { userMarker.setLatLng(e.latlng); }
-            document.getElementById('user-status').innerText = "GPS Actief ✅";
-
-            const isInThailand = (userLat >= 5 && userLat <= 21) && (userLng >= 97 && userLng <= 106);
-            if (isInThailand && !window.hasAutoZoomed) {
-                map.setView(e.latlng, 14);
-                window.hasAutoZoomed = true; 
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Listeners voor live berekening
+            document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
+            
+            // Zet default eindtijd op +1 uur
+            const d = new Date(); d.setHours(d.getHours()+1);
+            // Format time correctly 00:00
+            const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('endTimeValue').value = timeString;
+            
+            // Initialiseer UI correct
+            setMode('endtime');
         });
 
-        map.on('locationerror', function(e) { document.getElementById('user-status').innerText = "GPS niet gevonden ❌"; });
-
-        function locateUser(force) {
-            if(userLat && userLng) { 
-                map.setView([userLat, userLng], 14); 
-                if(isMobile) controls.classList.remove('active');
-            } 
-            else { alert("Nog geen GPS signaal."); }
+        function adjustValue(id, delta) {
+            const el = document.getElementById(id);
+            let val = parseInt(el.value) || 0;
+            val += delta;
+            if (val < 1) val = 1; 
+            el.value = val;
+            calculateRealTime();
         }
 
-        // --- 4. CALCULATOR ---
-        function calculateRate() {
-            const thb = parseFloat(document.getElementById('calcTHB').value);
-            const eur = parseFloat(document.getElementById('calcEUR').value);
-            if (thb && eur) {
-                userRate = (eur / thb) * 100;
-                localStorage.setItem('thai_rate', userRate);
-                localStorage.setItem('calc_thb', thb);
-                localStorage.setItem('calc_eur', eur);
-                updateRateDisplay(userRate);
-                calcPurchase();
-                renderMarkers();
-            }
-        }
-
-        function calcPurchase() {
-            const priceThb = parseFloat(document.getElementById('purchaseTHB').value);
-            if (priceThb) {
-                const priceEur = (priceThb / 100) * userRate;
-                document.getElementById('purchaseResult').innerText = `€ ${priceEur.toFixed(2)}`;
-            } else {
-                document.getElementById('purchaseResult').innerText = `€ 0.00`;
-            }
-        }
-
-        function updateRateDisplay(rate) {
-            document.getElementById('rateResult').innerHTML = `Koers: 100 THB = <b>€ ${rate.toFixed(2)}</b>`;
-        }
-
-        // --- 5. FAVORIETEN ---
-        function toggleFav(id) {
-            if (favorites.includes(id)) { favorites = favorites.filter(fav => fav !== id); } 
-            else { favorites.push(id); }
-            localStorage.setItem('thai_favs', JSON.stringify(favorites));
-            const btn = document.getElementById(`fav-btn-${id}`);
-            if(btn) {
-                btn.className = favorites.includes(id) ? 'fav-btn fav-active' : 'fav-btn fav-inactive';
-                btn.innerHTML = favorites.includes(id) ? '❤️' : '🤍';
-            }
-            if(document.getElementById('favFilter').checked) renderMarkers();
-        }
-
-        // --- 6. RENDER ENGINE ---
-        let markers = [];
-
-        function renderMarkers() {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-
-            if (typeof locations === 'undefined') {
-                console.error("Database niet geladen!");
-                return;
-            }
-
-            const maxRank = parseInt(document.getElementById('rankSlider').value);
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const showFavsOnly = document.getElementById('favFilter').checked;
-            const priceFilter = document.getElementById('priceFilter').value;
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
+            document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
             
-            const catChecked = Array.from(document.querySelectorAll('input[name="cat"]:checked')).map(cb => cb.value);
-            const tagChecked = Array.from(document.querySelectorAll('input[name="tag"]:checked')).map(cb => cb.value);
+            if (mode==='duration') {
+                document.getElementById('input-duration').classList.remove('hidden');
+                document.getElementById('input-endtime').classList.add('hidden');
+            } else {
+                document.getElementById('input-duration').classList.add('hidden');
+                document.getElementById('input-endtime').classList.remove('hidden');
+            }
+            calculateRealTime();
+        }
 
-            const convertPrice = (loc) => {
-                if (typeof loc.price === 'string' && (loc.price.toLowerCase().includes('gratis') || loc.price.toLowerCase().includes('donatie'))) {
-                    return '<span style="color:green">Gratis</span>';
-                }
-                let priceVal = 0;
-                if (loc.price_thb !== undefined && loc.price_thb !== null) {
-                    priceVal = loc.price_thb;
-                } else if (typeof loc.price === 'number') {
-                    priceVal = loc.price;
-                } else if (typeof loc.price === 'string') {
-                    priceVal = parseFloat(loc.price.replace(/[^0-9,.]/g, '').replace(',', '.'));
-                }
-                if (priceVal === 0) return '<span style="color:green">Gratis</span>';
-                if (priceVal > 0) {
-                     let euroPrice = (priceVal / 100) * userRate;
-                     return `€ ${euroPrice.toFixed(2)}`;
-                }
-                return "Onbekend";
-            };
+        function calculateRealTime() {
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const ex = parseInt(document.getElementById('exercises').value) || 0;
+            const sts = parseInt(document.getElementById('sets').value) || 0;
+            const rst = parseInt(document.getElementById('restSec').value) || 0;
+            const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
 
-            locations.forEach(loc => {
-                if (loc.lat < 5 || loc.lat > 21) return; 
-                if (showFavsOnly && !favorites.includes(loc.id)) return;
-                if (!showFavsOnly && loc.rank > maxRank) return;
+            if (ex === 0 || sts === 0 || rounds === 0) return;
+
+            const totalSetsInWorkout = rounds * ex * sts;
+            const totalStandardRests = (totalSetsInWorkout) - rounds; 
+            const totalRoundRests = rounds - 1;
+
+            let availableSec = 0;
+            if (mode === 'duration') {
+                availableSec = (parseInt(document.getElementById('totalMin').value) || 0) * 60;
+            } else {
+                const endStr = document.getElementById('endTimeValue').value;
+                if (!endStr) return;
+                const now = new Date();
+                const [h, m] = endStr.split(':');
+                const target = new Date(); target.setHours(h, m, 0, 0);
+                if (target < now) target.setDate(target.getDate() + 1);
+                availableSec = Math.floor((target - now) / 1000);
+            }
+
+            const prepTime = 10;
+            const totalFixedTime = prepTime + (totalStandardRests * rst) + (totalRoundRests * roundRst);
+            const workSecTotal = availableSec - totalFixedTime;
+
+            const btnEl = document.getElementById('btn-start-app');
+            const errEl = document.getElementById('live-calc-error');
+            const resEl = document.getElementById('live-calc-result');
+
+            if (workSecTotal <= 0) {
+                resEl.innerText = "--"; errEl.style.display = "block";
+                btnEl.style.opacity = 0.5; btnEl.disabled = true;
+                workTimeSec = 0;
+                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
+            } else {
+                workTimeSec = Math.floor(workSecTotal / totalSetsInWorkout);
+                resEl.innerText = workTimeSec + "s"; errEl.style.display = "none";
+                btnEl.style.opacity = 1; btnEl.disabled = false;
                 
-                // UPDATE: Slimmer zoeken (Naam EN Beschrijving)
-                if (searchTerm) {
-                    const inName = loc.name.toLowerCase().includes(searchTerm);
-                    const inDesc = loc.desc.toLowerCase().includes(searchTerm);
-                    if (!inName && !inDesc) return;
+                restTimeSec = rst;
+                roundRestSec = roundRst;
+
+                // UPDATE PREVIEW TABEL
+                generateScheduleData();
+                renderPreviewList();
+            }
+        }
+
+        // --- CORE DATA GENERATOR ---
+        function generateScheduleData() {
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sts = parseInt(document.getElementById('sets').value);
+            
+            schedule = [];
+            schedule.push({ type: 'prep', time: 10, label: "Voorbereiden" });
+
+            for (let r = 1; r <= rounds; r++) {
+                for (let e = 1; e <= ex; e++) {
+                    for (let s = 1; s <= sts; s++) {
+                        schedule.push({ 
+                            type: 'work', time: workTimeSec, 
+                            label: `Ronde ${r} | Oef ${e} (Set ${s})` 
+                        });
+
+                        const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
+                        const isLastSetOfRound = (e===ex && s===sts);
+
+                        if (!isLastSetOfWorkout) {
+                            if (isLastSetOfRound) {
+                                schedule.push({ type: 'rest-long', time: roundRestSec, label: "GROTE PAUZE" });
+                            } else {
+                                schedule.push({ type: 'rest', time: restTimeSec, label: "Rust" });
+                            }
+                        }
+                    }
                 }
+            }
+            schedule.push({ type: 'finish', time: 0, label: "KLAAR!" });
+        }
 
-                if (!catChecked.includes(loc.type)) return;
-                if (!tagChecked.includes(loc.tag)) return;
+        // --- PREVIEW RENDERER (Setup Scherm) ---
+        function renderPreviewList() {
+            const list = document.getElementById('preview-list');
+            list.innerHTML = "";
+            let runningDate = new Date();
 
-                let displayPrice = convertPrice(loc);
-                if (priceFilter !== 'all') {
-                    let isFree = displayPrice.includes('Gratis');
-                    let priceNum = parseFloat(displayPrice.replace('€ ', ''));
-                    if (priceFilter === 'free' && !isFree) return;
-                    if (priceFilter === 'cheap' && !isFree && (priceNum > 5 || isNaN(priceNum))) return;
-                    if (priceFilter === 'mid' && (priceNum <= 5 || priceNum > 20 || isNaN(priceNum))) return;
-                    if (priceFilter === 'high' && (priceNum <= 20 || isNaN(priceNum))) return;
-                }
+            schedule.forEach((item) => {
+                if (item.type==='finish') return;
+                let timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                runningDate.setSeconds(runningDate.getSeconds() + item.time);
 
-                let iconChar = '';
-                if(loc.type === 'sight') iconChar = '📷';
-                if(loc.type === 'food') iconChar = '🍜';
-                if(loc.type === 'activity') iconChar = '🏄';
-                if(loc.type === 'hike') iconChar = '🥾';
+                const div = document.createElement('div');
+                div.className = `schedule-item`;
+                if (item.type==='rest-long') div.style.borderLeft = "4px solid #0A84FF";
                 
-                const cssClass = `marker-${loc.type}`;
-                const customIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="custom-pin ${cssClass}">
-                            <div class="pin-icon">${iconChar}</div>
-                            <div class="rank-badge">${loc.rank}</div>
-                           </div>`,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40],
-                    popupAnchor: [0, -45]
-                });
+                let icon = "";
+                if(item.type==='work') icon='🔥';
+                else if(item.type==='rest') icon='💤';
+                else if(item.type==='rest-long') icon='☕';
+                else icon='🚀';
 
-                const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
-                
-                let distHtml = '';
-                if(userLat) {
-                    const d = getDistanceFromLatLonInKm(userLat, userLng, loc.lat, loc.lng);
-                    distHtml = `<span class="distance-tag">📏 ${d.toFixed(1)} km van jou</span>`;
-                }
-
-                const isFav = favorites.includes(loc.id);
-                const favIcon = isFav ? '❤️' : '🤍';
-                const favClass = isFav ? 'fav-active' : 'fav-inactive';
-                const priceColor = displayPrice.includes('Gratis') ? 'green' : '#333';
-                
-                const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}`;
-                const infoUrl = `https://www.google.com/search?q=${encodeURIComponent(loc.name + " Thailand")}`;
-                const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(loc.name + ' Thailand vlog')}`;
-                const wikiUrl = `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(loc.name)}`;
-
-                const popupHtml = `
-                    <div class="popup-content">
-                        <div class="popup-header">
-                            <div>
-                                <div class="category-tag">${loc.type} • #${loc.rank}</div>
-                                <h3>${loc.name}</h3>
-                                ${distHtml}
-                            </div>
-                            <button id="fav-btn-${loc.id}" class="fav-btn ${favClass}" onclick="toggleFav(${loc.id})">${favIcon}</button>
-                        </div>
-                        <div class="desc">${loc.desc}</div>
-                        <div class="meta-row">
-                            <span style="color:${priceColor}">${displayPrice}</span>
-                        </div>
-                        <div class="btn-grid">
-                            <a href="${navUrl}" target="_blank" class="popup-btn btn-nav">🚗 Navigeer</a>
-                            <a href="${infoUrl}" target="_blank" class="popup-btn btn-google">⭐ Info</a>
-                            <a href="${ytUrl}" target="_blank" class="popup-btn btn-yt">▶ YouTube</a>
-                            <a href="${wikiUrl}" target="_blank" class="popup-btn btn-wiki">📖 Wiki</a>
-                        </div>
-                    </div>
-                `;
-
-                marker.bindPopup(popupHtml);
-                markers.push(marker);
+                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
+                list.appendChild(div);
             });
         }
 
-        // --- 7. HELPERS ---
-        function updateSliderVal() { document.getElementById('rankVal').innerText = document.getElementById('rankSlider').value; }
-        
-        function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
-            var R = 6371; var dLat = deg2rad(lat2-lat1); var dLon = deg2rad(lon2-lon1); 
-            var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-            return R * c; 
+        // --- ACTIVE RENDERER (Timer Scherm) ---
+        function renderActiveList() {
+            const list = document.getElementById('schedule-list-active');
+            list.innerHTML = "";
+            let runningDate = new Date();
+            
+            schedule.forEach((item, idx) => {
+                if (item.type==='finish') return;
+                let timeStr = "";
+                if (idx >= currentIndex) {
+                    timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                    runningDate.setSeconds(runningDate.getSeconds() + item.time);
+                } else { timeStr = "klaar"; }
+
+                const div = document.createElement('div');
+                div.className = `schedule-item ${idx===currentIndex?'active':''}`;
+                div.id = `step-${idx}`;
+                if (item.type==='rest-long') div.style.borderLeft = "4px solid #0A84FF";
+                
+                let icon = "";
+                if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else if(item.type==='rest-long') icon='☕'; else icon='🚀';
+
+                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc" style="${item.type==='work'?'color:white':''}">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
+                list.appendChild(div);
+            });
         }
-        function deg2rad(deg) { return deg * (Math.PI/180); }
 
-        document.getElementById('rankSlider').addEventListener('input', (e) => {
-            document.getElementById('rankVal').innerText = e.target.value;
-            renderMarkers();
-        });
-        document.querySelectorAll('input, select').forEach(el => {
-            if(el.id !== 'calcTHB' && el.id !== 'calcEUR' && el.id !== 'purchaseTHB') {
-                el.addEventListener('change', renderMarkers);
+        // --- START & TIMER LOGIC ---
+        function startWorkout() {
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            generateScheduleData(); // Zeker zijn dat we de laatste versie hebben
+            
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('timer-screen').style.display = 'flex';
+
+            workoutStartTime = new Date();
+            if (mode === 'endtime') {
+                const [h, m] = document.getElementById('endTimeValue').value.split(':');
+                targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
+                if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
+            } else {
+                let totalDur = 0;
+                schedule.forEach(s => totalDur += s.time);
+                targetEndTimeDate = new Date(workoutStartTime.getTime() + totalDur * 1000);
             }
-        });
-        
-        // Luister naar 'input' voor directe zoekresultaten
-        document.getElementById('searchInput').addEventListener('input', renderMarkers);
 
-        setTimeout(renderMarkers, 100);
+            updateEndTimeDisplay();
+            renderActiveList();
+            currentIndex = 0;
+            runStep();
+        }
 
+        function runStep() {
+            if (currentIndex >= schedule.length) return;
+            const step = schedule[currentIndex];
+
+            // UI Highlight
+            document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
+            const activeItem = document.getElementById(`step-${currentIndex}`);
+            if (activeItem) { activeItem.classList.add('active'); activeItem.scrollIntoView({behavior:'smooth', block:'center'}); }
+
+            const statusEl = document.getElementById('current-status');
+            if (step.type==='work') { statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; playBeep(800,'start'); }
+            else if (step.type==='rest') { statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; playBeep(400,'end'); }
+            else if (step.type==='rest-long') { statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; playBeep(300,'end'); }
+            else if (step.type==='prep') { statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; }
+            else { finish(); return; }
+
+            document.getElementById('countdown').innerText = step.time;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    step.time--;
+                    document.getElementById('countdown').innerText = step.time;
+                    updateProgressBar();
+                    
+                    if (step.time <= 0) {
+                        clearInterval(timerInterval);
+                        currentIndex++;
+                        runStep();
+                    } else if (step.time <= 3) { playBeep(600,'tick'); }
+                }
+            }, 1000);
+        }
+
+        // --- PAUZE & NAVIGATIE ---
+        function skipStep(dir) {
+            let newIndex = currentIndex + dir;
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
+            currentIndex = newIndex;
+            renderActiveList(); 
+            runStep(); 
+        }
+
+        function handlePauseClick() {
+            const btn = document.getElementById('btn-pause');
+            if (!isPaused) {
+                isPaused = true;
+                btn.innerText = "HERVAT"; btn.style.backgroundColor = "#30D158";
+                document.getElementById('current-status').innerText = "GEPAUZEERD";
+                document.getElementById('current-status').style.color = "white";
+            } else {
+                if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
+                else resolvePause('push');
+            }
+        }
+
+        function resolvePause(choice) {
+            document.getElementById('pause-modal').style.display = 'none';
+            document.getElementById('btn-pause').innerText = "PAUZE";
+            document.getElementById('btn-pause').style.backgroundColor = "#FF9F0A";
+            isPaused = false;
+            if (choice === 'recalc') recalculateForFixedEnd();
+            else updateTargetTimeFromNow();
+            renderActiveList();
+        }
+
+        function recalculateForFixedEnd() {
+            const now = new Date();
+            const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
+            if (secsRemaining <= 0) { alert("Tijd is op!"); finish(); return; }
+
+            let workStepsLeft = 0; let fixedRest = 0;
+            for(let i=currentIndex; i<schedule.length; i++){
+                if (schedule[i].type==='finish') continue;
+                if (schedule[i].type==='rest' || schedule[i].type==='rest-long') fixedRest += schedule[i].time;
+                else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
+            }
+
+            if (workStepsLeft > 0) {
+                const availableForWork = secsRemaining - fixedRest;
+                let newWork = Math.floor(availableForWork / workStepsLeft);
+                if (newWork < 5) newWork = 5; 
+                for(let i=currentIndex; i<schedule.length; i++){
+                    if (schedule[i].type==='work') schedule[i].time = newWork;
+                }
+                document.getElementById('countdown').innerText = schedule[currentIndex].time;
+            }
+        }
+
+        function updateTargetTimeFromNow() {
+            let secsLeft = 0;
+            for(let i=currentIndex; i<schedule.length; i++) {
+                if(schedule[i].type !== 'finish') secsLeft += schedule[i].time;
+            }
+            const now = new Date();
+            targetEndTimeDate = new Date(now.getTime() + secsLeft * 1000);
+            updateEndTimeDisplay();
+        }
+
+        // --- UTILS ---
+        function updateEndTimeDisplay() { document.getElementById('display-end-time').innerText = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+        function updateProgressBar() {
+            const now = new Date();
+            const totalMs = targetEndTimeDate - workoutStartTime; 
+            if (totalMs <= 0) return;
+            const elapsed = now - workoutStartTime;
+            let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100;
+            document.getElementById('total-progress').style.width = pct + "%";
+        }
+        function finish() {
+            document.getElementById('current-status').innerText = "KLAAR!";
+            document.getElementById('current-status').style.color = "white";
+            document.getElementById('countdown').innerText = "🎉";
+            document.getElementById('btn-pause').style.display='none';
+            playBeep(1000,'win');
+        }
+        function resetApp() { clearInterval(timerInterval); location.reload(); }
+        function playBeep(f,t){
+            if(!audioCtx)return;
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.connect(g);g.connect(audioCtx.destination);
+            o.frequency.value=f;o.type='sine';
+            const n=audioCtx.currentTime;
+            if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);}
+            else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);}
+            else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);}
+        }
     </script>
 </body>
 </html>
