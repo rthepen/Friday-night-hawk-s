@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.3</title>
+    <title>Friday-night-hawk-s Timer v5.4</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -39,7 +39,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- TITLE HEADER & SHARE --- */
+        /* --- TITLE HEADER & SAVE --- */
         .header-row {
             display: flex;
             justify-content: space-between;
@@ -72,15 +72,16 @@
             color: white;
             border: none;
             border-radius: 20px;
-            padding: 5px 12px;
+            padding: 6px 14px;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            transition: opacity 0.2s;
         }
-        .btn-share-header:active { opacity: 0.7; }
+        .btn-share-header:active { opacity: 0.6; }
 
         /* --- GRID SYSTEM --- */
         .grid-row {
@@ -275,10 +276,10 @@
         
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v5.3</span>
+                FNH Timer <span class="version-tag">v5.4</span>
             </div>
             <button class="btn-share-header" onclick="shareSettings()">
-                📤 Delen
+                💾 Save
             </button>
         </div>
 
@@ -558,10 +559,9 @@
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Probeer settings te laden uit LocalStorage
+            // 1. Load Local
             loadFromLocal();
-            
-            // 2. Probeer settings te laden uit URL (overschrijft local)
+            // 2. Load URL (overwrites local)
             checkForSharedSettings();
 
             // Set default time only if empty
@@ -580,18 +580,16 @@
                 }
             });
             
-            // Audio mode listener override
             document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
             document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
             
-            // Mode buttons override
             document.getElementById('btn-mode-endtime').onclick = () => { setMode('endtime'); saveToLocal(); };
             document.getElementById('btn-mode-duration').onclick = () => { setMode('duration'); saveToLocal(); };
 
             calculateRealTime(); 
         });
 
-        // --- LOCAL STORAGE LOGIC ---
+        // --- LOCAL STORAGE ---
         function saveToLocal() {
             const data = {
                 rounds: document.getElementById('rounds').value,
@@ -626,7 +624,6 @@
                     
                     if(data.speechSettings) {
                         speechSettings = data.speechSettings;
-                        // Update UI checkboxes
                         allSwitchIds.forEach(id => {
                             const key = mapIdToKey(id);
                             if(document.getElementById(id)) {
@@ -639,7 +636,6 @@
         }
         
         function mapIdToKey(id) {
-            // Map HTML IDs to speechSettings keys
             const map = {
                 'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
                 'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
@@ -650,7 +646,7 @@
             return map[id];
         }
 
-        // --- SHARE LOGIC ---
+        // --- SHARE / SAVE LOGIC ---
         function shareSettings() {
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
@@ -669,23 +665,26 @@
             params.set('re', exerciseRestSec);
             params.set('rr', roundRestSec);
             params.set('tm', totalMin);
-            
-            // Save mode & endtime value
             params.set('m', mode);
             params.set('et', endTimeVal);
             
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
 
+            // Bouw een informatief bericht voor in WhatsApp/Clipboard
+            let summary = `🏋️ FNH Training: ${rounds} Rondes • ${exercises} Oefeningen\n`;
+            summary += `🔥 Werk: ${workTimeSec}s | 💤 Rust: ${restSec}s\n`;
+            summary += `🔗 Klik hier om te laden:\n`;
+
             if (navigator.share) {
                 navigator.share({
                     title: 'FNH Training Schema',
-                    text: 'Hier zijn mijn instellingen voor de Friday Night Hawk training!',
+                    text: summary,
                     url: shareUrl
                 }).catch(console.error);
             } else {
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    alert("Link gekopieerd naar klembord!");
+                navigator.clipboard.writeText(summary + shareUrl).then(() => {
+                    alert("Link met info gekopieerd naar klembord!");
                 });
             }
         }
@@ -707,8 +706,6 @@
                 if(params.has('et')) {
                     document.getElementById('endTimeValue').value = params.get('et');
                 }
-                
-                // If shared, immediately save to local so a reload keeps it
                 saveToLocal();
             }
         }
@@ -737,7 +734,6 @@
         }
 
         function updateSettings() {
-            // Sync global object with checkboxes
             allSwitchIds.forEach(id => {
                 const key = mapIdToKey(id);
                 if(document.getElementById(id)) {
@@ -1068,7 +1064,6 @@
 
             const statusEl = document.getElementById('current-status');
 
-            // --- UITGEBREIDE TRIGGER LOGICA ---
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 
