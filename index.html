@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.0</title>
+    <title>Friday-night-hawk-s Timer v5.1</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -153,12 +153,23 @@
             margin-bottom: 5px;
         }
         .collapsible-content.hidden { display: none; }
+        
+        /* Master Toggle Button */
+        .master-toggle {
+            background: #48484a;
+            border: none;
+            color: #ccc;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .master-toggle:active { background: #666; }
+
         .arrow { font-size: 10px; transition: transform 0.2s; }
         .open .arrow { transform: rotate(180deg); }
 
-        .switch-section-title {
-            font-size: 10px; color: #888; text-transform: uppercase; margin-top: 10px; margin-bottom: 5px; font-weight: bold;
-        }
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 8px 0;
@@ -243,7 +254,7 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v5.0</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v5.1</span>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -353,26 +364,50 @@
                 <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
             </div>
             
-            <div class="switch-section-title">INDICATIES TIJDENS WERKEN</div>
-            <div class="switch-row">
-                <span class="switch-label">"Halverwege!" (bij >30s)</span>
-                <label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label>
+            <div class="collapsible-header" onclick="toggleSection('sec-times')">
+                <div>TIJDMELDINGEN (WERKEN)</div>
+                <div>
+                    <button class="master-toggle" onclick="toggleAll(event, 'sec-times')">[Alles]</button>
+                    <span class="arrow">▼</span>
+                </div>
             </div>
-            <div class="switch-row">
-                <span class="switch-label">"Nog 20 seconden"</span>
-                <label class="switch"><input type="checkbox" id="sp-twentysec" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span class="switch-label">"Nog 15 seconden"</span>
-                <label class="switch"><input type="checkbox" id="sp-fifteensec" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span class="switch-label">"Nog 10 seconden"</span>
-                <label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label>
+            <div id="sec-times" class="collapsible-content hidden">
+                <div class="switch-row">
+                    <span class="switch-label">"Halverwege!" (bij >30s)</span>
+                    <label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 1 minuut"</span>
+                    <label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 30 seconden"</span>
+                    <label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 20 seconden"</span>
+                    <label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 15 seconden"</span>
+                    <label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 10 seconden"</span>
+                    <label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">"Nog 5 seconden"</span>
+                    <label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label>
+                </div>
             </div>
 
             <div class="collapsible-header" onclick="toggleSection('sec-milestones')">
-                MIJLPALEN <span class="arrow">▼</span>
+                <div>MIJLPALEN (TOTAAL)</div>
+                <div>
+                    <button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')">[Alles]</button>
+                    <span class="arrow">▼</span>
+                </div>
             </div>
             <div id="sec-milestones" class="collapsible-content hidden">
                 <div class="switch-row">
@@ -394,24 +429,28 @@
             </div>
 
             <div class="collapsible-header" onclick="toggleSection('sec-tips')">
-                TIPS (TIJDENS RUST) <span class="arrow">▼</span>
+                <div>TIPS (TIJDENS RUST)</div>
+                <div>
+                    <button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button>
+                    <span class="arrow">▼</span>
+                </div>
             </div>
             <div id="sec-tips" class="collapsible-content hidden">
                  <div class="switch-row">
                     <span class="switch-label">Drinken ("Slok water")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-drink" checked><span class="slider"></span></label>
+                    <label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label>
                 </div>
                 <div class="switch-row">
                     <span class="switch-label">Losmaken ("Schud los")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-loose" checked><span class="slider"></span></label>
+                    <label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label>
                 </div>
                 <div class="switch-row">
                     <span class="switch-label">Ademhaling ("Diep in/uit")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-breathe" checked><span class="slider"></span></label>
+                    <label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label>
                 </div>
                 <div class="switch-row">
                     <span class="switch-label">Focus ("Let op houding")</span>
-                    <label class="switch"><input type="checkbox" id="sp-tip-focus" checked><span class="slider"></span></label>
+                    <label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label>
                 </div>
             </div>
 
@@ -468,12 +507,11 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
-        // Settings object
         let speechSettings = { 
             commands: true, countdown: true, nextInfo: true,
-            halfway: true, time20: true, time15: true, time10: true,
+            halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
             m_start: true, m_half: true, m_end: true, m_last: true,
-            t_drink: true, t_loose: true, t_breathe: true, t_focus: true
+            t_drink: false, t_loose: false, t_breathe: false, t_focus: false
         };
         
         let schedule = [];
@@ -489,24 +527,17 @@
             document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
             
             // Listeners voor switches
-            document.getElementById('sp-commands').addEventListener('change', updateSettings);
-            document.getElementById('sp-countdown').addEventListener('change', updateSettings);
-            document.getElementById('sp-nextinfo').addEventListener('change', updateSettings);
+            const switchIds = [
+                'sp-commands', 'sp-countdown', 'sp-nextinfo',
+                'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
+                'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
+                'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
+            ];
             
-            document.getElementById('sp-halfway').addEventListener('change', updateSettings);
-            document.getElementById('sp-twentysec').addEventListener('change', updateSettings);
-            document.getElementById('sp-fifteensec').addEventListener('change', updateSettings);
-            document.getElementById('sp-tensec').addEventListener('change', updateSettings);
-            
-            document.getElementById('sp-mile-start').addEventListener('change', updateSettings);
-            document.getElementById('sp-mile-half').addEventListener('change', updateSettings);
-            document.getElementById('sp-mile-endpush').addEventListener('change', updateSettings);
-            document.getElementById('sp-mile-last').addEventListener('change', updateSettings);
-            
-            document.getElementById('sp-tip-drink').addEventListener('change', updateSettings);
-            document.getElementById('sp-tip-loose').addEventListener('change', updateSettings);
-            document.getElementById('sp-tip-breathe').addEventListener('change', updateSettings);
-            document.getElementById('sp-tip-focus').addEventListener('change', updateSettings);
+            switchIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('change', updateSettings);
+            });
 
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -517,7 +548,7 @@
 
         function toggleSection(id) {
             const el = document.getElementById(id);
-            const header = el.previousElementSibling; // de header div
+            const header = el.previousElementSibling; 
             if(el.classList.contains('hidden')) {
                 el.classList.remove('hidden');
                 header.classList.add('open');
@@ -527,15 +558,31 @@
             }
         }
 
+        function toggleAll(event, sectionId) {
+            event.stopPropagation(); // Voorkom dat de sectie open/dicht klapt
+            const section = document.getElementById(sectionId);
+            const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+            
+            // Kijk of er minstens één uit staat, dan zetten we alles aan. Anders alles uit.
+            let anyUnchecked = false;
+            checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
+            
+            checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
+            updateSettings();
+        }
+
         function updateSettings() {
             speechSettings.commands = document.getElementById('sp-commands').checked;
             speechSettings.countdown = document.getElementById('sp-countdown').checked;
             speechSettings.nextInfo = document.getElementById('sp-nextinfo').checked;
             
             speechSettings.halfway = document.getElementById('sp-halfway').checked;
+            speechSettings.time60 = document.getElementById('sp-time60').checked;
+            speechSettings.time30 = document.getElementById('sp-time30').checked;
             speechSettings.time20 = document.getElementById('sp-twentysec').checked;
             speechSettings.time15 = document.getElementById('sp-fifteensec').checked;
             speechSettings.time10 = document.getElementById('sp-tensec').checked;
+            speechSettings.time5 = document.getElementById('sp-time5').checked;
             
             speechSettings.m_start = document.getElementById('sp-mile-start').checked;
             speechSettings.m_half = document.getElementById('sp-mile-half').checked;
@@ -752,16 +799,21 @@
                 // CHECK NEW FLAGS
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
+                
+                // Tijdmeldingen
                 if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
+                if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
+                if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
                 if (type === 'time20' && speechSettings.time20) shouldSpeak = true;
                 if (type === 'time15' && speechSettings.time15) shouldSpeak = true;
                 if (type === 'time10' && speechSettings.time10) shouldSpeak = true;
+                if (type === 'time5' && speechSettings.time5) shouldSpeak = true;
+
                 if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; // Final win always
                 if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
                 // Mijlpaal check
                 if (type === 'milestone_combo') {
-                    // text = { milestone_id: 'start/half/end/last', text: "...", command: "..." }
                     let fullSentence = "";
                     let allowMilestone = false;
                     
@@ -781,22 +833,17 @@
 
                 // Rust Combo met Tips
                 if (type === 'rest_combo') {
-                    // text = { basic: "Rust", info: "Straks set 3" }
                     let fullSentence = "";
                     if(speechSettings.commands) fullSentence += text.basic + ". ";
                     if(speechSettings.nextInfo && text.info) fullSentence += text.info + ". ";
                     
-                    // KIES EEN TIP UIT DE ENABLED LIJST
                     let possibleTips = [];
                     if(speechSettings.t_drink) possibleTips.push("Neem een slok water");
                     if(speechSettings.t_loose) possibleTips.push("Schud je spieren los");
                     if(speechSettings.t_breathe) possibleTips.push("Let op je ademhaling. Diep in en uit");
                     if(speechSettings.t_focus) possibleTips.push("Blijf gefocust");
 
-                    // Alleen een tip als er opties zijn én het geen mini-pauze is (<10s)
-                    // Huidige step time is niet direct beschikbaar hier, simpele check:
                     if(possibleTips.length > 0) {
-                        // Kies random 1 tip per rustmoment om spam te voorkomen
                         const randomTip = possibleTips[Math.floor(Math.random() * possibleTips.length)];
                         fullSentence += randomTip + ". ";
                     }
@@ -878,13 +925,9 @@
                 let m_id = null;
                 let m_txt = "";
                 
-                // 25% (Start)
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) { m_id = 'start'; m_txt = "Goede start, ga zo door"; }
-                // 50% (Half)
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) { m_id = 'half'; m_txt = "Je bent op de helft van de training"; }
-                // 75% (End push)
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) { m_id = 'end'; m_txt = "Laatste loodjes, eindsprint"; }
-                // Last Round
                 if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) { m_id = 'last'; m_txt = "Laatste ronde, alles geven"; }
                 
                 triggerAudio('milestone_combo', { milestone_id: m_id, text: m_txt, command: "Start met werken" });
@@ -939,19 +982,18 @@
                     updateProgressBar();
                     
                     if (step.type === 'work') {
+                        const init = step.initialTime;
+                        
                         // Halverwege
-                        if (step.time === Math.floor(step.initialTime / 2) && step.initialTime >= 30) {
-                            triggerAudio('halfway', "Halverwege");
-                        }
-                        if (step.time === 20 && step.initialTime >= 30) {
-                             triggerAudio('time20', "Nog 20 seconden");
-                        }
-                        if (step.time === 15 && step.initialTime >= 25) {
-                             triggerAudio('time15', "Nog 15 seconden");
-                        }
-                        if (step.time === 10 && step.initialTime >= 20) {
-                            triggerAudio('time10', "Nog 10 seconden");
-                        }
+                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway', "Halverwege");
+                        
+                        // Specifieke tijden
+                        if (step.time === 60 && init > 70) triggerAudio('time60', "Nog 1 minuut");
+                        if (step.time === 30 && init > 40) triggerAudio('time30', "Nog 30 seconden");
+                        if (step.time === 20 && init > 30) triggerAudio('time20', "Nog 20 seconden");
+                        if (step.time === 15 && init > 25) triggerAudio('time15', "Nog 15 seconden");
+                        if (step.time === 10 && init > 15) triggerAudio('time10', "Nog 10 seconden");
+                        if (step.time === 5 && init > 10) triggerAudio('time5', "Nog 5 seconden");
                     }
 
                     if (step.time <= 0) {
