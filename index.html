@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v4.4</title>
+    <title>Friday-night-hawk-s Timer v4.5</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -184,7 +184,7 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v4.4</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v4.5</span>
         </div>
 
         <div class="toggle-container">
@@ -316,6 +316,7 @@
         let timerInterval;
         let isPaused = false;
         let workoutStartTime, targetEndTimeDate;
+        let totalWorkSetsGlobal = 0; // Totaal aantal sets in de hele training
 
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
@@ -404,15 +405,22 @@
             const ex = parseInt(document.getElementById('exercises').value);
             const sts = parseInt(document.getElementById('sets').value);
             
+            totalWorkSetsGlobal = rounds * ex * sts;
+            let currentSetGlobal = 0;
+
             schedule = [];
             schedule.push({ type: 'prep', time: 10, label: "Voorbereiden" });
 
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
                     for (let s = 1; s <= sts; s++) {
+                        currentSetGlobal++;
+                        
+                        // We slaan nu extra data op (info) voor de spraakcomputer
                         schedule.push({ 
                             type: 'work', time: workTimeSec, 
-                            label: `Ronde ${r} | Oef ${e} (Set ${s})` 
+                            label: `Ronde ${r} | Oef ${e} (Set ${s})`,
+                            info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal }
                         });
 
                         const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
@@ -480,11 +488,9 @@
         // --- SPRAAK FUNCTIE ---
         function speak(text) {
             if (!window.speechSynthesis) return;
-            // Stop vorige spraak zodat ze niet stapelen
             window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'nl-NL'; // Nederlands
+            utterance.lang = 'nl-NL';
             utterance.rate = 1.0; 
             window.speechSynthesis.speak(utterance);
         }
@@ -492,7 +498,7 @@
         function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
             
-            // Spraakmotor "wakker maken" met leeg bericht
+            // "Dummy" speak om audio te activeren
             speak("");
 
             generateScheduleData();
@@ -520,28 +526,49 @@
             if (currentIndex >= schedule.length) return;
             const step = schedule[currentIndex];
 
+            // UI
             document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
             const activeItem = document.getElementById(`step-${currentIndex}`);
             if (activeItem) { activeItem.classList.add('active'); activeItem.scrollIntoView({behavior:'smooth', block:'center'}); }
 
             const statusEl = document.getElementById('current-status');
             
-            // --- SPRAAK EN TEKST TRIGGER ---
+            // --- SPRAAK LOGICA ---
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 speak("Start met werken");
             }
             else if (step.type==='rest') { 
                 statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
-                speak("Rust");
+                
+                // INFORMATIEVE RUST
+                // We kijken naar de volgende stap om te weten wat er komt
+                const nextStep = schedule[currentIndex + 1];
+                if (nextStep && nextStep.type === 'work') {
+                    const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
+                    // "Rust. Straks set 2 van oefening 3. Nog 14 sets tot de finish."
+                    speak(`Rust. Straks set ${nextStep.info.set} van oefening ${nextStep.info.exercise}. Nog ${setsLeft} sets totaal.`);
+                } else {
+                    speak("Rust");
+                }
             }
             else if (step.type==='rest-long') { 
                 statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; 
-                speak("Grote pauze");
+                
+                // INFORMATIEVE RONDE PAUZE
+                const nextStep = schedule[currentIndex + 1];
+                if (nextStep && nextStep.type === 'work') {
+                    const totalRounds = parseInt(document.getElementById('rounds').value);
+                    const roundsLeft = totalRounds - nextStep.info.round;
+                    // "Grote pauze. Hierna ronde 2. Nog 1 ronde te gaan."
+                    speak(`Grote pauze. Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan.`);
+                } else {
+                    speak("Grote pauze");
+                }
             }
             else if (step.type==='prep') { 
                 statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; 
-                speak("Maak je klaar");
+                speak("Maak je klaar voor de eerste set");
             }
             else { finish(); return; }
 
@@ -559,7 +586,6 @@
                         currentIndex++;
                         runStep();
                     } else if (step.time <= 3) { 
-                        // Aftellen: 3, 2, 1
                         speak(step.time.toString());
                     }
                 }
