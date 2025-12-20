@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.4</title>
+    <title>Friday-night-hawk-s Timer v6.5</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -44,6 +44,7 @@
             border: 1px solid #333;
             border-radius: 12px;
             padding: 15px;
+            margin-top: 30px; /* Ruimte aan de bovenkant nu hij onderaan staat */
             margin-bottom: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
@@ -322,7 +323,7 @@
         </div>
 
         <div class="header-row">
-            <div class="app-header">FNH Timer <span class="version-tag">v6.4</span></div>
+            <div class="app-header">FNH Timer <span class="version-tag">v6.5</span></div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
@@ -332,13 +333,6 @@
         <div class="lang-toggle">
             <button class="btn-lang active" id="btn-lang-nl" onclick="setLang('nl')">🇳🇱 NL</button>
             <button class="btn-lang" id="btn-lang-en" onclick="setLang('en')">🇬🇧 EN</button>
-        </div>
-
-        <div class="intro-banner">
-            <div class="intro-title">🦅 <span data-key="introTitle">Welcome to the Friday Night Hawks!</span></div>
-            <div class="intro-text" data-key="introBody">
-                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.<br>Iedere vrijdagavond om 19:45.
-            </div>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;" data-key="secTimeSettings">TIJDSINSTELLINGEN</div>
@@ -497,6 +491,13 @@
 
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;" data-key="lblPreview">VOORBEELD SCHEMA (VANAF NU):</div>
         <div id="preview-list" class="schedule-list-wrapper">
+        </div>
+
+        <div class="intro-banner">
+            <div class="intro-title">🦅 <span data-key="introTitle">Welcome to the Friday Night Hawks!</span></div>
+            <div class="intro-text" data-key="introBody">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.<br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+            </div>
         </div>
     </div>
 
@@ -746,7 +747,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadFromLocal();
-            checkForSharedSettings(); // This might set language too if I add it to URL later, for now keeps local
+            checkForSharedSettings(); 
 
             if(!document.getElementById('endTimeValue').value) {
                 const d = new Date(); d.setHours(d.getHours()+1);
@@ -782,9 +783,7 @@
             document.getElementById('btn-lang-nl').className = (lang === 'nl') ? 'btn-lang active' : 'btn-lang';
             document.getElementById('btn-lang-en').className = (lang === 'en') ? 'btn-lang active' : 'btn-lang';
 
-            // Update Default Intro IF it hasn't been customised too much (simple check)
-            // Or just allow user to see the default for that lang if they reset.
-            // For now, let's keep the custom text if existing, otherwise switch default.
+            // Update Default Intro IF it hasn't been customised too much
             const currentInput = document.getElementById('sp-intro-text').value;
             if (currentInput === texts['nl'].def_intro || currentInput === texts['en'].def_intro) {
                 document.getElementById('sp-intro-text').value = texts[lang].def_intro;
@@ -792,7 +791,7 @@
             }
 
             applyLanguage();
-            calculateRealTime(); // Re-render lists
+            calculateRealTime(); 
             saveToLocal();
         }
 
@@ -806,13 +805,9 @@
             });
         }
 
-        function getT(key) {
-            return texts[currentLang][key] || key;
-        }
-
         // --- RESET ---
         function resetToDefaults() {
-            if(!confirm("Reset?")) return; // Simple confirm
+            if(!confirm("Reset?")) return; 
 
             document.getElementById('rounds').value = 1;
             document.getElementById('exercises').value = 8;
@@ -828,7 +823,7 @@
 
             setMode('endtime');
             setAudioMode('speech');
-            setLang(currentLang); // Keep current lang but reset text
+            setLang(currentLang); 
 
             // Reset Intro
             document.getElementById('sp-intro-text').value = texts[currentLang].def_intro;
@@ -873,7 +868,6 @@
             params.set('tm', totalMin);
             params.set('m', mode);
             params.set('et', endTimeVal);
-            // Could add 'l' param for language if desired
             
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
@@ -891,8 +885,6 @@
 
         // --- CALC & GENERATE ---
         function calculateRealTime() {
-            // ... (Same calculation logic)
-            // Just ensuring we call generateScheduleData at the end
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
@@ -951,7 +943,7 @@
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value);
             const sts = parseInt(document.getElementById('sets').value);
-            const t = texts[currentLang]; // Use current lang texts
+            const t = texts[currentLang]; 
             
             totalWorkSetsGlobal = rounds * ex * sts;
             let currentSetGlobal = 0;
@@ -963,8 +955,7 @@
                 for (let e = 1; e <= ex; e++) {
                     for (let s = 1; s <= sts; s++) {
                         currentSetGlobal++;
-                        // Label construction varies by language usually, but strict format is okay
-                        // "Round 1 | Ex 1 (Set 1)"
+                        
                         let lbl = (currentLang==='nl') 
                             ? `Ronde ${r} | Oef ${e} (Set ${s})` 
                             : `Round ${r} | Ex ${e} (Set ${s})`;
@@ -995,7 +986,6 @@
             schedule.push({ type: 'finish', time: 0, label: t.s_finish, initialTime: 0 });
         }
 
-        // --- RENDER FUNCTIONS (Use same logic, icons don't need trans) ---
         function renderPreviewList() {
             const list = document.getElementById('preview-list');
             list.innerHTML = "";
@@ -1053,7 +1043,6 @@
             });
         }
 
-        // --- AUDIO ---
         function triggerAudio(type, data) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -1067,10 +1056,9 @@
                 let textToSpeak = "";
                 let shouldSpeak = false;
 
-                // Simple mappings
                 if (type === 'tick' && speechSettings.countdown) { textToSpeak = data; shouldSpeak = true; }
                 if (type === 'halfway' && speechSettings.halfway) { textToSpeak = t.s_halfway; shouldSpeak = true; }
-                if (type === 'time60' && speechSettings.time60) { textToSpeak = "1 " + t.s_min; shouldSpeak = true; } // simplified
+                if (type === 'time60' && speechSettings.time60) { textToSpeak = "1 " + t.s_min; shouldSpeak = true; } 
                 if (type === 'time30' && speechSettings.time30) { textToSpeak = "30 " + t.s_sec; shouldSpeak = true; }
                 if (type === 'time20' && speechSettings.time20) { textToSpeak = "20 " + t.s_sec; shouldSpeak = true; }
                 if (type === 'time15' && speechSettings.time15) { textToSpeak = "15 " + t.s_sec; shouldSpeak = true; }
@@ -1078,12 +1066,11 @@
                 if (type === 'time5' && speechSettings.time5) { textToSpeak = "5 " + t.s_sec; shouldSpeak = true; }
                 if (type === 'milestone' && speechSettings.m_end) { textToSpeak = t.s_congrats; shouldSpeak = true; }
                 if (type === 'promo_start' && speechSettings.promo_start) { textToSpeak = speechSettings.introText; shouldSpeak = true; }
-                if (type === 'prep' && speechSettings.nextInfo) { textToSpeak = t.s_prep; shouldSpeak = true; } // Simplified prep message
+                if (type === 'prep' && speechSettings.nextInfo) { textToSpeak = t.s_prep; shouldSpeak = true; } 
                 if (type === 'command') {
                     if (speechSettings.commands) { textToSpeak = data; shouldSpeak = true; }
                 }
 
-                // Complex Combos
                 if (type === 'milestone_combo') {
                     let full = "";
                     if(data.milestone_id === 'start' && speechSettings.m_start) full += t.s_good_start + ". ";
@@ -1095,21 +1082,18 @@
                 }
 
                 if (type === 'rest_combo') {
-                    // data: { basic_key: 's_rest', info: {set, ex, left} }
                     let full = "";
                     if(speechSettings.commands) full += t[data.basic_key] + ". ";
                     
                     if(speechSettings.nextInfo && data.info) {
-                        // Build sentence: "Next is set 1. 5 sets total left."
                         if(data.info.is_work_next) {
-                            if(data.info.ex_count_str) full += data.info.ex_count_str + ". "; // "Next exercise 2 of 8"
+                            if(data.info.ex_count_str) full += data.info.ex_count_str + ". "; 
                             else full += `${t.s_next_set} ${data.info.set}. `;
                             
                             if(data.info.sets_left) full += `${t.s_left} ${data.info.sets_left} ${t.s_sets_total}. `;
                         }
                     }
 
-                    // Tips
                     let possibleTips = [];
                     if(speechSettings.t_drink) possibleTips.push(t.s_tip_drink);
                     if(speechSettings.t_loose) possibleTips.push(t.s_tip_loose);
@@ -1140,7 +1124,6 @@
             else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);}
         }
 
-        // --- RUNNING ---
         function runStep() {
             if (currentIndex >= schedule.length) return;
             const step = schedule[currentIndex];
@@ -1171,7 +1154,6 @@
                 triggerAudio('promo_start');
             }
             else {
-                // REST LOGIC
                 let label = t.s_rest;
                 let key = 's_rest';
                 let color = "#FF9F0A";
@@ -1190,16 +1172,13 @@
 
                         const totalEx = document.getElementById('exercises').value;
                         
-                        // "Exercise X of Y" logic
                         let mentionEx = false;
                         if(step.type === 'rest' && speechSettings.t_excount) mentionEx = true;
                         if(step.type === 'rest-exercise' && speechSettings.t_excount_switch) mentionEx = true;
                         
                         if(mentionEx) {
-                            // "Next exercise 2 of 8"
                             infoObj.ex_count_str = `${t.s_next_ex} ${nextStep.info.exercise} ${t.s_of_the} ${totalEx}`;
                         } else if (step.type === 'rest-exercise') {
-                             // Just "Next exercise 2"
                              infoObj.ex_count_str = `${t.s_next_ex} ${nextStep.info.exercise}`;
                         }
                     }
@@ -1240,7 +1219,6 @@
             }, 1000);
         }
 
-        // ... Existing Utility Functions (skipStep, pause, etc) same logic ...
         function skipStep(dir) {
             let newIndex = currentIndex + dir;
             if (newIndex < 0) newIndex = 0;
@@ -1265,7 +1243,7 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const t = texts[currentLang];
-            document.getElementById('btn-pause').innerText = "PAUZE"; // Keep simple or translate?
+            document.getElementById('btn-pause').innerText = "PAUZE"; 
             document.getElementById('btn-pause').style.backgroundColor = "#FF9F0A";
             isPaused = false;
             triggerAudio('command', t.s_resume_voice);
@@ -1273,7 +1251,6 @@
             else updateTargetTimeFromNow();
             renderActiveList();
         }
-        // ... (recalculateForFixedEnd, updateTargetTimeFromNow, updateEndTimeDisplay, updateProgressBar same as before) ...
         
         function recalculateForFixedEnd() {
             const now = new Date();
@@ -1322,13 +1299,11 @@
         }
         function resetApp() { clearInterval(timerInterval); location.reload(); }
         
-        // Load settings on init
         function loadFromLocal() {
             const saved = localStorage.getItem('fnh_settings_v5');
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
-                    // Load values...
                     document.getElementById('rounds').value = data.rounds || 1;
                     document.getElementById('exercises').value = data.exercises || 8;
                     document.getElementById('sets').value = data.sets || 2;
@@ -1339,8 +1314,7 @@
                     
                     if(data.mode) setMode(data.mode);
                     if(data.audioMode) setAudioMode(data.audioMode);
-                    // Load Lang
-                    if(data.lang) setLang(data.lang); // This triggers applyLanguage
+                    if(data.lang) setLang(data.lang); 
 
                     if(data.speechSettings) {
                         speechSettings = data.speechSettings;
@@ -1366,7 +1340,7 @@
                 mode: mode,
                 audioMode: audioMode,
                 speechSettings: speechSettings,
-                lang: currentLang // Save lang
+                lang: currentLang 
             };
             localStorage.setItem('fnh_settings_v5', JSON.stringify(data));
         }
@@ -1374,7 +1348,6 @@
         function checkForSharedSettings() {
             const params = new URLSearchParams(window.location.search);
             if(params.has('r')) {
-               // ... load params ...
                document.getElementById('rounds').value = params.get('r');
                document.getElementById('exercises').value = params.get('e');
                document.getElementById('sets').value = params.get('s');
