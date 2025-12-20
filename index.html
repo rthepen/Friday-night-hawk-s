@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v5.1</title>
+    <title>Friday-night-hawk-s Timer v5.2</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -154,7 +154,6 @@
         }
         .collapsible-content.hidden { display: none; }
         
-        /* Master Toggle Button */
         .master-toggle {
             background: #48484a;
             border: none;
@@ -254,7 +253,7 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v5.1</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v5.2</span>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -523,27 +522,90 @@
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
 
+        // --- STORAGE & LOAD ---
+        function saveSettings() {
+            const settings = {
+                rounds: document.getElementById('rounds').value,
+                exercises: document.getElementById('exercises').value,
+                sets: document.getElementById('sets').value,
+                restSec: document.getElementById('restSec').value,
+                exerciseRestSec: document.getElementById('exerciseRestSec').value,
+                roundRestSec: document.getElementById('roundRestSec').value,
+                totalMin: document.getElementById('totalMin').value,
+                mode: mode,
+                audioMode: audioMode,
+                speechSettings: speechSettings
+            };
+            localStorage.setItem('fridayTimerSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('fridayTimerSettings');
+            if (saved) {
+                try {
+                    const s = JSON.parse(saved);
+                    if(s.rounds) document.getElementById('rounds').value = s.rounds;
+                    if(s.exercises) document.getElementById('exercises').value = s.exercises;
+                    if(s.sets) document.getElementById('sets').value = s.sets;
+                    if(s.restSec) document.getElementById('restSec').value = s.restSec;
+                    if(s.exerciseRestSec) document.getElementById('exerciseRestSec').value = s.exerciseRestSec;
+                    if(s.roundRestSec) document.getElementById('roundRestSec').value = s.roundRestSec;
+                    if(s.totalMin) document.getElementById('totalMin').value = s.totalMin;
+                    
+                    if(s.mode) setMode(s.mode);
+                    if(s.audioMode) setAudioMode(s.audioMode);
+                    
+                    if(s.speechSettings) {
+                        speechSettings = s.speechSettings;
+                        // Sync Checkboxes
+                        const map = {
+                           'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
+                           'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 
+                           'sp-twentysec': 'time20', 'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
+                           'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
+                           'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
+                        };
+                        for (const [id, key] of Object.entries(map)) {
+                            const el = document.getElementById(id);
+                            if(el && speechSettings.hasOwnProperty(key)) {
+                                el.checked = speechSettings[key];
+                            }
+                        }
+                    }
+                } catch(e) { console.log("Settings load error", e); }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
+            // Listeners for inputs -> save & calc
+            document.querySelectorAll('input[type="number"], input[type="time"]').forEach(i => {
+                i.addEventListener('input', () => { calculateRealTime(); saveSettings(); });
+            });
             
-            // Listeners voor switches
+            // Listeners for switches -> save
             const switchIds = [
                 'sp-commands', 'sp-countdown', 'sp-nextinfo',
                 'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
                 'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
                 'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
             ];
-            
             switchIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.addEventListener('change', updateSettings);
+                if(el) el.addEventListener('change', () => { updateSettings(); saveSettings(); });
             });
 
+            // Init End Time default (always +1 hour from now as base, unless mode overrides visuals)
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('endTimeValue').value = timeString;
-            setMode('endtime');
-            setAudioMode('speech');
+
+            // Load saved settings
+            setMode('endtime'); // default
+            setAudioMode('speech'); // default
+            loadSettings(); // override with saved
+            
+            // Initial calculation
+            calculateRealTime();
         });
 
         function toggleSection(id) {
@@ -559,16 +621,16 @@
         }
 
         function toggleAll(event, sectionId) {
-            event.stopPropagation(); // Voorkom dat de sectie open/dicht klapt
+            event.stopPropagation();
             const section = document.getElementById(sectionId);
             const checkboxes = section.querySelectorAll('input[type="checkbox"]');
             
-            // Kijk of er minstens één uit staat, dan zetten we alles aan. Anders alles uit.
             let anyUnchecked = false;
             checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
             
             checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
             updateSettings();
+            saveSettings();
         }
 
         function updateSettings() {
@@ -603,6 +665,8 @@
             const panel = document.getElementById('speech-settings-panel');
             if(audioMode === 'speech') panel.classList.remove('hidden');
             else panel.classList.add('hidden');
+            
+            saveSettings();
         }
 
         function adjustValue(id, delta) {
@@ -612,6 +676,7 @@
             if (val < 1) val = 1; 
             el.value = val;
             calculateRealTime();
+            saveSettings();
         }
 
         function setMode(newMode) {
@@ -627,6 +692,7 @@
                 document.getElementById('input-endtime').classList.remove('hidden');
             }
             calculateRealTime();
+            saveSettings();
         }
 
         function calculateRealTime() {
@@ -784,7 +850,7 @@
             });
         }
 
-        // --- AUDIO LOGIC ---
+        // --- AUDIO CONTROLLER ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -917,11 +983,9 @@
 
             const statusEl = document.getElementById('current-status');
 
-            // --- UITGEBREIDE TRIGGER LOGICA ---
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 
-                // Mijlpalen
                 let m_id = null;
                 let m_txt = "";
                 
@@ -984,10 +1048,8 @@
                     if (step.type === 'work') {
                         const init = step.initialTime;
                         
-                        // Halverwege
                         if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway', "Halverwege");
                         
-                        // Specifieke tijden
                         if (step.time === 60 && init > 70) triggerAudio('time60', "Nog 1 minuut");
                         if (step.time === 30 && init > 40) triggerAudio('time30', "Nog 30 seconden");
                         if (step.time === 20 && init > 30) triggerAudio('time20', "Nog 20 seconden");
@@ -1068,7 +1130,7 @@
         }
 
         function updateTargetTimeFromNow() {
-            let secsLeft = 0;
+            let secsLeft = 0;https://github.com/rthepen/Friday-night-hawk-s/blob/main/index.html
             for(let i=currentIndex; i<schedule.length; i++) {
                 if(schedule[i].type !== 'finish') secsLeft += schedule[i].time;
             }
