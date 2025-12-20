@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v4.9</title>
+    <title>Friday-night-hawk-s Timer v5.0</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -62,8 +62,6 @@
         }
 
         /* --- GRID SYSTEM --- */
-        h1 { font-size: 14px; color: #666; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1px; }
-        
         .grid-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -130,8 +128,36 @@
             border: 1px solid #333;
             text-align: left;
         }
+        
+        /* Collapsible Styles */
+        .collapsible-header {
+            background: #2c2c2e;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .collapsible-header:hover { background: #3a3a3c; }
+        .collapsible-content {
+            padding: 5px 10px;
+            background: #151516;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            margin-bottom: 5px;
+        }
+        .collapsible-content.hidden { display: none; }
+        .arrow { font-size: 10px; transition: transform 0.2s; }
+        .open .arrow { transform: rotate(180deg); }
+
         .switch-section-title {
-            font-size: 10px; color: #666; text-transform: uppercase; margin-top: 10px; margin-bottom: 5px; font-weight: bold;
+            font-size: 10px; color: #888; text-transform: uppercase; margin-top: 10px; margin-bottom: 5px; font-weight: bold;
         }
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -217,7 +243,7 @@
     <div id="setup-screen" class="container">
         
         <div class="app-header">
-            Friday-night-hawk-s Timer <span class="version-tag">v4.9</span>
+            Friday-night-hawk-s Timer <span class="version-tag">v5.0</span>
         </div>
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
@@ -322,29 +348,71 @@
                 <span class="switch-label"><strong>Aftellen</strong> (3, 2, 1)</span>
                 <label class="switch"><input type="checkbox" id="sp-countdown" checked><span class="slider"></span></label>
             </div>
+            <div class="switch-row">
+                <span class="switch-label">Volgende info (Set x van y...)</span>
+                <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
+            </div>
             
-            <div class="switch-section-title">TIJDENS HET WERKEN</div>
+            <div class="switch-section-title">INDICATIES TIJDENS WERKEN</div>
             <div class="switch-row">
                 <span class="switch-label">"Halverwege!" (bij >30s)</span>
                 <label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">"Nog 20 seconden"</span>
+                <label class="switch"><input type="checkbox" id="sp-twentysec" checked><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span class="switch-label">"Nog 15 seconden"</span>
+                <label class="switch"><input type="checkbox" id="sp-fifteensec" checked><span class="slider"></span></label>
             </div>
             <div class="switch-row">
                 <span class="switch-label">"Nog 10 seconden"</span>
                 <label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label>
             </div>
 
-            <div class="switch-section-title">TIJDENS RUST & INFO</div>
-            <div class="switch-row">
-                <span class="switch-label">Volgende info (Set x van y...)</span>
-                <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
+            <div class="collapsible-header" onclick="toggleSection('sec-milestones')">
+                MIJLPALEN <span class="arrow">▼</span>
             </div>
-            <div class="switch-row">
-                <span class="switch-label">Mijlpalen (Helft training/Laatste)</span>
-                <label class="switch"><input type="checkbox" id="sp-milestones" checked><span class="slider"></span></label>
+            <div id="sec-milestones" class="collapsible-content hidden">
+                <div class="switch-row">
+                    <span class="switch-label">25% ("Goede start")</span>
+                    <label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">50% ("Helft van training")</span>
+                    <label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">75% ("Eindsprint")</span>
+                    <label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Laatste ronde</span>
+                    <label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label>
+                </div>
             </div>
-            <div class="switch-row">
-                <span class="switch-label">Tips (Drink/Schud los)</span>
-                <label class="switch"><input type="checkbox" id="sp-tips" checked><span class="slider"></span></label>
+
+            <div class="collapsible-header" onclick="toggleSection('sec-tips')">
+                TIPS (TIJDENS RUST) <span class="arrow">▼</span>
+            </div>
+            <div id="sec-tips" class="collapsible-content hidden">
+                 <div class="switch-row">
+                    <span class="switch-label">Drinken ("Slok water")</span>
+                    <label class="switch"><input type="checkbox" id="sp-tip-drink" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Losmaken ("Schud los")</span>
+                    <label class="switch"><input type="checkbox" id="sp-tip-loose" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Ademhaling ("Diep in/uit")</span>
+                    <label class="switch"><input type="checkbox" id="sp-tip-breathe" checked><span class="slider"></span></label>
+                </div>
+                <div class="switch-row">
+                    <span class="switch-label">Focus ("Let op houding")</span>
+                    <label class="switch"><input type="checkbox" id="sp-tip-focus" checked><span class="slider"></span></label>
+                </div>
             </div>
 
         </div>
@@ -399,15 +467,13 @@
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
-        // Nieuwe settings structuur
+        
+        // Settings object
         let speechSettings = { 
-            commands: true, 
-            countdown: true,
-            halfway: true,
-            tenSec: true,
-            nextInfo: true,
-            milestones: true,
-            tips: true
+            commands: true, countdown: true, nextInfo: true,
+            halfway: true, time20: true, time15: true, time10: true,
+            m_start: true, m_half: true, m_end: true, m_last: true,
+            t_drink: true, t_loose: true, t_breathe: true, t_focus: true
         };
         
         let schedule = [];
@@ -422,11 +488,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculateRealTime));
             
-            // Listeners voor alle nieuwe switches
-            const ids = ['sp-commands', 'sp-countdown', 'sp-halfway', 'sp-tensec', 'sp-nextinfo', 'sp-milestones', 'sp-tips'];
-            ids.forEach(id => {
-                document.getElementById(id).addEventListener('change', updateSpeechSettings);
-            });
+            // Listeners voor switches
+            document.getElementById('sp-commands').addEventListener('change', updateSettings);
+            document.getElementById('sp-countdown').addEventListener('change', updateSettings);
+            document.getElementById('sp-nextinfo').addEventListener('change', updateSettings);
+            
+            document.getElementById('sp-halfway').addEventListener('change', updateSettings);
+            document.getElementById('sp-twentysec').addEventListener('change', updateSettings);
+            document.getElementById('sp-fifteensec').addEventListener('change', updateSettings);
+            document.getElementById('sp-tensec').addEventListener('change', updateSettings);
+            
+            document.getElementById('sp-mile-start').addEventListener('change', updateSettings);
+            document.getElementById('sp-mile-half').addEventListener('change', updateSettings);
+            document.getElementById('sp-mile-endpush').addEventListener('change', updateSettings);
+            document.getElementById('sp-mile-last').addEventListener('change', updateSettings);
+            
+            document.getElementById('sp-tip-drink').addEventListener('change', updateSettings);
+            document.getElementById('sp-tip-loose').addEventListener('change', updateSettings);
+            document.getElementById('sp-tip-breathe').addEventListener('change', updateSettings);
+            document.getElementById('sp-tip-focus').addEventListener('change', updateSettings);
 
             const d = new Date(); d.setHours(d.getHours()+1);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -435,14 +515,37 @@
             setAudioMode('speech');
         });
 
-        function updateSpeechSettings() {
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            const header = el.previousElementSibling; // de header div
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                header.classList.add('open');
+            } else {
+                el.classList.add('hidden');
+                header.classList.remove('open');
+            }
+        }
+
+        function updateSettings() {
             speechSettings.commands = document.getElementById('sp-commands').checked;
             speechSettings.countdown = document.getElementById('sp-countdown').checked;
-            speechSettings.halfway = document.getElementById('sp-halfway').checked;
-            speechSettings.tenSec = document.getElementById('sp-tensec').checked;
             speechSettings.nextInfo = document.getElementById('sp-nextinfo').checked;
-            speechSettings.milestones = document.getElementById('sp-milestones').checked;
-            speechSettings.tips = document.getElementById('sp-tips').checked;
+            
+            speechSettings.halfway = document.getElementById('sp-halfway').checked;
+            speechSettings.time20 = document.getElementById('sp-twentysec').checked;
+            speechSettings.time15 = document.getElementById('sp-fifteensec').checked;
+            speechSettings.time10 = document.getElementById('sp-tensec').checked;
+            
+            speechSettings.m_start = document.getElementById('sp-mile-start').checked;
+            speechSettings.m_half = document.getElementById('sp-mile-half').checked;
+            speechSettings.m_end = document.getElementById('sp-mile-endpush').checked;
+            speechSettings.m_last = document.getElementById('sp-mile-last').checked;
+            
+            speechSettings.t_drink = document.getElementById('sp-tip-drink').checked;
+            speechSettings.t_loose = document.getElementById('sp-tip-loose').checked;
+            speechSettings.t_breathe = document.getElementById('sp-tip-breathe').checked;
+            speechSettings.t_focus = document.getElementById('sp-tip-focus').checked;
         }
 
         function setAudioMode(newMode) {
@@ -634,7 +737,7 @@
             });
         }
 
-        // --- AUDIO TRIGGER LOGIC ---
+        // --- AUDIO LOGIC ---
         function triggerAudio(type, text) {
             if (audioMode === 'beep') {
                 if (type === 'start') playBeep(800, 'start');
@@ -650,33 +753,58 @@
                 if (type === 'command' && speechSettings.commands) shouldSpeak = true;
                 if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
                 if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
-                if (type === 'tensec' && speechSettings.tenSec) shouldSpeak = true;
-                if (type === 'milestone' && speechSettings.milestones) shouldSpeak = true;
-                if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true; // Algemene info
+                if (type === 'time20' && speechSettings.time20) shouldSpeak = true;
+                if (type === 'time15' && speechSettings.time15) shouldSpeak = true;
+                if (type === 'time10' && speechSettings.time10) shouldSpeak = true;
+                if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; // Final win always
+                if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
                 
-                // Special case voor rust: we bouwen de zin op basis van wat aan staat
+                // Mijlpaal check
+                if (type === 'milestone_combo') {
+                    // text = { milestone_id: 'start/half/end/last', text: "...", command: "..." }
+                    let fullSentence = "";
+                    let allowMilestone = false;
+                    
+                    if(text.milestone_id === 'start' && speechSettings.m_start) allowMilestone = true;
+                    if(text.milestone_id === 'half' && speechSettings.m_half) allowMilestone = true;
+                    if(text.milestone_id === 'end' && speechSettings.m_end) allowMilestone = true;
+                    if(text.milestone_id === 'last' && speechSettings.m_last) allowMilestone = true;
+                    
+                    if(allowMilestone) fullSentence += text.text + ". ";
+                    if(speechSettings.commands) fullSentence += text.command + ". ";
+                     
+                    if(fullSentence.trim() !== "") {
+                        text = fullSentence;
+                        shouldSpeak = true;
+                    }
+                }
+
+                // Rust Combo met Tips
                 if (type === 'rest_combo') {
-                    // text = { basic: "Rust", info: "Straks set 3", tip: "Drink wat" }
+                    // text = { basic: "Rust", info: "Straks set 3" }
                     let fullSentence = "";
                     if(speechSettings.commands) fullSentence += text.basic + ". ";
                     if(speechSettings.nextInfo && text.info) fullSentence += text.info + ". ";
-                    if(speechSettings.tips && text.tip) fullSentence += text.tip + ". ";
+                    
+                    // KIES EEN TIP UIT DE ENABLED LIJST
+                    let possibleTips = [];
+                    if(speechSettings.t_drink) possibleTips.push("Neem een slok water");
+                    if(speechSettings.t_loose) possibleTips.push("Schud je spieren los");
+                    if(speechSettings.t_breathe) possibleTips.push("Let op je ademhaling. Diep in en uit");
+                    if(speechSettings.t_focus) possibleTips.push("Blijf gefocust");
+
+                    // Alleen een tip als er opties zijn én het geen mini-pauze is (<10s)
+                    // Huidige step time is niet direct beschikbaar hier, simpele check:
+                    if(possibleTips.length > 0) {
+                        // Kies random 1 tip per rustmoment om spam te voorkomen
+                        const randomTip = possibleTips[Math.floor(Math.random() * possibleTips.length)];
+                        fullSentence += randomTip + ". ";
+                    }
                     
                     if(fullSentence.trim() !== "") {
                         text = fullSentence;
                         shouldSpeak = true;
                     }
-                } else if (type === 'milestone_combo') {
-                     // Combinatie van Mijlpaal + Start Commando
-                     // text = { milestone: "Helft van training", command: "Start met werken" }
-                     let fullSentence = "";
-                     if(speechSettings.milestones && text.milestone) fullSentence += text.milestone + ". ";
-                     if(speechSettings.commands) fullSentence += text.command + ". ";
-                     
-                     if(fullSentence.trim() !== "") {
-                        text = fullSentence;
-                        shouldSpeak = true;
-                     }
                 }
 
                 if (shouldSpeak) {
@@ -746,12 +874,20 @@
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 
-                // Mijlpalen checken
-                let milestoneTxt = "";
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal/2)) milestoneTxt = "Je bent op de helft van de training";
-                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) milestoneTxt = "Laatste ronde, alles geven";
+                // Mijlpalen
+                let m_id = null;
+                let m_txt = "";
                 
-                triggerAudio('milestone_combo', { milestone: milestoneTxt, command: "Start met werken" });
+                // 25% (Start)
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) { m_id = 'start'; m_txt = "Goede start, ga zo door"; }
+                // 50% (Half)
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) { m_id = 'half'; m_txt = "Je bent op de helft van de training"; }
+                // 75% (End push)
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) { m_id = 'end'; m_txt = "Laatste loodjes, eindsprint"; }
+                // Last Round
+                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) { m_id = 'last'; m_txt = "Laatste ronde, alles geven"; }
+                
+                triggerAudio('milestone_combo', { milestone_id: m_id, text: m_txt, command: "Start met werken" });
                 if(audioMode==='beep') triggerAudio('start');
             }
             else if (step.type==='rest') { 
@@ -763,12 +899,7 @@
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
                         infoTxt = `Straks set ${nextStep.info.set}. Nog ${setsLeft} sets totaal`;
                     }
-                    
-                    let tipTxt = "";
-                    if(step.initialTime > 45) tipTxt = "Vergeet niet te drinken";
-                    if(step.initialTime < 20) tipTxt = "Schud je spieren los";
-                    
-                    triggerAudio('rest_combo', { basic: "Rust", info: infoTxt, tip: tipTxt });
+                    triggerAudio('rest_combo', { basic: "Rust", info: infoTxt });
                 }
             }
             else if (step.type==='rest-exercise') {
@@ -777,9 +908,7 @@
                 else {
                     let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') infoTxt = `Hierna oefening ${nextStep.info.exercise}`;
-                    let tipTxt = (step.initialTime > 45) ? "Neem een slok water" : "";
-                    
-                    triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt, tip: tipTxt });
+                    triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt });
                 }
             }
             else if (step.type==='rest-long') { 
@@ -791,7 +920,7 @@
                         const roundsLeft = totalRounds - nextStep.info.round;
                         infoTxt = `Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan`;
                     }
-                    triggerAudio('rest_combo', { basic: "Grote pauze", info: infoTxt, tip: "Neem goed rust" });
+                    triggerAudio('rest_combo', { basic: "Grote pauze", info: infoTxt });
                 }
             }
             else if (step.type==='prep') { 
@@ -809,15 +938,19 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
-                    // EXTRA TRIGGERS TIJDENS HET WERKEN
                     if (step.type === 'work') {
                         // Halverwege
                         if (step.time === Math.floor(step.initialTime / 2) && step.initialTime >= 30) {
                             triggerAudio('halfway', "Halverwege");
                         }
-                        // 10 seconden
+                        if (step.time === 20 && step.initialTime >= 30) {
+                             triggerAudio('time20', "Nog 20 seconden");
+                        }
+                        if (step.time === 15 && step.initialTime >= 25) {
+                             triggerAudio('time15', "Nog 15 seconden");
+                        }
                         if (step.time === 10 && step.initialTime >= 20) {
-                            triggerAudio('tensec', "Nog 10 seconden");
+                            triggerAudio('time10', "Nog 10 seconden");
                         }
                     }
 
