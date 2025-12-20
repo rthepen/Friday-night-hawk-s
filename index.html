@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.5</title>
+    <title>FNH Timer v6.6</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -11,10 +11,7 @@
             --app-height: 100dvh;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: #000;
@@ -38,37 +35,12 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- INTRO BANNER --- */
-        .intro-banner {
-            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 30px; /* Ruimte aan de bovenkant nu hij onderaan staat */
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .intro-title {
-            font-size: 16px;
-            font-weight: 900;
-            color: #30D158;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            letter-spacing: -0.5px;
-        }
-        .intro-text {
-            font-size: 13px;
-            color: #ccc;
-            line-height: 1.4;
-        }
-
         /* --- LOGO & HEADER --- */
         .logo-container {
             display: flex;
             justify-content: center;
             margin-bottom: 15px;
         }
-        
         .app-logo {
             width: 120px;
             height: auto;
@@ -86,110 +58,60 @@
             border-bottom: 1px solid #222;
         }
 
-        .app-header {
-            font-size: 18px;
-            font-weight: 900;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-            text-align: left;
-        }
+        .app-header { font-size: 18px; font-weight: 900; color: #fff; text-transform: uppercase; text-align: left; }
         .version-tag {
-            font-size: 11px;
-            color: #30D158;
-            background: #1c1c1e;
-            padding: 2px 5px;
-            border-radius: 4px;
-            vertical-align: middle;
-            margin-left: 5px;
-            font-weight: bold;
-            border: 1px solid #333;
+            font-size: 11px; color: #30D158; background: #1c1c1e;
+            padding: 2px 5px; border-radius: 4px; margin-left: 5px; font-weight: bold; border: 1px solid #333;
         }
         
         .header-buttons { display: flex; gap: 8px; }
-
         .btn-header {
-            border: none;
-            border-radius: 20px;
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: opacity 0.2s;
+            border: none; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: bold;
+            cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.2s;
         }
         .btn-header:active { opacity: 0.6; }
         .btn-save { background: #0A84FF; color: white; }
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
 
         /* LANGUAGE TOGGLE */
-        .lang-toggle {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
-            gap: 10px;
-        }
+        .lang-toggle { display: flex; justify-content: center; margin-bottom: 15px; gap: 10px; }
         .btn-lang {
-            background: #1c1c1e;
-            color: #666;
-            border: 1px solid #333;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
+            background: #1c1c1e; color: #666; border: 1px solid #333;
+            padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer;
         }
-        .btn-lang.active {
-            background: #333;
-            color: #fff;
-            border-color: #666;
-        }
+        .btn-lang.active { background: #333; color: #fff; border-color: #666; }
 
-        /* --- GRID SYSTEM --- */
-        .grid-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            width: 100%;
-            margin-bottom: 8px;
+        /* --- INTRO BANNER --- */
+        .intro-banner {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border: 1px solid #333; border-radius: 12px; padding: 15px;
+            margin-top: 30px; margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        
+        .intro-title { font-size: 16px; font-weight: 900; color: #30D158; text-transform: uppercase; margin-bottom: 5px; }
+        .intro-text { font-size: 13px; color: #ccc; line-height: 1.4; }
+
+        /* --- GRID & INPUTS --- */
+        .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-bottom: 8px; }
         .input-group { display: flex; flex-direction: column; min-width: 0; }
-
-        label { 
-            display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
+        label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .input-wrapper { display: flex; align-items: center; width: 100%; }
         .input-wrapper input {
             flex: 1; text-align: center; font-size: 18px; padding: 10px 0;
-            background: #1c1c1e; border: 1px solid #333;
-            border-left: none; border-right: none; color: white;
-            border-radius: 0; 
-            appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
-            min-width: 0; width: 100%;
+            background: #1c1c1e; border: 1px solid #333; border-left: none; border-right: none; color: white;
+            border-radius: 0; appearance: none; -webkit-appearance: none; -moz-appearance: textfield; min-width: 0; width: 100%;
         }
         .btn-adjust {
-            background: #333; color: #fff; border: 1px solid #333;
-            font-size: 20px; font-weight: bold; 
-            width: 40px; height: 44px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; touch-action: manipulation;
-            user-select: none;
-            flex-shrink: 0;
+            background: #333; color: #fff; border: 1px solid #333; font-size: 20px; font-weight: bold; 
+            width: 40px; height: 44px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation; user-select: none; flex-shrink: 0;
         }
         .btn-minus { border-radius: 8px 0 0 8px; }
         .btn-plus { border-radius: 0 8px 8px 0; }
-
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 20px;
-            display: block;
-            appearance: none; -webkit-appearance: none;
-            font-family: inherit;
+            background: #1c1c1e; color: white; font-size: 20px; display: block; appearance: none; -webkit-appearance: none; font-family: inherit;
         }
 
         /* --- TOGGLES --- */
@@ -200,111 +122,53 @@
         }
         .toggle-btn.active { background: #333; color: #fff; }
 
-        /* --- CHECKBOX SWITCHES --- */
-        .speech-options {
-            background: #1c1c1e;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            text-align: left;
-        }
-        
+        /* --- SPEECH OPTIONS --- */
+        .speech-options { background: #1c1c1e; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px solid #333; text-align: left; }
         .collapsible-header {
-            background: #2c2c2e;
-            padding: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 6px;
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #2c2c2e; padding: 10px; font-size: 12px; font-weight: bold; color: #fff; text-transform: uppercase;
+            cursor: pointer; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;
         }
-        .collapsible-header:hover { background: #3a3a3c; }
-        .collapsible-content {
-            padding: 5px 10px;
-            background: #151516;
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            margin-bottom: 5px;
-        }
+        .collapsible-content { padding: 5px 10px; background: #151516; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; margin-bottom: 5px; }
         .collapsible-content.hidden { display: none; }
-        
-        .master-toggle {
-            background: #48484a; border: none; color: #ccc; font-size: 10px;
-            padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer;
-        }
-        .master-toggle:active { background: #666; }
-
+        .master-toggle { background: #48484a; border: none; color: #ccc; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer; }
         .arrow { font-size: 10px; transition: transform 0.2s; }
         .open .arrow { transform: rotate(180deg); }
-
-        .switch-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid #2a2a2a;
-        }
+        
+        .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #2a2a2a; }
         .switch-row:last-child { border-bottom: none; }
         .switch-label { font-size: 14px; color: #fff; }
-        
         .switch { position: relative; display: inline-block; width: 46px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333; transition: .4s; border-radius: 30px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 30px; }
+        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #30D158; }
         input:checked + .slider:before { transform: translateX(18px); }
-
-        /* Custom Text Input for Intro */
+        
         .text-input-row { padding: 0 0 10px 0; border-bottom: 1px solid #2a2a2a; }
-        .text-input {
-            width: 100%; background: #2c2c2e; border: 1px solid #444; color: white;
-            padding: 8px; border-radius: 6px; font-size: 14px; margin-top: 5px;
-        }
+        .text-input { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; font-size: 14px; margin-top: 5px; }
 
         /* --- BUTTONS --- */
-        button.action-btn {
-            width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
-        }
+        button.action-btn { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0; }
         .btn-start { background-color: #30D158; color: black; }
         .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
         .btn-pause { background-color: #FF9F0A; color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 18px; border:none;}
         .btn-nav { background: #333; color: white; border: none; width: 55px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
 
-        /* --- INFO BOX --- */
-        .info-bar {
-            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; flex-shrink: 0; margin-top: 5px;
-        }
-
-        /* --- LISTS --- */
-        .schedule-list-wrapper {
-            flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px;
-        }
-        .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
-        .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
-        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; flex-shrink: 0; }
-        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
-        
         /* --- TIMER SCREEN --- */
         #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); }
         .progress-container { width: 100%; height: 6px; background: #222; margin-top: var(--safe-top); }
         .progress-fill { height: 100%; background: #30D158; width: 0%; transition: width 0.2s linear; }
-        
         .timer-top { flex: 0 0 auto; padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; }
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
         .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
         .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
         .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
+        .schedule-list-wrapper { flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px; }
+        .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
+        .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
+        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; flex-shrink: 0; }
+        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
 
         /* --- MODAL --- */
         #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
@@ -323,7 +187,7 @@
         </div>
 
         <div class="header-row">
-            <div class="app-header">FNH Timer <span class="version-tag">v6.5</span></div>
+            <div class="app-header">FNH Timer <span class="version-tag">v6.6</span></div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
@@ -490,8 +354,7 @@
         </div>
 
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;" data-key="lblPreview">VOORBEELD SCHEMA (VANAF NU):</div>
-        <div id="preview-list" class="schedule-list-wrapper">
-        </div>
+        <div id="preview-list" class="schedule-list-wrapper"></div>
 
         <div class="intro-banner">
             <div class="intro-title">🦅 <span data-key="introTitle">Welcome to the Friday Night Hawks!</span></div>
@@ -534,7 +397,6 @@
     </div>
 
     <script>
-        // --- TRANSLATIONS ---
         const texts = {
             nl: {
                 introTitle: "🦅 Welcome to the Friday Night Hawks!",
@@ -588,7 +450,6 @@
                 modalRecalc: "⏱️ Inhalen (korter werken)",
                 modalPush: "🐢 Eindtijd verzetten",
                 
-                // Speech Strings
                 s_prep: "Voorbereiden",
                 s_work: "Werken",
                 s_rest: "Rust",
@@ -617,11 +478,8 @@
                 s_tip_focus: "Blijf gefocust",
                 s_congrats: "Gefeliciteerd, training voltooid",
                 
-                // Share Text
                 share_title: "🦅 *Friday Night Hawks* @ Van Rheenen Sport",
                 share_desc: "Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\nWe sluiten af met bitterballen & gezelligheid! 🍖🥳\nIedereen is welkom (door leden, voor leden).\n\n👇 *Hier het opgeslagen schema:*\n",
-                
-                // Defaults
                 def_intro: "Welkom hawks bij leukste training van de week!"
             },
             en: {
@@ -676,7 +534,6 @@
                 modalRecalc: "⏱️ Catch up (shorter work)",
                 modalPush: "🐢 Push end time",
                 
-                // Speech Strings
                 s_prep: "Prepare",
                 s_work: "Work",
                 s_rest: "Rest",
@@ -688,7 +545,7 @@
                 s_resume: "RESUME",
                 s_resume_voice: "Resuming workout",
                 s_halfway: "Halfway there",
-                s_left: "", // "10 seconds left" -> "10 seconds" usually enough
+                s_left: "", 
                 s_sec: "seconds left",
                 s_min: "minute left",
                 s_good_start: "Good start, keep it up",
@@ -705,17 +562,13 @@
                 s_tip_focus: "Stay focused",
                 s_congrats: "Congratulations, workout complete",
 
-                // Share Text
                 share_title: "🦅 *Friday Night Hawks* Workout",
                 share_desc: "Every Friday 19:45: Spinning 🚴 » Bootcamp 🏋️ » Swim 🏊\nDrinks & snacks afterwards! 🍖🥳\nEveryone welcome.\n\n👇 *Saved schedule:*\n",
-
-                // Defaults
                 def_intro: "Welcome Hawks to the best workout of the week!"
             }
         };
 
-        // --- VARIABELEN ---
-        let currentLang = 'nl'; // Default lang
+        let currentLang = 'nl'; 
         let mode = 'endtime';
         let audioMode = 'speech';
         let speechSettings = { 
@@ -775,15 +628,11 @@
             calculateRealTime(); 
         });
 
-        // --- LANGUAGE LOGIC ---
         function setLang(lang) {
             currentLang = lang;
-            
-            // Update Toggle UI
             document.getElementById('btn-lang-nl').className = (lang === 'nl') ? 'btn-lang active' : 'btn-lang';
             document.getElementById('btn-lang-en').className = (lang === 'en') ? 'btn-lang active' : 'btn-lang';
 
-            // Update Default Intro IF it hasn't been customised too much
             const currentInput = document.getElementById('sp-intro-text').value;
             if (currentInput === texts['nl'].def_intro || currentInput === texts['en'].def_intro) {
                 document.getElementById('sp-intro-text').value = texts[lang].def_intro;
@@ -797,15 +646,12 @@
 
         function applyLanguage() {
             const t = texts[currentLang];
-            
-            // Apply text to all elements with data-key
             document.querySelectorAll('[data-key]').forEach(el => {
                 const key = el.getAttribute('data-key');
                 if(t[key]) el.innerHTML = t[key];
             });
         }
 
-        // --- RESET ---
         function resetToDefaults() {
             if(!confirm("Reset?")) return; 
 
@@ -825,7 +671,6 @@
             setAudioMode('speech');
             setLang(currentLang); 
 
-            // Reset Intro
             document.getElementById('sp-intro-text').value = texts[currentLang].def_intro;
 
             speechSettings = { 
@@ -847,7 +692,6 @@
             calculateRealTime();
         }
 
-        // --- SHARE ---
         function shareSettings() {
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
@@ -883,7 +727,6 @@
             }
         }
 
-        // --- CALC & GENERATE ---
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
@@ -955,15 +798,9 @@
                 for (let e = 1; e <= ex; e++) {
                     for (let s = 1; s <= sts; s++) {
                         currentSetGlobal++;
-                        
-                        let lbl = (currentLang==='nl') 
-                            ? `Ronde ${r} | Oef ${e} (Set ${s})` 
-                            : `Round ${r} | Ex ${e} (Set ${s})`;
-
+                        let lbl = (currentLang==='nl') ? `Ronde ${r} | Oef ${e} (Set ${s})` : `Round ${r} | Ex ${e} (Set ${s})`;
                         schedule.push({ 
-                            type: 'work', time: workTimeSec, 
-                            initialTime: workTimeSec,
-                            label: lbl,
+                            type: 'work', time: workTimeSec, initialTime: workTimeSec, label: lbl,
                             info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal }
                         });
 
@@ -1122,6 +959,37 @@
             if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);}
             else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);}
             else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);}
+        }
+
+        function startWorkout() {
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+            
+            if(audioMode === 'beep') {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            } else {
+                if(window.speechSynthesis) window.speechSynthesis.cancel(); 
+            }
+
+            generateScheduleData();
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('timer-screen').style.display = 'flex';
+
+            workoutStartTime = new Date();
+            if (mode === 'endtime') {
+                const [h, m] = document.getElementById('endTimeValue').value.split(':');
+                targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
+                if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
+            } else {
+                let totalDur = 0;
+                schedule.forEach(s => totalDur += s.time);
+                targetEndTimeDate = new Date(workoutStartTime.getTime() + totalDur * 1000);
+            }
+
+            updateEndTimeDisplay();
+            renderActiveList();
+            currentIndex = 0;
+            runStep();
         }
 
         function runStep() {
@@ -1300,7 +1168,7 @@
         function resetApp() { clearInterval(timerInterval); location.reload(); }
         
         function loadFromLocal() {
-            const saved = localStorage.getItem('fnh_settings_v5');
+            const saved = localStorage.getItem('fnh_settings_v6'); // UPDATED KEY v6
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -1324,7 +1192,7 @@
                         });
                         if(speechSettings.introText) document.getElementById('sp-intro-text').value = speechSettings.introText;
                     }
-                } catch(e) {}
+                } catch(e) { console.log('Resetting corrupted local storage'); localStorage.removeItem('fnh_settings_v6'); }
             }
         }
         
@@ -1342,7 +1210,7 @@
                 speechSettings: speechSettings,
                 lang: currentLang 
             };
-            localStorage.setItem('fnh_settings_v5', JSON.stringify(data));
+            localStorage.setItem('fnh_settings_v6', JSON.stringify(data));
         }
         
         function checkForSharedSettings() {
@@ -1359,6 +1227,47 @@
                if(params.has('et')) document.getElementById('endTimeValue').value = params.get('et');
                saveToLocal();
             }
+        }
+        
+        function toggleAll(event, sectionId) {
+            event.stopPropagation();
+            const section = document.getElementById(sectionId);
+            const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+            let anyUnchecked = false;
+            checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
+            checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
+            updateSettings();
+            saveToLocal();
+        }
+        
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            const header = el.previousElementSibling; 
+            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); header.classList.add('open'); }
+            else { el.classList.add('hidden'); header.classList.remove('open'); }
+        }
+        
+        function updateSettings() {
+            allSwitchIds.forEach(id => {
+                const key = mapIdToKey(id);
+                if(document.getElementById(id)) speechSettings[key] = document.getElementById(id).checked;
+            });
+            // SAVE CUSTOM TEXT
+            const introVal = document.getElementById('sp-intro-text').value;
+            speechSettings.introText = introVal;
+        }
+        
+        function mapIdToKey(id) {
+            const map = {
+                'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
+                'sp-promo-start': 'promo_start', 
+                'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
+                'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
+                'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
+                'sp-tip-excount': 't_excount', 'sp-excount-switch': 't_excount_switch', 
+                'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
+            };
+            return map[id];
         }
     </script>
 </body>
