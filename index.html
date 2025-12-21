@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.3</title>
+    <title>Friday-night-hawk-s Timer v6.4</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -44,6 +44,7 @@
             border: 1px solid #333;
             border-radius: 12px;
             padding: 15px;
+            margin-top: 20px; /* Aangepast voor onderaan */
             margin-bottom: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
@@ -309,19 +310,11 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v6.3</span>
+                FNH Timer <span class="version-tag">v6.4</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
-            </div>
-        </div>
-
-        <div class="intro-banner">
-            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
-            <div class="intro-text">
-                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
-                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
             </div>
         </div>
 
@@ -482,6 +475,15 @@
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
         <div id="preview-list" class="schedule-list-wrapper">
         </div>
+        
+        <div class="intro-banner">
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-text">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+            </div>
+        </div>
+
     </div>
 
     <div id="timer-screen">
@@ -552,7 +554,9 @@
             checkForSharedSettings();
 
             if(!document.getElementById('endTimeValue').value) {
-                const d = new Date(); d.setHours(d.getHours()+1);
+                // DEFAULT START TIJD OOK OP +30 MINUTEN
+                const d = new Date(); 
+                d.setMinutes(d.getMinutes() + 30);
                 const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('endTimeValue').value = timeString;
             }
@@ -591,7 +595,9 @@
             // RESET INTRO TEKST
             document.getElementById('sp-intro-text').value = "Welkom hawks bij leukste training van de week!";
 
-            const d = new Date(); d.setHours(d.getHours()+1);
+            // AANGEPAST: + 30 MINUTEN
+            const d = new Date(); 
+            d.setMinutes(d.getMinutes() + 30);
             const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('endTimeValue').value = timeString;
 
