@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FNH Timer v7.0</title>
+    <title>Friday-night-hawk-s Timer v6.3</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -11,7 +11,10 @@
             --app-height: 100dvh;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
             background-color: #000;
@@ -35,12 +38,36 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        /* --- INTRO BANNER --- */
+        .intro-banner {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .intro-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #30D158;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .intro-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
         /* --- LOGO & HEADER --- */
         .logo-container {
             display: flex;
             justify-content: center;
             margin-bottom: 15px;
         }
+        
         .app-logo {
             width: 120px;
             height: auto;
@@ -58,60 +85,87 @@
             border-bottom: 1px solid #222;
         }
 
-        .app-header { font-size: 18px; font-weight: 900; color: #fff; text-transform: uppercase; text-align: left; }
+        .app-header {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            text-align: left;
+        }
         .version-tag {
-            font-size: 11px; color: #30D158; background: #1c1c1e;
-            padding: 2px 5px; border-radius: 4px; margin-left: 5px; font-weight: bold; border: 1px solid #333;
+            font-size: 11px;
+            color: #30D158;
+            background: #1c1c1e;
+            padding: 2px 5px;
+            border-radius: 4px;
+            vertical-align: middle;
+            margin-left: 5px;
+            font-weight: bold;
+            border: 1px solid #333;
         }
         
         .header-buttons { display: flex; gap: 8px; }
+
         .btn-header {
-            border: none; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: bold;
-            cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.2s;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
         }
         .btn-header:active { opacity: 0.6; }
         .btn-save { background: #0A84FF; color: white; }
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
 
-        /* LANGUAGE TOGGLE */
-        .lang-toggle { display: flex; justify-content: center; margin-bottom: 15px; gap: 10px; }
-        .btn-lang {
-            background: #1c1c1e; color: #666; border: 1px solid #333;
-            padding: 5px 15px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer;
+        /* --- GRID SYSTEM --- */
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 8px;
         }
-        .btn-lang.active { background: #333; color: #fff; border-color: #666; }
-
-        /* --- INTRO BANNER --- */
-        .intro-banner {
-            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
-            border: 1px solid #333; border-radius: 12px; padding: 15px;
-            margin-top: 30px; margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .intro-title { font-size: 16px; font-weight: 900; color: #30D158; text-transform: uppercase; margin-bottom: 5px; }
-        .intro-text { font-size: 13px; color: #ccc; line-height: 1.4; }
-
-        /* --- GRID & INPUTS --- */
-        .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-bottom: 8px; }
+        
         .input-group { display: flex; flex-direction: column; min-width: 0; }
-        label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        label { 
+            display: block; font-size: 12px; color: #888; margin-bottom: 4px; text-align: left; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
         
         .input-wrapper { display: flex; align-items: center; width: 100%; }
         .input-wrapper input {
             flex: 1; text-align: center; font-size: 18px; padding: 10px 0;
-            background: #1c1c1e; border: 1px solid #333; border-left: none; border-right: none; color: white;
-            border-radius: 0; appearance: none; -webkit-appearance: none; -moz-appearance: textfield; min-width: 0; width: 100%;
+            background: #1c1c1e; border: 1px solid #333;
+            border-left: none; border-right: none; color: white;
+            border-radius: 0; 
+            appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
+            min-width: 0; width: 100%;
         }
         .btn-adjust {
-            background: #333; color: #fff; border: 1px solid #333; font-size: 20px; font-weight: bold; 
-            width: 40px; height: 44px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; touch-action: manipulation; user-select: none; flex-shrink: 0;
+            background: #333; color: #fff; border: 1px solid #333;
+            font-size: 20px; font-weight: bold; 
+            width: 40px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation;
+            user-select: none;
+            flex-shrink: 0;
         }
         .btn-minus { border-radius: 8px 0 0 8px; }
         .btn-plus { border-radius: 0 8px 8px 0; }
+
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 20px; display: block; appearance: none; -webkit-appearance: none; font-family: inherit;
+            background: #1c1c1e; color: white; font-size: 20px;
+            display: block;
+            appearance: none; -webkit-appearance: none;
+            font-family: inherit;
         }
 
         /* --- TOGGLES --- */
@@ -122,53 +176,120 @@
         }
         .toggle-btn.active { background: #333; color: #fff; }
 
-        /* --- SPEECH OPTIONS --- */
-        .speech-options { background: #1c1c1e; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px solid #333; text-align: left; }
-        .collapsible-header {
-            background: #2c2c2e; padding: 10px; font-size: 12px; font-weight: bold; color: #fff; text-transform: uppercase;
-            cursor: pointer; border-radius: 6px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;
+        /* --- CHECKBOX SWITCHES --- */
+        .speech-options {
+            background: #1c1c1e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            text-align: left;
         }
-        .collapsible-content { padding: 5px 10px; background: #151516; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; margin-bottom: 5px; }
+        
+        .collapsible-header {
+            background: #2c2c2e;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .collapsible-header:hover { background: #3a3a3c; }
+        .collapsible-content {
+            padding: 5px 10px;
+            background: #151516;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            margin-bottom: 5px;
+        }
         .collapsible-content.hidden { display: none; }
-        .master-toggle { background: #48484a; border: none; color: #ccc; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer; }
+        
+        .master-toggle {
+            background: #48484a; border: none; color: #ccc; font-size: 10px;
+            padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer;
+        }
+        .master-toggle:active { background: #666; }
+
         .arrow { font-size: 10px; transition: transform 0.2s; }
         .open .arrow { transform: rotate(180deg); }
-        
-        .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #2a2a2a; }
+
+        .switch-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #2a2a2a;
+        }
         .switch-row:last-child { border-bottom: none; }
         .switch-label { font-size: 14px; color: #fff; }
+        
         .switch { position: relative; display: inline-block; width: 46px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 30px; }
-        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
         input:checked + .slider { background-color: #30D158; }
         input:checked + .slider:before { transform: translateX(18px); }
-        
-        .text-input-row { padding: 0 0 10px 0; border-bottom: 1px solid #2a2a2a; }
-        .text-input { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; font-size: 14px; margin-top: 5px; }
+
+        /* Custom Text Input for Intro */
+        .text-input-row {
+            padding: 0 0 10px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .text-input {
+            width: 100%;
+            background: #2c2c2e;
+            border: 1px solid #444;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
 
         /* --- BUTTONS --- */
-        button.action-btn { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0; }
+        button.action-btn {
+            width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
+        }
         .btn-start { background-color: #30D158; color: black; }
         .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
         .btn-pause { background-color: #FF9F0A; color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 18px; border:none;}
         .btn-nav { background: #333; color: white; border: none; width: 55px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
 
-        /* --- TIMER SCREEN --- */
-        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); }
-        .progress-container { width: 100%; height: 6px; background: #222; margin-top: var(--safe-top); }
-        .progress-fill { height: 100%; background: #30D158; width: 0%; transition: width 0.2s linear; }
-        .timer-top { flex: 0 0 auto; padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; }
-        .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
-        .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
-        .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
-        .schedule-list-wrapper { flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px; }
+        /* --- INFO BOX --- */
+        .info-bar {
+            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; flex-shrink: 0; margin-top: 5px;
+        }
+
+        /* --- LISTS --- */
+        .schedule-list-wrapper {
+            flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px;
+        }
         .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
         .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
         .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; flex-shrink: 0; }
         .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
+        
+        /* --- TIMER SCREEN --- */
+        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); }
+        .progress-container { width: 100%; height: 6px; background: #222; margin-top: var(--safe-top); }
+        .progress-fill { height: 100%; background: #30D158; width: 0%; transition: width 0.2s linear; }
+        
+        .timer-top { flex: 0 0 auto; padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; }
+        .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
+        .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
+        .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
 
         /* --- MODAL --- */
         #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
@@ -187,32 +308,37 @@
         </div>
 
         <div class="header-row">
-            <div class="app-header">FNH Timer <span class="version-tag">v7.0</span></div>
+            <div class="app-header">
+                FNH Timer <span class="version-tag">v6.3</span>
+            </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
             </div>
         </div>
 
-        <div class="lang-toggle">
-            <button class="btn-lang active" id="btn-lang-nl" onclick="setLang('nl')">🇳🇱 NL</button>
-            <button class="btn-lang" id="btn-lang-en" onclick="setLang('en')">🇬🇧 EN</button>
+        <div class="intro-banner">
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-text">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+            </div>
         </div>
 
-        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;" data-key="secTimeSettings">TIJDSINSTELLINGEN</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
         
         <div class="toggle-container">
-            <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')" data-key="modeEnd">Eindtijd</button>
-            <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')" data-key="modeDur">Tijdsduur</button>
+            <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')">Eindtijd</button>
+            <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
         </div>
 
         <div id="input-endtime" style="margin-bottom: 10px;">
-            <label data-key="lblEndTime">Klaar om (HH:MM)</label>
+            <label>Klaar om (HH:MM)</label>
             <input type="time" id="endTimeValue">
         </div>
 
         <div class="hidden" id="input-duration">
-            <label data-key="lblTotalTime">Totale trainingstijd (min)</label>
+            <label>Totale trainingstijd (min)</label>
             <div class="input-wrapper">
                 <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
                 <input type="number" id="totalMin" value="30" inputmode="numeric">
@@ -222,7 +348,7 @@
 
         <div class="grid-row">
             <div class="input-group">
-                <label data-key="lblRounds">Rondes</label>
+                <label>Rondes</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('rounds', -1)">−</button>
                     <input type="number" id="rounds" value="1" inputmode="numeric">
@@ -230,7 +356,7 @@
                 </div>
             </div>
             <div class="input-group">
-                <label data-key="lblExercises">Oefeningen</label>
+                <label>Oefeningen</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('exercises', -1)">−</button>
                     <input type="number" id="exercises" value="8" inputmode="numeric">
@@ -240,7 +366,7 @@
         </div>
 
         <div class="input-group" style="margin-bottom: 8px;">
-            <label data-key="lblSets">Sets per oefening</label>
+            <label>Sets per oefening</label>
             <div class="input-wrapper">
                 <button class="btn-adjust btn-minus" onclick="adjustValue('sets', -1)">−</button>
                 <input type="number" id="sets" value="2" inputmode="numeric">
@@ -250,7 +376,7 @@
 
         <div class="grid-row">
             <div class="input-group">
-                <label data-key="lblRestSet">Rust (set)</label>
+                <label>Rust (set)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('restSec', -5)">−</button>
                     <input type="number" id="restSec" value="20" inputmode="numeric">
@@ -258,7 +384,7 @@
                 </div>
             </div>
             <div class="input-group">
-                <label data-key="lblRestSwitch">Rust (wissel)</label>
+                <label>Rust (wissel)</label>
                 <div class="input-wrapper">
                     <button class="btn-adjust btn-minus" onclick="adjustValue('exerciseRestSec', -5)">−</button>
                     <input type="number" id="exerciseRestSec" value="30" inputmode="numeric">
@@ -268,7 +394,7 @@
         </div>
 
         <div class="input-group" style="margin-bottom: 8px;">
-            <label data-key="lblRestRound">Rust (ronde)</label>
+            <label>Rust (ronde)</label>
             <div class="input-wrapper">
                 <button class="btn-adjust btn-minus" onclick="adjustValue('roundRestSec', -10)">−</button>
                 <input type="number" id="roundRestSec" value="90" inputmode="numeric">
@@ -277,28 +403,28 @@
         </div>
 
         <div class="info-bar">
-            <div style="font-size:12px; color:#888;" data-key="infoWorkTime">WERKTIJD PER SET</div>
+            <div style="font-size:12px; color:#888;">WERKTIJD PER SET</div>
             <div style="font-size:30px; font-weight:bold; color:#30D158;" id="live-calc-result">--</div>
-            <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;" data-key="errImpossible">Onmogelijk schema!</div>
+            <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
         </div>
         
-        <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()" data-key="btnStart">START TRAINING</button>
+        <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
         
-        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;" data-key="secAudioSettings">GELUIDSINSTELLINGEN</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN</div>
         
         <div class="toggle-container">
-            <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')" data-key="modeSpeech">🗣️ Spraak</button>
-            <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')" data-key="modeBeep">🔔 Piepjes</button>
+            <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
+            <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
         </div>
 
         <div id="speech-settings-panel" class="speech-options">
             <div class="switch-row">
-                <span class="switch-label" data-key="optCommands"><strong>Commando's</strong> (Start/Rust/Wissel)</span>
+                <span class="switch-label"><strong>Commando's</strong> (Start/Rust/Wissel)</span>
                 <label class="switch"><input type="checkbox" id="sp-commands" checked><span class="slider"></span></label>
             </div>
             
             <div class="switch-row">
-                <span class="switch-label" data-key="optIntro">Intro tekst bij start</span>
+                <span class="switch-label">Intro tekst bij start</span>
                 <label class="switch"><input type="checkbox" id="sp-promo-start" checked><span class="slider"></span></label>
             </div>
             <div class="text-input-row" id="intro-input-wrapper">
@@ -306,61 +432,55 @@
             </div>
 
             <div class="switch-row">
-                <span class="switch-label" data-key="optCountdown"><strong>Aftellen</strong> (3, 2, 1)</span>
+                <span class="switch-label"><strong>Aftellen</strong> (3, 2, 1)</span>
                 <label class="switch"><input type="checkbox" id="sp-countdown" checked><span class="slider"></span></label>
             </div>
             <div class="switch-row">
-                <span class="switch-label" data-key="optNextInfo">Volgende info (Set x van y...)</span>
+                <span class="switch-label">Volgende info (Set x van y...)</span>
                 <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
             </div>
             
             <div class="collapsible-header open" onclick="toggleSection('sec-times')">
-                <div data-key="catTimeAlerts">TIJDMELDINGEN (WERKEN)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-times')" data-key="btnAll">[Alles]</button><span class="arrow">▼</span></div>
+                <div>TIJDMELDINGEN (WERKEN)</div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-times')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-times" class="collapsible-content">
-                <div class="switch-row"><span class="switch-label" data-key="optHalfway">"Halverwege!" (bij >30s)</span><label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt60s">"Nog 1 minuut"</span><label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt30s">"Nog 30 seconden"</span><label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt20s">"Nog 20 seconden"</span><label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt15s">"Nog 15 seconden"</span><label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt10s">"Nog 10 seconden"</span><label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt5s">"Nog 5 seconden"</span><label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Halverwege!" (bij >30s)</span><label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 1 minuut"</span><label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 30 seconden"</span><label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 20 seconden"</span><label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 15 seconden"</span><label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 10 seconden"</span><label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">"Nog 5 seconden"</span><label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label></div>
             </div>
 
             <div class="collapsible-header open" onclick="toggleSection('sec-milestones')">
-                <div data-key="catMilestones">MIJLPALEN (TOTAAL)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')" data-key="btnAll">[Alles]</button><span class="arrow">▼</span></div>
+                <div>MIJLPALEN (TOTAAL)</div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-milestones" class="collapsible-content">
-                <div class="switch-row"><span class="switch-label" data-key="opt25pct">25% ("Goede start")</span><label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt50pct">50% ("Helft van training")</span><label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="opt75pct">75% ("Eindsprint")</span><label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="optLastRound">Laatste ronde</span><label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">25% ("Goede start")</span><label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">50% ("Helft van training")</span><label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">75% ("Eindsprint")</span><label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Laatste ronde</span><label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label></div>
             </div>
 
             <div class="collapsible-header open" onclick="toggleSection('sec-tips')">
-                <div data-key="catTips">TIPS (TIJDENS RUST)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-tips')" data-key="btnAll">[Alles]</button><span class="arrow">▼</span></div>
+                <div>TIPS (TIJDENS RUST)</div>
+                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button><span class="arrow">▼</span></div>
             </div>
             <div id="sec-tips" class="collapsible-content">
-                 <div class="switch-row"><span class="switch-label" data-key="optTotalEx">Noem totaal aantal oefeningen (Rust)</span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
-                 <div class="switch-row"><span class="switch-label" data-key="optSwitchEx">Noem "Oefening X van Y" (Wissel)</span><label class="switch"><input type="checkbox" id="sp-excount-switch" checked><span class="slider"></span></label></div>
-                 <div class="switch-row"><span class="switch-label" data-key="optDrink">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="optLoose">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="optBreathe">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label" data-key="optFocus">Focus ("Let op houding")</span><label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label></div>
+                 <div class="switch-row"><span class="switch-label">Noem totaal aantal oefeningen (Rust)</span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
+                 <div class="switch-row"><span class="switch-label">Noem "Oefening X van Y" (Wissel)</span><label class="switch"><input type="checkbox" id="sp-excount-switch" checked><span class="slider"></span></label></div>
+                 <div class="switch-row"><span class="switch-label">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
+                <div class="switch-row"><span class="switch-label">Focus ("Let op houding")</span><label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label></div>
             </div>
         </div>
 
-        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;" data-key="lblPreview">VOORBEELD SCHEMA (VANAF NU):</div>
-        <div id="preview-list" class="schedule-list-wrapper"></div>
-
-        <div class="intro-banner">
-            <div class="intro-title">🦅 <span data-key="introTitle">Welcome to the Friday Night Hawks!</span></div>
-            <div class="intro-text" data-key="introBody">
-                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.<br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
-            </div>
+        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
+        <div id="preview-list" class="schedule-list-wrapper">
         </div>
     </div>
 
@@ -373,7 +493,7 @@
                     <div class="big-time" id="countdown">--</div>
                 </div>
                 <div style="text-align: right;">
-                    <div class="status-text" data-key="statReadyAt">KLAAR OM</div>
+                    <div class="status-text">KLAAR OM</div>
                     <div style="font-size: 20px; font-weight: bold;" id="display-end-time">--:--</div>
                 </div>
             </div>
@@ -389,194 +509,21 @@
 
     <div id="pause-modal">
         <div class="modal-content">
-            <h2 style="margin-top:0;" data-key="modalTitle">Pauze voorbij</h2>
-            <p style="color:#aaa;" data-key="modalDesc">Wat wil je doen?</p>
-            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')" data-key="modalRecalc">⏱️ Inhalen (korter werken)</button>
-            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')" data-key="modalPush">🐢 Eindtijd verzetten</button>
+            <h2 style="margin-top:0;">Pauze voorbij</h2>
+            <p style="color:#aaa;">Wat wil je doen?</p>
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">⏱️ Inhalen (korter werken)</button>
+            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
         </div>
     </div>
 
     <script>
-        // --- TRANSLATIONS ---
-        const texts = {
-            nl: {
-                introTitle: "🦅 Welcome to the Friday Night Hawks!",
-                introBody: "De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.<br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻",
-                secTimeSettings: "TIJDSINSTELLINGEN",
-                modeEnd: "Eindtijd",
-                modeDur: "Tijdsduur",
-                lblEndTime: "Klaar om (HH:MM)",
-                lblTotalTime: "Totale trainingstijd (min)",
-                lblRounds: "Rondes",
-                lblExercises: "Oefeningen",
-                lblSets: "Sets per oefening",
-                lblRestSet: "Rust (set)",
-                lblRestSwitch: "Rust (wissel)",
-                lblRestRound: "Rust (ronde)",
-                infoWorkTime: "WERKTIJD PER SET",
-                errImpossible: "Onmogelijk schema!",
-                btnStart: "START TRAINING",
-                secAudioSettings: "GELUIDSINSTELLINGEN",
-                modeSpeech: "🗣️ Spraak",
-                modeBeep: "🔔 Piepjes",
-                optCommands: "<strong>Commando's</strong> (Start/Rust/Wissel)",
-                optIntro: "Intro tekst bij start",
-                optCountdown: "<strong>Aftellen</strong> (3, 2, 1)",
-                optNextInfo: "Volgende info (Set x van y...)",
-                catTimeAlerts: "TIJDMELDINGEN (WERKEN)",
-                btnAll: "[Alles]",
-                optHalfway: "\"Halverwege!\" (bij >30s)",
-                opt60s: "\"Nog 1 minuut\"",
-                opt30s: "\"Nog 30 seconden\"",
-                opt20s: "\"Nog 20 seconden\"",
-                opt15s: "\"Nog 15 seconden\"",
-                opt10s: "\"Nog 10 seconden\"",
-                opt5s: "\"Nog 5 seconden\"",
-                catMilestones: "MIJLPALEN (TOTAAL)",
-                opt25pct: "25% (\"Goede start\")",
-                opt50pct: "50% (\"Helft van training\")",
-                opt75pct: "75% (\"Eindsprint\")",
-                optLastRound: "Laatste ronde",
-                catTips: "TIPS (TIJDENS RUST)",
-                optTotalEx: "Noem totaal aantal oefeningen (Rust)",
-                optSwitchEx: "Noem \"Oefening X van Y\" (Wissel)",
-                optDrink: "Drinken (\"Slok water\")",
-                optLoose: "Losmaken (\"Schud los\")",
-                optBreathe: "Ademhaling (\"Diep in/uit\")",
-                optFocus: "Focus (\"Let op houding\")",
-                lblPreview: "VOORBEELD SCHEMA (VANAF NU):",
-                statReadyAt: "KLAAR OM",
-                modalTitle: "Pauze voorbij",
-                modalDesc: "Wat wil je doen?",
-                modalRecalc: "⏱️ Inhalen (korter werken)",
-                modalPush: "🐢 Eindtijd verzetten",
-                
-                s_prep: "Voorbereiden",
-                s_work: "Werken",
-                s_rest: "Rust",
-                s_switch: "WISSEL OEFENING",
-                s_long_rest: "GROTE PAUZE",
-                s_finish: "KLAAR!",
-                s_start_work: "Start met werken",
-                s_pause: "GEPAUZEERD",
-                s_resume: "HERVAT",
-                s_resume_voice: "We gaan weer door",
-                s_halfway: "Halverwege",
-                s_left: "Nog",
-                s_sec: "seconden",
-                s_min: "minuut",
-                s_good_start: "Goede start, ga zo door",
-                s_half_train: "Je bent op de helft van de training",
-                s_end_push: "Laatste loodjes, eindsprint",
-                s_last_round: "Laatste ronde, alles geven",
-                s_next_set: "Straks set",
-                s_next_ex: "Hierna oefening",
-                s_sets_total: "sets totaal",
-                s_of_the: "van de",
-                s_tip_drink: "Neem een slok water",
-                s_tip_loose: "Schud je spieren los",
-                s_tip_breathe: "Let op je ademhaling. Diep in en uit",
-                s_tip_focus: "Blijf gefocust",
-                s_congrats: "Gefeliciteerd, training voltooid",
-                
-                share_title: "🦅 *Friday Night Hawks* @ Van Rheenen Sport",
-                share_desc: "Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\nWe sluiten af met bitterballen & gezelligheid! 🍖🥳\nIedereen is welkom (door leden, voor leden).\n\n👇 *Hier het opgeslagen schema:*\n",
-                def_intro: "Welkom hawks bij leukste training van de week!"
-            },
-            en: {
-                introTitle: "🦅 Welcome to the Friday Night Hawks!",
-                introBody: "The legendary triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Swim 🏊</b>.<br>Every Friday at 19:45. Finishing with <b>snacks</b> & drinks! 🍖🍻",
-                secTimeSettings: "TIME SETTINGS",
-                modeEnd: "End Time",
-                modeDur: "Duration",
-                lblEndTime: "Finish at (HH:MM)",
-                lblTotalTime: "Total Duration (min)",
-                lblRounds: "Rounds",
-                lblExercises: "Exercises",
-                lblSets: "Sets per exercise",
-                lblRestSet: "Rest (set)",
-                lblRestSwitch: "Rest (switch)",
-                lblRestRound: "Rest (round)",
-                infoWorkTime: "WORK TIME PER SET",
-                errImpossible: "Schedule impossible!",
-                btnStart: "START WORKOUT",
-                secAudioSettings: "AUDIO SETTINGS",
-                modeSpeech: "🗣️ Speech",
-                modeBeep: "🔔 Beeps",
-                optCommands: "<strong>Commands</strong> (Start/Rest/Switch)",
-                optIntro: "Intro text at start",
-                optCountdown: "<strong>Countdown</strong> (3, 2, 1)",
-                optNextInfo: "Next info (Set x of y...)",
-                catTimeAlerts: "TIME ALERTS (WORK)",
-                btnAll: "[All]",
-                optHalfway: "\"Halfway!\" (at >30s)",
-                opt60s: "\"1 minute left\"",
-                opt30s: "\"30 seconds left\"",
-                opt20s: "\"20 seconds left\"",
-                opt15s: "\"15 seconds left\"",
-                opt10s: "\"10 seconds left\"",
-                opt5s: "\"5 seconds left\"",
-                catMilestones: "MILESTONES (TOTAL)",
-                opt25pct: "25% (\"Good start\")",
-                opt50pct: "50% (\"Halfway there\")",
-                opt75pct: "75% (\"Final push\")",
-                optLastRound: "Last round",
-                catTips: "TIPS (DURING REST)",
-                optTotalEx: "Mention total exercises (Rest)",
-                optSwitchEx: "Mention \"Exercise X of Y\" (Switch)",
-                optDrink: "Drink (\"Sip water\")",
-                optLoose: "Loosen up (\"Shake muscles\")",
-                optBreathe: "Breathing (\"Deep in/out\")",
-                optFocus: "Focus (\"Watch posture\")",
-                lblPreview: "PREVIEW (FROM NOW):",
-                statReadyAt: "FINISH AT",
-                modalTitle: "Pause over",
-                modalDesc: "What to do?",
-                modalRecalc: "⏱️ Catch up (shorter work)",
-                modalPush: "🐢 Push end time",
-                
-                s_prep: "Prepare",
-                s_work: "Work",
-                s_rest: "Rest",
-                s_switch: "SWITCH EXERCISE",
-                s_long_rest: "LONG BREAK",
-                s_finish: "DONE!",
-                s_start_work: "Start working",
-                s_pause: "PAUSED",
-                s_resume: "RESUME",
-                s_resume_voice: "Resuming workout",
-                s_halfway: "Halfway there",
-                s_left: "", 
-                s_sec: "seconds left",
-                s_min: "minute left",
-                s_good_start: "Good start, keep it up",
-                s_half_train: "You are halfway through the workout",
-                s_end_push: "Final push, almost there",
-                s_last_round: "Last round, give it your all",
-                s_next_set: "Next is set",
-                s_next_ex: "Next is exercise",
-                s_sets_total: "sets total",
-                s_of_the: "of",
-                s_tip_drink: "Take a sip of water",
-                s_tip_loose: "Shake off the muscles",
-                s_tip_breathe: "Watch your breathing. Deep in and out",
-                s_tip_focus: "Stay focused",
-                s_congrats: "Congratulations, workout complete",
-
-                share_title: "🦅 *Friday Night Hawks* Workout",
-                share_desc: "Every Friday 19:45: Spinning 🚴 » Bootcamp 🏋️ » Swim 🏊\nDrinks & snacks afterwards! 🍖🥳\nEveryone welcome.\n\n👇 *Saved schedule:*\n",
-                def_intro: "Welcome Hawks to the best workout of the week!"
-            }
-        };
-
-        // --- GLOBAL VARIABLES ---
-        let currentLang = 'nl'; 
+        // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
         let speechSettings = { 
             commands: true, countdown: true, nextInfo: true,
             promo_start: true,
-            introText: texts['nl'].def_intro,
+            introText: "Welkom hawks bij leukste training van de week!", // NIEUW
             halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
             m_start: true, m_half: true, m_end: true, m_last: true,
             t_excount: true, t_excount_switch: true,
@@ -601,12 +548,8 @@
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Force clean reload if corrupted
             loadFromLocal();
-            // Ensure lang is valid
-            if(!texts[currentLang]) setLang('nl');
-
-            checkForSharedSettings(); 
+            checkForSharedSettings();
 
             if(!document.getElementById('endTimeValue').value) {
                 const d = new Date(); d.setHours(d.getHours()+1);
@@ -618,177 +561,64 @@
                 if(i.type === 'checkbox') {
                     i.addEventListener('change', () => { updateSettings(); saveToLocal(); });
                 } else if(i.type === 'text') {
-                    i.addEventListener('input', () => { updateSettings(); saveToLocal(); }); 
+                    i.addEventListener('input', () => { updateSettings(); saveToLocal(); }); // Intro text save
                 } else {
                     i.addEventListener('input', () => { calculateRealTime(); saveToLocal(); });
                 }
             });
             
-            // Re-bind click handlers explicitly to avoid reference issues
             document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
             document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
+            
             document.getElementById('btn-mode-endtime').onclick = () => { setMode('endtime'); saveToLocal(); };
             document.getElementById('btn-mode-duration').onclick = () => { setMode('duration'); saveToLocal(); };
-            document.getElementById('btn-start-app').onclick = startWorkout;
 
-            // Apply text
-            applyLanguage();
-            // Initial Calc
             calculateRealTime(); 
         });
 
-        // --- FUNCTIONS ATTACHED TO WINDOW FOR HTML ONCLICK ---
-        window.adjustValue = function(id, delta) {
-            const el = document.getElementById(id);
-            if(!el) return;
-            let val = parseInt(el.value) || 0;
-            val += delta;
-            if (val < 1) val = 1; 
-            el.value = val;
-            calculateRealTime();
-            saveToLocal();
-        };
+        // --- RESET FUNCTIE ---
+        function resetToDefaults() {
+            if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
 
-        window.setMode = function(newMode) {
-            mode = newMode;
-            document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
-            document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
-            if (mode==='duration') {
-                document.getElementById('input-duration').classList.remove('hidden');
-                document.getElementById('input-endtime').classList.add('hidden');
-            } else {
-                document.getElementById('input-duration').classList.add('hidden');
-                document.getElementById('input-endtime').classList.remove('hidden');
-            }
-            calculateRealTime();
-        };
+            document.getElementById('rounds').value = 1;
+            document.getElementById('exercises').value = 8;
+            document.getElementById('sets').value = 2; 
+            document.getElementById('restSec').value = 20; 
+            document.getElementById('exerciseRestSec').value = 30; 
+            document.getElementById('roundRestSec').value = 90;
+            document.getElementById('totalMin').value = 30; 
+            
+            // RESET INTRO TEKST
+            document.getElementById('sp-intro-text').value = "Welkom hawks bij leukste training van de week!";
 
-        window.setAudioMode = function(newMode) {
-            audioMode = newMode;
-            document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
-            document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
-            const panel = document.getElementById('speech-settings-panel');
-            if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
-        };
+            const d = new Date(); d.setHours(d.getHours()+1);
+            const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('endTimeValue').value = timeString;
 
-        window.setLang = function(lang) {
-            if(!texts[lang]) lang = 'nl'; // Safety
-            currentLang = lang;
-            document.getElementById('btn-lang-nl').className = (lang === 'nl') ? 'btn-lang active' : 'btn-lang';
-            document.getElementById('btn-lang-en').className = (lang === 'en') ? 'btn-lang active' : 'btn-lang';
+            setMode('endtime');
+            setAudioMode('speech');
 
-            const currentInput = document.getElementById('sp-intro-text').value;
-            if (currentInput === texts['nl'].def_intro || currentInput === texts['en'].def_intro) {
-                document.getElementById('sp-intro-text').value = texts[lang].def_intro;
-                speechSettings.introText = texts[lang].def_intro;
-            }
-
-            applyLanguage();
-            calculateRealTime(); 
-            saveToLocal();
-        };
-
-        function applyLanguage() {
-            const t = texts[currentLang] || texts['nl'];
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.getAttribute('data-key');
-                if(t[key]) el.innerHTML = t[key];
-            });
-        }
-
-        window.toggleSection = function(id) {
-            const el = document.getElementById(id);
-            const header = el.previousElementSibling; 
-            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); header.classList.add('open'); }
-            else { el.classList.add('hidden'); header.classList.remove('open'); }
-        };
-
-        window.toggleAll = function(event, sectionId) {
-            event.stopPropagation();
-            const section = document.getElementById(sectionId);
-            const checkboxes = section.querySelectorAll('input[type="checkbox"]');
-            let anyUnchecked = false;
-            checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
-            checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
-            updateSettings();
-            saveToLocal();
-        };
-
-        function updateSettings() {
+            speechSettings = { 
+                commands: true, countdown: true, nextInfo: true,
+                promo_start: true,
+                introText: "Welkom hawks bij leukste training van de week!",
+                halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
+                m_start: true, m_half: true, m_end: true, m_last: true,
+                t_excount: true, t_excount_switch: true,
+                t_drink: false, t_loose: false, t_breathe: false, t_focus: false
+            };
+            
             allSwitchIds.forEach(id => {
                 const key = mapIdToKey(id);
-                if(document.getElementById(id)) speechSettings[key] = document.getElementById(id).checked;
+                if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
             });
-            const introVal = document.getElementById('sp-intro-text').value;
-            speechSettings.introText = introVal;
+
+            saveToLocal();
+            calculateRealTime();
         }
 
-        function mapIdToKey(id) {
-            const map = {
-                'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
-                'sp-promo-start': 'promo_start', 
-                'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
-                'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
-                'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
-                'sp-tip-excount': 't_excount', 'sp-excount-switch': 't_excount_switch', 
-                'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
-            };
-            return map[id];
-        }
-
-        function saveToLocal() {
-            const data = {
-                rounds: document.getElementById('rounds').value,
-                exercises: document.getElementById('exercises').value,
-                sets: document.getElementById('sets').value,
-                restSec: document.getElementById('restSec').value,
-                exerciseRestSec: document.getElementById('exerciseRestSec').value,
-                roundRestSec: document.getElementById('roundRestSec').value,
-                totalMin: document.getElementById('totalMin').value,
-                mode: mode,
-                audioMode: audioMode,
-                speechSettings: speechSettings,
-                lang: currentLang 
-            };
-            localStorage.setItem('fnh_data_v7', JSON.stringify(data)); // NEW KEY
-        }
-        
-        function loadFromLocal() {
-            const saved = localStorage.getItem('fnh_data_v7');
-            if(saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    document.getElementById('rounds').value = data.rounds || 1;
-                    document.getElementById('exercises').value = data.exercises || 8;
-                    document.getElementById('sets').value = data.sets || 2;
-                    document.getElementById('restSec').value = data.restSec || 20;
-                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
-                    document.getElementById('roundRestSec').value = data.roundRestSec || 90;
-                    document.getElementById('totalMin').value = data.totalMin || 30;
-                    
-                    if(data.mode) setMode(data.mode);
-                    if(data.audioMode) setAudioMode(data.audioMode);
-                    if(data.lang) setLang(data.lang); 
-
-                    if(data.speechSettings) {
-                        speechSettings = data.speechSettings;
-                        allSwitchIds.forEach(id => {
-                            const key = mapIdToKey(id);
-                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
-                        });
-                        if(speechSettings.introText) document.getElementById('sp-intro-text').value = speechSettings.introText;
-                    }
-                } catch(e) { console.log('Reset local'); }
-            }
-        }
-
-        window.resetToDefaults = function() {
-            if(!confirm("Reset?")) return; 
-            localStorage.removeItem('fnh_data_v7');
-            location.reload();
-        };
-
-        window.shareSettings = function() {
+        // --- SHARE / SAVE LOGIC ---
+        function shareSettings() {
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
             const sets = document.getElementById('sets').value;
@@ -812,34 +642,154 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
 
-            const t = texts[currentLang] || texts['nl'];
-            let summary = t.share_title + "\n";
-            summary += t.share_desc;
+            let summary = `🦅 *Friday Night Hawks* @ Van Rheenen Sport\n`;
+            summary += `Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
+            summary += `We sluiten af met bitterballen & gezelligheid! 🍖🥳\n`;
+            summary += `Iedereen is welkom (door leden, voor leden).\n\n`;
+            summary += `👇 *Hier het opgeslagen schema:*\n`;
 
             if (navigator.share) {
-                navigator.share({ title: 'FNH Timer', text: summary, url: shareUrl }).catch(console.error);
+                navigator.share({ title: 'FNH Training Schema', text: summary, url: shareUrl }).catch(console.error);
             } else {
-                navigator.clipboard.writeText(summary + shareUrl).then(() => { alert("Link copied!"); });
+                navigator.clipboard.writeText(summary + shareUrl).then(() => { alert("Link met info gekopieerd naar klembord!"); });
             }
-        };
+        }
 
         function checkForSharedSettings() {
             const params = new URLSearchParams(window.location.search);
             if(params.has('r')) {
-               document.getElementById('rounds').value = params.get('r');
-               document.getElementById('exercises').value = params.get('e');
-               document.getElementById('sets').value = params.get('s');
-               document.getElementById('restSec').value = params.get('rs');
-               document.getElementById('exerciseRestSec').value = params.get('re');
-               document.getElementById('roundRestSec').value = params.get('rr');
-               document.getElementById('totalMin').value = params.get('tm');
-               if(params.has('m')) setMode(params.get('m'));
-               if(params.has('et')) document.getElementById('endTimeValue').value = params.get('et');
-               saveToLocal();
+                document.getElementById('rounds').value = params.get('r');
+                document.getElementById('exercises').value = params.get('e');
+                document.getElementById('sets').value = params.get('s');
+                document.getElementById('restSec').value = params.get('rs');
+                document.getElementById('exerciseRestSec').value = params.get('re');
+                document.getElementById('roundRestSec').value = params.get('rr');
+                document.getElementById('totalMin').value = params.get('tm');
+                if(params.has('m')) setMode(params.get('m'));
+                if(params.has('et')) document.getElementById('endTimeValue').value = params.get('et');
+                saveToLocal();
             }
         }
 
-        // --- CORE CALCULATION ---
+        function saveToLocal() {
+            const data = {
+                rounds: document.getElementById('rounds').value,
+                exercises: document.getElementById('exercises').value,
+                sets: document.getElementById('sets').value,
+                restSec: document.getElementById('restSec').value,
+                exerciseRestSec: document.getElementById('exerciseRestSec').value,
+                roundRestSec: document.getElementById('roundRestSec').value,
+                totalMin: document.getElementById('totalMin').value,
+                mode: mode,
+                audioMode: audioMode,
+                speechSettings: speechSettings
+            };
+            localStorage.setItem('fnh_settings_v5', JSON.stringify(data));
+        }
+
+        function loadFromLocal() {
+            const saved = localStorage.getItem('fnh_settings_v5');
+            if(saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    document.getElementById('rounds').value = data.rounds || 1;
+                    document.getElementById('exercises').value = data.exercises || 8;
+                    document.getElementById('sets').value = data.sets || 2;
+                    document.getElementById('restSec').value = data.restSec || 20;
+                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
+                    document.getElementById('roundRestSec').value = data.roundRestSec || 90;
+                    document.getElementById('totalMin').value = data.totalMin || 30;
+                    if(data.mode) setMode(data.mode);
+                    if(data.audioMode) setAudioMode(data.audioMode);
+                    if(data.speechSettings) {
+                        speechSettings = data.speechSettings;
+                        allSwitchIds.forEach(id => {
+                            const key = mapIdToKey(id);
+                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
+                        });
+                        // LOAD INTRO TEXT
+                        if(speechSettings.introText) {
+                            document.getElementById('sp-intro-text').value = speechSettings.introText;
+                        }
+                    }
+                } catch(e) { console.log("Error loading settings", e); }
+            }
+        }
+        
+        function mapIdToKey(id) {
+            const map = {
+                'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
+                'sp-promo-start': 'promo_start', 
+                'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
+                'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
+                'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
+                'sp-tip-excount': 't_excount', 'sp-excount-switch': 't_excount_switch', 
+                'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
+            };
+            return map[id];
+        }
+
+        // --- UTILS ---
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            const header = el.previousElementSibling; 
+            if(el.classList.contains('hidden')) { el.classList.remove('hidden'); header.classList.add('open'); }
+            else { el.classList.add('hidden'); header.classList.remove('open'); }
+        }
+
+        function toggleAll(event, sectionId) {
+            event.stopPropagation();
+            const section = document.getElementById(sectionId);
+            const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+            let anyUnchecked = false;
+            checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
+            checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
+            updateSettings();
+            saveToLocal();
+        }
+
+        function updateSettings() {
+            allSwitchIds.forEach(id => {
+                const key = mapIdToKey(id);
+                if(document.getElementById(id)) speechSettings[key] = document.getElementById(id).checked;
+            });
+            // SAVE CUSTOM TEXT
+            const introVal = document.getElementById('sp-intro-text').value;
+            speechSettings.introText = introVal;
+        }
+
+        function setAudioMode(newMode) {
+            audioMode = newMode;
+            document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
+            document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
+            const panel = document.getElementById('speech-settings-panel');
+            if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
+        }
+
+        function adjustValue(id, delta) {
+            const el = document.getElementById(id);
+            let val = parseInt(el.value) || 0;
+            val += delta;
+            if (val < 1) val = 1; 
+            el.value = val;
+            calculateRealTime();
+            saveToLocal();
+        }
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
+            document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
+            if (mode==='duration') {
+                document.getElementById('input-duration').classList.remove('hidden');
+                document.getElementById('input-endtime').classList.add('hidden');
+            } else {
+                document.getElementById('input-duration').classList.add('hidden');
+                document.getElementById('input-endtime').classList.remove('hidden');
+            }
+            calculateRealTime();
+        }
+
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
@@ -880,7 +830,7 @@
                 resEl.innerText = "--"; errEl.style.display = "block";
                 btnEl.style.opacity = 0.5; btnEl.disabled = true;
                 workTimeSec = 0;
-                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>...</div>";
+                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
             } else {
                 workTimeSec = Math.floor(workSecTotal / totalSetsInWorkout);
                 resEl.innerText = workTimeSec + "s"; errEl.style.display = "none";
@@ -890,59 +840,201 @@
                 exerciseRestSec = exRst;
                 roundRestSec = roundRst;
                 
-                generateScheduleData(); // Safe call
+                generateScheduleData();
                 renderPreviewList();
             }
         }
 
         function generateScheduleData() {
-            try {
-                const rounds = parseInt(document.getElementById('rounds').value) || 1;
-                const ex = parseInt(document.getElementById('exercises').value);
-                const sts = parseInt(document.getElementById('sets').value);
-                // Safety check for lang
-                let t = texts[currentLang];
-                if (!t) t = texts['nl'];
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sts = parseInt(document.getElementById('sets').value);
+            
+            totalWorkSetsGlobal = rounds * ex * sts;
+            let currentSetGlobal = 0;
 
-                totalWorkSetsGlobal = rounds * ex * sts;
-                let currentSetGlobal = 0;
+            schedule = [];
+            schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10 });
 
-                schedule = [];
-                schedule.push({ type: 'prep', time: 10, label: t.s_prep, initialTime: 10 });
+            for (let r = 1; r <= rounds; r++) {
+                for (let e = 1; e <= ex; e++) {
+                    for (let s = 1; s <= sts; s++) {
+                        currentSetGlobal++;
+                        
+                        schedule.push({ 
+                            type: 'work', time: workTimeSec, 
+                            initialTime: workTimeSec,
+                            label: `Ronde ${r} | Oef ${e} (Set ${s})`,
+                            info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal }
+                        });
 
-                for (let r = 1; r <= rounds; r++) {
-                    for (let e = 1; e <= ex; e++) {
-                        for (let s = 1; s <= sts; s++) {
-                            currentSetGlobal++;
-                            let lbl = (currentLang==='nl') 
-                                ? `Ronde ${r} | Oef ${e} (Set ${s})` 
-                                : `Round ${r} | Ex ${e} (Set ${s})`;
-                            schedule.push({ 
-                                type: 'work', time: workTimeSec, initialTime: workTimeSec, label: lbl, 
-                                info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal } 
-                            });
+                        const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
+                        const isLastSetOfRound = (e===ex && s===sts);
+                        const isLastSetOfExercise = (s===sts);
 
-                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
-                            const isLastSetOfRound = (e===ex && s===sts);
-                            const isLastSetOfExercise = (s===sts);
-
-                            if (!isLastSetOfWorkout) {
-                                if (isLastSetOfRound) {
-                                    schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: t.s_long_rest });
-                                } else if (isLastSetOfExercise) {
-                                    schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: t.s_switch });
-                                } else {
-                                    schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: t.s_rest });
-                                }
+                        if (!isLastSetOfWorkout) {
+                            if (isLastSetOfRound) {
+                                schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: "GROTE PAUZE" });
+                            } else if (isLastSetOfExercise) {
+                                schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: "WISSEL OEFENING" });
+                            } else {
+                                schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: "Rust" });
                             }
                         }
                     }
                 }
-                schedule.push({ type: 'finish', time: 0, label: t.s_finish, initialTime: 0 });
-            } catch(e) { console.error(e); }
+            }
+            schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0 });
         }
 
-        // --- TIMER FUNCTIONS ---
+        function renderPreviewList() {
+            const list = document.getElementById('preview-list');
+            list.innerHTML = "";
+            let runningDate = new Date();
+
+            schedule.forEach((item) => {
+                if (item.type==='finish') return;
+                let timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                runningDate.setSeconds(runningDate.getSeconds() + item.time);
+
+                const div = document.createElement('div');
+                div.className = `schedule-item`;
+                
+                let icon = "";
+                if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; }
+                else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; }
+                else if(item.type==='work') icon='🔥'; 
+                else if(item.type==='rest') icon='💤';
+                else icon='🚀';
+
+                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function renderActiveList() {
+            const list = document.getElementById('schedule-list-active');
+            list.innerHTML = "";
+            let runningDate = new Date();
+            
+            schedule.forEach((item, idx) => {
+                if (item.type==='finish') return;
+                let timeStr = "";
+                if (idx >= currentIndex) {
+                    timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                    runningDate.setSeconds(runningDate.getSeconds() + item.time);
+                } else { timeStr = "klaar"; }
+
+                const div = document.createElement('div');
+                div.className = `schedule-item ${idx===currentIndex?'active':''}`;
+                div.id = `step-${idx}`;
+                
+                if(item.type==='rest-long') div.style.borderLeft = "4px solid #0A84FF";
+                else if(item.type==='rest-exercise') div.style.borderLeft = "4px solid #BF5AF2";
+
+                let icon = "";
+                if(item.type==='work') icon='🔥'; 
+                else if(item.type==='rest') icon='💤'; 
+                else if(item.type==='rest-exercise') icon='🔀';
+                else if(item.type==='rest-long') icon='☕'; 
+                else icon='🚀';
+
+                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc" style="${item.type==='work'?'color:white':''}">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function triggerAudio(type, text) {
+            if (audioMode === 'beep') {
+                if (type === 'start') playBeep(800, 'start');
+                else if (type === 'end') playBeep(400, 'end');
+                else if (type === 'tick') playBeep(600, 'tick');
+                else if (type === 'win') playBeep(1000, 'win');
+            } else {
+                if (!window.speechSynthesis) return;
+                
+                let shouldSpeak = false;
+
+                if (type === 'command' && speechSettings.commands) shouldSpeak = true;
+                if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
+                
+                if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
+                if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
+                if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
+                if (type === 'time20' && speechSettings.time20) shouldSpeak = true;
+                if (type === 'time15' && speechSettings.time15) shouldSpeak = true;
+                if (type === 'time10' && speechSettings.time10) shouldSpeak = true;
+                if (type === 'time5' && speechSettings.time5) shouldSpeak = true;
+
+                if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
+                if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
+                
+                // NIEUWE RECLAME MET CUSTOM TEKST
+                if (type === 'promo_start' && speechSettings.promo_start) {
+                    text = speechSettings.introText || "Welkom hawks bij leukste training van de week!";
+                    shouldSpeak = true;
+                }
+
+                if (type === 'milestone_combo') {
+                    let fullSentence = "";
+                    let allowMilestone = false;
+                    
+                    if(text.milestone_id === 'start' && speechSettings.m_start) allowMilestone = true;
+                    if(text.milestone_id === 'half' && speechSettings.m_half) allowMilestone = true;
+                    if(text.milestone_id === 'end' && speechSettings.m_end) allowMilestone = true;
+                    if(text.milestone_id === 'last' && speechSettings.m_last) allowMilestone = true;
+                    
+                    if(allowMilestone) fullSentence += text.text + ". ";
+                    if(speechSettings.commands) fullSentence += text.command + ". ";
+                     
+                    if(fullSentence.trim() !== "") {
+                        text = fullSentence;
+                        shouldSpeak = true;
+                    }
+                }
+
+                if (type === 'rest_combo') {
+                    let fullSentence = "";
+                    if(speechSettings.commands) fullSentence += text.basic + ". ";
+                    if(speechSettings.nextInfo && text.info) fullSentence += text.info + ". ";
+                    
+                    let possibleTips = [];
+                    if(speechSettings.t_drink) possibleTips.push("Neem een slok water");
+                    if(speechSettings.t_loose) possibleTips.push("Schud je spieren los");
+                    if(speechSettings.t_breathe) possibleTips.push("Let op je ademhaling. Diep in en uit");
+                    if(speechSettings.t_focus) possibleTips.push("Blijf gefocust");
+
+                    if(possibleTips.length > 0) {
+                        const randomTip = possibleTips[Math.floor(Math.random() * possibleTips.length)];
+                        fullSentence += randomTip + ". ";
+                    }
+                    
+                    if(fullSentence.trim() !== "") {
+                        text = fullSentence;
+                        shouldSpeak = true;
+                    }
+                }
+
+                if (shouldSpeak) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'nl-NL';
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+        }
+
+        function playBeep(f,t){
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+            o.connect(g);g.connect(audioCtx.destination);
+            o.frequency.value=f;o.type='sine';
+            const n=audioCtx.currentTime;
+            if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);}
+            else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);}
+            else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);}
+        }
+
         function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
             
@@ -954,7 +1046,6 @@
             }
 
             generateScheduleData();
-            
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('timer-screen').style.display = 'flex';
 
@@ -979,8 +1070,7 @@
             if (currentIndex >= schedule.length) return;
             const step = schedule[currentIndex];
             const nextStep = schedule[currentIndex + 1];
-            let t = texts[currentLang];
-            if(!t) t = texts['nl'];
+            const totalRounds = parseInt(document.getElementById('rounds').value);
 
             document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
             const activeItem = document.getElementById(`step-${currentIndex}`);
@@ -989,44 +1079,74 @@
             const statusEl = document.getElementById('current-status');
 
             if (step.type==='work') { 
-                statusEl.innerText= t.s_work.toUpperCase(); statusEl.style.color="#30D158"; 
+                statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
+                
                 let m_id = null;
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) m_id = 'start';
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) m_id = 'half';
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) m_id = 'end';
-                const totalRounds = parseInt(document.getElementById('rounds').value);
-                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) m_id = 'last';
-                triggerAudio('milestone_combo', { milestone_id: m_id });
+                let m_txt = "";
+                
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) { m_id = 'start'; m_txt = "Goede start, ga zo door"; }
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) { m_id = 'half'; m_txt = "Je bent op de helft van de training"; }
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) { m_id = 'end'; m_txt = "Laatste loodjes, eindsprint"; }
+                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) { m_id = 'last'; m_txt = "Laatste ronde, alles geven"; }
+                
+                triggerAudio('milestone_combo', { milestone_id: m_id, text: m_txt, command: "Start met werken" });
                 if(audioMode==='beep') triggerAudio('start');
             }
-            else if (step.type==='prep') {
-                statusEl.innerText="START"; statusEl.style.color="#0A84FF"; 
-                triggerAudio('promo_start');
-            }
-            else {
-                let label = t.s_rest; let key = 's_rest'; let color = "#FF9F0A";
-                if (step.type === 'rest-exercise') { label = t.s_switch; key = 's_switch'; color = "#BF5AF2"; }
-                if (step.type === 'rest-long') { label = t.s_long_rest; key = 's_long_rest'; color = "#0A84FF"; }
-                statusEl.innerText = label; statusEl.style.color = color;
+            else if (step.type==='rest') { 
+                statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
                 if(audioMode==='beep') triggerAudio('end');
                 else {
-                    let infoObj = null;
+                    let infoTxt = "";
                     if (nextStep && nextStep.type === 'work') {
-                        infoObj = { is_work_next: true, set: nextStep.info.set };
                         const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
-                        infoObj.sets_left = setsLeft;
+                        
                         const totalEx = document.getElementById('exercises').value;
-                        let mentionEx = false;
-                        if(step.type === 'rest' && speechSettings.t_excount) mentionEx = true;
-                        if(step.type === 'rest-exercise' && speechSettings.t_excount_switch) mentionEx = true;
-                        if(mentionEx) infoObj.ex_count_str = `${t.s_next_ex} ${nextStep.info.exercise} ${t.s_of_the} ${totalEx}`;
-                        else if (step.type === 'rest-exercise') infoObj.ex_count_str = `${t.s_next_ex} ${nextStep.info.exercise}`;
+                        let exCountMsg = "";
+                        if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
+                        
+                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}. Nog ${setsLeft} sets totaal`;
                     }
-                    triggerAudio('rest_combo', { basic_key: key, info: infoObj });
+                    triggerAudio('rest_combo', { basic: "Rust", info: infoTxt });
                 }
             }
-            
-            if(step.type === 'finish') finish();
+            else if (step.type==='rest-exercise') {
+                statusEl.innerText="WISSEL OEFENING"; statusEl.style.color="#BF5AF2";
+                if(audioMode==='beep') triggerAudio('end');
+                else {
+                    let infoTxt = "";
+                    if (nextStep && nextStep.type === 'work') {
+                        // NIEUWE LOGICA VOOR WISSEL TELLER
+                        const totalEx = document.getElementById('exercises').value;
+                        let exCountMsg = "";
+                        if (speechSettings.t_excount_switch) exCountMsg = ` van de ${totalEx}`;
+                        
+                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}`;
+                    }
+                    triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt });
+                }
+            }
+            else if (step.type==='rest-long') { 
+                statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; 
+                if(audioMode==='beep') triggerAudio('end');
+                else {
+                    let infoTxt = "";
+                    if (nextStep && nextStep.type === 'work') {
+                        const roundsLeft = totalRounds - nextStep.info.round;
+                        infoTxt = `Hierna ronde ${nextStep.info.round}. Nog ${roundsLeft} rondes te gaan`;
+                    }
+                    triggerAudio('rest_combo', { basic: "Grote pauze", info: infoTxt });
+                }
+            }
+            else if (step.type==='prep') { 
+                statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; 
+                // NIEUWE RECLAME TEKST
+                if(speechSettings.promo_start) {
+                    triggerAudio('promo_start', "ignored_will_use_custom_text");
+                } else {
+                    triggerAudio('info', "Maak je klaar voor de eerste set");
+                }
+            }
+            else { finish(); return; }
 
             document.getElementById('countdown').innerText = step.time;
 
@@ -1036,85 +1156,103 @@
                     step.time--;
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
+                    
                     if (step.type === 'work') {
                         const init = step.initialTime;
-                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway');
-                        if (step.time === 60 && init > 70) triggerAudio('time60');
-                        if (step.time === 30 && init > 40) triggerAudio('time30');
-                        if (step.time === 20 && init > 30) triggerAudio('time20');
-                        if (step.time === 15 && init > 25) triggerAudio('time15');
-                        if (step.time === 10 && init > 15) triggerAudio('time10');
-                        if (step.time === 5 && init > 10) triggerAudio('time5');
+                        
+                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway', "Halverwege");
+                        
+                        if (step.time === 60 && init > 70) triggerAudio('time60', "Nog 1 minuut");
+                        if (step.time === 30 && init > 40) triggerAudio('time30', "Nog 30 seconden");
+                        if (step.time === 20 && init > 30) triggerAudio('time20', "Nog 20 seconden");
+                        if (step.time === 15 && init > 25) triggerAudio('time15', "Nog 15 seconden");
+                        if (step.time === 10 && init > 15) triggerAudio('time10', "Nog 10 seconden");
+                        if (step.time === 5 && init > 10) triggerAudio('time5', "Nog 5 seconden");
                     }
+
                     if (step.time <= 0) {
                         clearInterval(timerInterval);
                         currentIndex++;
                         runStep();
-                    } else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
+                    } else if (step.time <= 3) { 
+                        triggerAudio('tick', step.time.toString());
+                    }
                 }
             }, 1000);
         }
 
-        window.skipStep = function(dir) {
+        function skipStep(dir) {
             let newIndex = currentIndex + dir;
             if (newIndex < 0) newIndex = 0;
             if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
             currentIndex = newIndex;
-            renderActiveList(); runStep(); 
-        };
-        window.handlePauseClick = function() {
+            renderActiveList(); 
+            runStep(); 
+        }
+
+        function handlePauseClick() {
             const btn = document.getElementById('btn-pause');
-            const t = texts[currentLang];
             if (!isPaused) {
                 isPaused = true;
-                btn.innerText = t.s_resume; btn.style.backgroundColor = "#30D158";
-                document.getElementById('current-status').innerText = t.s_pause;
-                triggerAudio('command', t.s_pause);
+                btn.innerText = "HERVAT"; btn.style.backgroundColor = "#30D158";
+                document.getElementById('current-status').innerText = "GEPAUZEERD";
+                document.getElementById('current-status').style.color = "white";
+                triggerAudio('command', "Gepauzeerd");
             } else {
                 if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
-                else window.resolvePause('push');
+                else resolvePause('push');
             }
-        };
-        window.resolvePause = function(choice) {
+        }
+
+        function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
-            const t = texts[currentLang];
-            document.getElementById('btn-pause').innerText = "PAUZE"; 
+            document.getElementById('btn-pause').innerText = "PAUZE";
             document.getElementById('btn-pause').style.backgroundColor = "#FF9F0A";
             isPaused = false;
-            triggerAudio('command', t.s_resume_voice);
+            triggerAudio('command', "We gaan weer door");
             if (choice === 'recalc') recalculateForFixedEnd();
             else updateTargetTimeFromNow();
             renderActiveList();
-        };
-        
+        }
+
         function recalculateForFixedEnd() {
             const now = new Date();
             const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            if (secsRemaining <= 0) { alert("Time up!"); finish(); return; }
+            if (secsRemaining <= 0) { alert("Tijd is op!"); finish(); return; }
+
             let workStepsLeft = 0; let fixedRest = 0;
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time;
                 else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
             }
+
             if (workStepsLeft > 0) {
                 const availableForWork = secsRemaining - fixedRest;
                 let newWork = Math.floor(availableForWork / workStepsLeft);
                 if (newWork < 5) newWork = 5; 
                 for(let i=currentIndex; i<schedule.length; i++){
-                    if (schedule[i].type==='work') { schedule[i].time = newWork; schedule[i].initialTime = newWork; }
+                    if (schedule[i].type==='work') {
+                         schedule[i].time = newWork;
+                         schedule[i].initialTime = newWork; 
+                    }
                 }
                 document.getElementById('countdown').innerText = schedule[currentIndex].time;
             }
         }
+
         function updateTargetTimeFromNow() {
             let secsLeft = 0;
-            for(let i=currentIndex; i<schedule.length; i++) { if(schedule[i].type !== 'finish') secsLeft += schedule[i].time; }
+            for(let i=currentIndex; i<schedule.length; i++) {
+                if(schedule[i].type !== 'finish') secsLeft += schedule[i].time;
+            }
             const now = new Date();
             targetEndTimeDate = new Date(now.getTime() + secsLeft * 1000);
             updateEndTimeDisplay();
         }
+
         function updateEndTimeDisplay() { document.getElementById('display-end-time').innerText = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+        
         function updateProgressBar() {
             const now = new Date();
             const totalMs = targetEndTimeDate - workoutStartTime; 
@@ -1123,15 +1261,16 @@
             let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100;
             document.getElementById('total-progress').style.width = pct + "%";
         }
+        
         function finish() {
-            const t = texts[currentLang];
-            document.getElementById('current-status').innerText = t.s_finish;
+            document.getElementById('current-status').innerText = "KLAAR!";
             document.getElementById('current-status').style.color = "white";
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('btn-pause').style.display='none';
-            triggerAudio('milestone', "win");
+            triggerAudio('milestone', "Gefeliciteerd, training voltooid");
         }
-        window.resetApp = function() { clearInterval(timerInterval); location.reload(); };
+        
+        function resetApp() { clearInterval(timerInterval); location.reload(); }
     </script>
 </body>
 </html>
