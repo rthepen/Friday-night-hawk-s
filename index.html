@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.10</title>
+    <title>Friday-night-hawk-s Timer v7.11</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -310,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.10</span>
+                FNH Timer <span class="version-tag">v7.11</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -519,43 +519,51 @@
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.10: Halfway Always Starts With "Halverwege") ---
+        // --- COACH PRESETS DEFINITIONS (v7.11: ALL PREFIXED) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" }, 
-                work_start: { enabled: true, text: "Start met werken | Go, aan de slag | En... actie | Kom op, beginnen | Tijd om te knallen | Focus en start | Hup, bewegen" },
-                // HALVERWEGE FIXED START
+                // WORK START (START!)
+                work_start: { enabled: true, text: "Start! En actie | Start! Aan de slag | Start! Beginnen maar | Start! Tijd om te knallen | Start! Focus en ga | Start! Hup, bewegen" },
+                // HALVERWEGE (HALVERWEGE!)
                 work_halfway: { enabled: true, text: "Halverwege! | Halverwege! Je bent op de helft | Halverwege! Hou dit vast | Halverwege! De helft zit erop | Halverwege! Wissel van kant als dat moet | Halverwege! Wisselen maar | Halverwege! Hou vol" }, 
                 work_30s: { enabled: false, text: "Nog 30 seconden" },
-                work_10s: { enabled: true, text: "Nog 10 seconden | Laatste 10 | Bijna klaar | Aftellen loopt | Nog even volhouden | Laatste stukje" },
-                rest_set_start: { enabled: true, text: "Rust | Even ontspannen | Stop maar | Pak je rust | Ontspan | Adem in, adem uit | Even los schudden" },
+                // 10 SECONDS (NOG 10 SECONDEN!)
+                work_10s: { enabled: true, text: "Nog 10 seconden! Hou vol | Nog 10 seconden! Bijna klaar | Nog 10 seconden! Aftellen loopt | Nog 10 seconden! Laatste stukje" },
+                work_5s: { enabled: false, text: "Nog 5 seconden" },
+                // REST SET (RUST!)
+                rest_set_start: { enabled: true, text: "Rust! Even ontspannen | Rust! Stop maar | Rust! Pak je rust | Rust! Ontspan | Rust! Adem in, adem uit | Rust! Even los schudden" },
                 rest_set_tips: { enabled: true, text: "" }, 
-                rest_switch_start: { enabled: true, text: "Wissel van oefening | Door naar de volgende | Wisselen maar | Volgende station | Schuif een plekje op | Hup, doorwisselen" },
+                // WISSEL (WISSEL!)
+                rest_switch_start: { enabled: true, text: "Wissel! Naar de volgende | Wissel! Doorwisselen | Wissel! Volgende station | Wissel! Schuif een plekje op | Wissel! Hup, door" },
                 rest_switch_info: { enabled: true, text: "" }, 
-                rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
-                rest_round_start: { enabled: true, text: "Grote pauze | Even bijkomen | Ronde voorbij | Tijd voor wat drinken | Neem je rust" },
-                rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
+                // WISSEL 10S (NOG 10 SECONDEN!)
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Sta klaar" },
+                // RONDE RUST (GROTE PAUZE!)
+                rest_round_start: { enabled: true, text: "Grote pauze! Even bijkomen | Grote pauze! Ronde voorbij | Grote pauze! Tijd voor wat drinken | Grote pauze! Neem je rust" },
+                // RONDE 15S (NOG 15 SECONDEN!)
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden! Ga naar je oefening | Nog 15 seconden! Klaarstaan" }, 
                 rest_round_info: { enabled: true, text: "" }, 
-                mile_start: { enabled: true, text: "Goede start, ga zo door | Lekker begin! | De kop is eraf" },
-                mile_half: { enabled: true, text: "Je bent op de helft van de training | We zijn er bijna, helft gehad | 50 procent zit erop" },
-                mile_end: { enabled: true, text: "Laatste loodjes, eindsprint | Het einde is in zicht | Nog even knallen nu" },
-                mile_lastround: { enabled: true, text: "Laatste ronde, alles geven | Nog één ronde te gaan | Alles eruit nu" },
+                // MILESTONES (GEEN VASTE PREFIX NODIG, MAAR WEL DUIDELIJK)
+                mile_start: { enabled: true, text: "Mijlpaal! Goede start, ga zo door | Mijlpaal! Lekker begin, de kop is eraf" },
+                mile_half: { enabled: true, text: "Mijlpaal! Je bent op de helft van de training | Mijlpaal! We zijn er bijna, helft gehad" },
+                mile_end: { enabled: true, text: "Mijlpaal! Laatste loodjes, eindsprint | Mijlpaal! Het einde is in zicht" },
+                mile_lastround: { enabled: true, text: "Laatste ronde! Alles geven | Laatste ronde! Nog één keer knallen" },
                 finish: { enabled: true, text: "Gefeliciteerd, training voltooid | Dat was hem weer, goed gedaan! | Training klaar, goed gewerkt" }
             },
             simple: {
                 prep_intro: { enabled: true, text: "Training start." },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Start. | Go. | Begin." },
-                // HALVERWEGE FIXED START
-                work_halfway: { enabled: true, text: "Halverwege. | Halverwege. Wissel." },
+                work_start: { enabled: true, text: "Start." },
+                work_halfway: { enabled: true, text: "Halverwege." },
                 work_30s: { enabled: false, text: "30." },
                 work_10s: { enabled: true, text: "10." },
-                rest_set_start: { enabled: true, text: "Rust. | Stop." },
+                rest_set_start: { enabled: true, text: "Rust." },
                 rest_set_tips: { enabled: false, text: "" }, 
                 rest_switch_start: { enabled: true, text: "Wissel." },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "Nog 10." },
+                rest_switch_10s: { enabled: true, text: "10." },
                 rest_round_start: { enabled: true, text: "Ronde rust." },
                 rest_round_15s: { enabled: true, text: "Klaarstaan." },
                 rest_round_info: { enabled: true, text: "" },
@@ -568,18 +576,25 @@
             sergeant: {
                 prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Klaarstaan! We gaan beginnen! | Geen genade vandaag! | Rechtop staan!" },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Bewegen! Nu! | Geen smoesjes, werken! | Pijn is fijn, start! | Tempo maken! Go! | Aan het werk! | Gas erop, nu! | Niet nadenken, doen! | Vooruit met de geit! | Actie!" },
-                // HALVERWEGE FIXED START
+                // START!
+                work_start: { enabled: true, text: "Start! Bewegen! | Start! Geen smoesjes, werken! | Start! Pijn is fijn! | Start! Tempo maken! | Start! Aan het werk! | Start! Gas erop, nu! | Start! Niet nadenken, doen! | Start! Vooruit met de geit!" },
+                // HALVERWEGE!
                 work_halfway: { enabled: true, text: "Halverwege! Niet verslappen! | Halverwege! Doorgaan! | Halverwege! Ik wil zweet zien! | Halverwege! Is dat alles wat je hebt? | Halverwege! Kom op, sneller! | Halverwege! Niet janken, doorwerken! | Halverwege! Wisselen en door!" },
-                work_30s: { enabled: true, text: "Nog 30 seconden, tempo! | Versnel!" },
-                work_10s: { enabled: true, text: "Laatste 10, alles geven! | Niet stoppen nu! | Doorgaan tot het gaatje! | Pijn is tijdelijk! | Niet opgeven soldaat!" },
-                rest_set_start: { enabled: true, text: "Herstel! En sta rechtop! | Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Staande houden! | Blijf ademen!" },
+                work_30s: { enabled: true, text: "Nog 30 seconden! Tempo! | Nog 30 seconden! Versnel!" },
+                // NOG 10 SECONDEN!
+                work_10s: { enabled: true, text: "Nog 10 seconden! Alles geven! | Nog 10 seconden! Niet stoppen nu! | Nog 10 seconden! Doorgaan tot het gaatje! | Nog 10 seconden! Pijn is tijdelijk!" },
+                // RUST!
+                rest_set_start: { enabled: true, text: "Rust! Herstel! | Rust! Sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden!" },
                 rest_set_tips: { enabled: false, text: "" },
-                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende! | Opschieten, doorlopen! | Volgende oefening, nu! | Geen tijd te verliezen, wissel! | Verplaatsen!" },
+                // WISSEL!
+                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen! | Wissel! Verplaatsen!" },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "Opschieten! Nog 10! | Sta klaar! | In positie!" },
-                rest_round_start: { enabled: true, text: "Ronde rust! Drinken en bek houden! | Pauze! Even bijkomen en dan weer knallen!" },
-                rest_round_15s: { enabled: true, text: "Terug op je post! Nu! | Aantreden voor de volgende ronde! | Klaarstaan soldaten!" },
+                // NOG 10!
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Sta klaar! | Nog 10 seconden! In positie!" },
+                // GROTE PAUZE!
+                rest_round_start: { enabled: true, text: "Grote pauze! Drinken en bek houden! | Grote pauze! Even bijkomen en dan weer knallen!" },
+                // NOG 15!
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden! Terug op je post! | Nog 15 seconden! Aantreden! | Nog 15 seconden! Klaarstaan soldaten!" },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet! | Niet verslappen nu!" },
                 mile_half: { enabled: true, text: "Helft erop! Is dat alles wat je hebt? | We zijn pas op de helft! | Tandje erbij!" },
@@ -590,23 +605,30 @@
             humor: {
                 prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen! | Zijn we er klaar voor? De bar is nog dicht! | Vergeet je handdoek niet, voor het zweet of de tranen." },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Hup, actie in de taxi! | Bewegen met dat lijf! | Hop hop, gas erop! | Niet kletsen, maar zweten! | En... gaan met die banaan! | Doe alsof er gratis bier is! | Rennen voor je leven! | Hup, die calorieën moeten eraf! | Bewegen, anders word je koud!" },
-                // HALVERWEGE FIXED START
-                work_halfway: { enabled: true, text: "Halverwege! Nog even, de bar is al bijna open! | Halverwege! Denk aan de bitterballen! | Halverwege! Zweten is huilen van het vet! | Halverwege! Kom op, je kan het (denk ik)! | Halverwege! Kijk naar de buren, die zweten ook | Halverwege! Wissel van kant, of blijf scheef." },
+                // START!
+                work_start: { enabled: true, text: "Start! Hup, actie in de taxi! | Start! Bewegen met dat lijf! | Start! Hop hop, gas erop! | Start! Niet kletsen, maar zweten! | Start! En... gaan met die banaan! | Start! Doe alsof er gratis bier is! | Start! Rennen voor je leven!" },
+                // HALVERWEGE!
+                work_halfway: { enabled: true, text: "Halverwege! De bar is al bijna open! | Halverwege! Denk aan de bitterballen! | Halverwege! Zweten is huilen van het vet! | Halverwege! Kom op, je kan het (denk ik)! | Halverwege! Kijk naar de buren, die zweten ook | Halverwege! Wissel van kant, of blijf scheef." },
                 work_30s: { enabled: false, text: "" },
-                work_10s: { enabled: true, text: "Nog 10 seconden afzien! | Bijna klaar, hou vol! | Nog even doorbijten! | De verlossing is nabij! | Denk aan dat koude biertje!" },
-                rest_set_start: { enabled: true, text: "Even hijgen als een postpaard. | En.. relax. | Zo, dat viel mee toch? | Even bijkomen. | Pfoe, warm hè?" },
+                // NOG 10!
+                work_10s: { enabled: true, text: "Nog 10 seconden! Afzien! | Nog 10 seconden! Bijna klaar, hou vol! | Nog 10 seconden! Nog even doorbijten! | Nog 10 seconden! Denk aan dat koude biertje!" },
+                // RUST!
+                rest_set_start: { enabled: true, text: "Rust! Hijgen als een postpaard | Rust! En.. relax | Rust! Zo, dat viel mee toch? | Rust! Even bijkomen | Rust! Pfoe, warm hè?" },
                 rest_set_tips: { enabled: true, text: "" },
-                rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen! | Hup hup, naar de volgende martelgang. | Doorwisselen, niet stiekem rusten. | Op naar het volgende pretpark. | Hopla, doorlopen." },
+                // WISSEL!
+                rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen! | Wissel! Hup hup, naar de volgende martelgang | Wissel! Doorwisselen, niet stiekem rusten | Wissel! Op naar het volgende pretpark | Wissel! Hopla, doorlopen." },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "Nog 10 tellen, opschieten! | Niet treuzelen!" },
-                rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen. | Neem een slokje, je hebt het nodig. | Even checken of je haar nog goed zit. | Tijd voor een dansje." },
-                rest_round_15s: { enabled: true, text: "Kom op, buik in en borst vooruit. | We gaan weer bijna beginnen! | Zet je schrap." },
+                // NOG 10!
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Niet treuzelen!" },
+                // GROTE PAUZE!
+                rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen | Grote pauze! Neem een slokje, je hebt het nodig | Grote pauze! Even checken of je haar nog goed zit | Grote pauze! Tijd voor een dansje." },
+                // NOG 15!
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden! Kom op, buik in en borst vooruit | Nog 15 seconden! We gaan weer bijna beginnen | Nog 15 seconden! Zet je schrap." },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Lekker bezig pik! | We zijn los! | De kop is eraf (en hopelijk niet van je biertje)." },
                 mile_half: { enabled: true, text: "We zijn op de helft, de bitterballen komen dichterbij! | 50% gedaan, 50% te gaan." },
                 mile_end: { enabled: true, text: "Laatste loodjes wegen het zwaarst, maar smaken het best! | Het einde is in zicht, hou vol." },
-                mile_lastround: { enabled: true, text: "Laatste ronde, daarna bier! | Nog één keertje vlammen! | Alles geven voor de derde helft!" },
+                mile_lastround: { enabled: true, text: "Laatste ronde! Daarna bier! | Laatste ronde! Nog één keertje vlammen! | Laatste ronde! Alles geven voor de derde helft!" },
                 finish: { enabled: true, text: "Jaaa! Tijd voor bier en ballen! Goed gewerkt! | Jullie hebben het overleefd, proost! | De bar is geopend!" }
             }
         };
