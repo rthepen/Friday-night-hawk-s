@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.14</title>
+    <title>Friday-night-hawk-s Timer v7.15</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -311,7 +311,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.14</span>
+                FNH Timer <span class="version-tag">v7.15</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -527,19 +527,28 @@
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" }, 
+                // WORK START (START!)
                 work_start: { enabled: true, text: "Start! En actie | Start! Aan de slag | Start! Beginnen maar | Start! Tijd om te knallen | Start! Focus en ga | Start! Hup, bewegen" },
+                // HALVERWEGE (HALVERWEGE!)
                 work_halfway: { enabled: true, text: "Halverwege! | Halverwege! Je bent op de helft | Halverwege! Hou dit vast | Halverwege! De helft zit erop | Halverwege! Wissel van kant als dat moet | Halverwege! Wisselen maar | Halverwege! Hou vol" }, 
                 work_30s: { enabled: false, text: "Nog 30 seconden" },
+                // 10 SECONDS (NOG 10 SECONDEN!)
                 work_10s: { enabled: true, text: "Nog 10 seconden! Hou vol | Nog 10 seconden! Bijna klaar | Nog 10 seconden! Aftellen loopt | Nog 10 seconden! Laatste stukje" },
                 work_5s: { enabled: false, text: "Nog 5 seconden" },
+                // REST SET (RUST!)
                 rest_set_start: { enabled: true, text: "Rust! Even ontspannen | Rust! Stop maar | Rust! Pak je rust | Rust! Ontspan | Rust! Adem in, adem uit | Rust! Even los schudden" },
                 rest_set_tips: { enabled: true, text: "" }, 
+                // WISSEL (WISSEL!)
                 rest_switch_start: { enabled: true, text: "Wissel! Naar de volgende | Wissel! Doorwisselen | Wissel! Volgende station | Wissel! Schuif een plekje op | Wissel! Hup, door" },
                 rest_switch_info: { enabled: true, text: "" }, 
+                // WISSEL 10S (NOG 10 SECONDEN!)
                 rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Sta klaar" },
+                // RONDE RUST (GROTE PAUZE!)
                 rest_round_start: { enabled: true, text: "Grote pauze! Even bijkomen | Grote pauze! Ronde voorbij | Grote pauze! Tijd voor wat drinken | Grote pauze! Neem je rust" },
+                // RONDE 15S (NOG 15 SECONDEN!)
                 rest_round_15s: { enabled: true, text: "Nog 15 seconden! Ga naar je oefening | Nog 15 seconden! Klaarstaan" }, 
                 rest_round_info: { enabled: true, text: "" }, 
+                // MILESTONES (GEEN VASTE PREFIX NODIG, MAAR WEL DUIDELIJK)
                 mile_start: { enabled: true, text: "Mijlpaal! Goede start, ga zo door | Mijlpaal! Lekker begin, de kop is eraf" },
                 mile_half: { enabled: true, text: "Mijlpaal! Je bent op de helft van de training | Mijlpaal! We zijn er bijna, helft gehad" },
                 mile_end: { enabled: true, text: "Mijlpaal! Laatste loodjes, eindsprint | Mijlpaal! Het einde is in zicht" },
@@ -568,18 +577,27 @@
                 finish: { enabled: true, text: "Klaar." }
             },
             sergeant: {
+                // EXERCITIE UPDATES
                 prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Peloton... AANDACHT! | Geef acht! We gaan beginnen! | Geen genade vandaag! | Rechtop staan!" },
                 prep_countdown: { enabled: true, text: "" },
+                // START!
                 work_start: { enabled: true, text: "Start! Voorwaarts... MARS! | Start! In looppas... MARS! | Start! Aanvallen! | Start! Geen gevangenen maken! | Start! Bewegen! Nu! | Start! Geen smoesjes, werken! | Start! Pijn is fijn, start! | Start! Tempo maken! Go! | Start! Gas erop, nu!" },
+                // HALVERWEGE!
                 work_halfway: { enabled: true, text: "Halverwege! Niet verslappen! | Halverwege! Doorgaan! | Halverwege! Ik wil zweet zien! | Halverwege! Is dat alles wat je hebt? | Halverwege! Kom op, sneller! | Halverwege! Niet janken, doorwerken! | Halverwege! Wisselen en door!" },
                 work_30s: { enabled: true, text: "Nog 30 seconden! Tempo! | Nog 30 seconden! Versnel!" },
+                // NOG 10 SECONDS!
                 work_10s: { enabled: true, text: "Nog 10 seconden! Alles geven! | Nog 10 seconden! Niet stoppen nu! | Nog 10 seconden! Doorgaan tot het gaatje! | Nog 10 seconden! Pijn is tijdelijk!" },
+                // RUST!
                 rest_set_start: { enabled: true, text: "Rust! Op de plaats... RUST! | Rust! Geef... ACHT! | Rust! Herstel! En sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden!" },
                 rest_set_tips: { enabled: false, text: "" },
+                // WISSEL!
                 rest_switch_start: { enabled: true, text: "Wissel! Peloton... verplaatsen! | Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen!" },
                 rest_switch_info: { enabled: true, text: "" },
+                // NOG 10!
                 rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Sta klaar! | Nog 10 seconden! In positie!" },
+                // GROTE PAUZE!
                 rest_round_start: { enabled: true, text: "Grote pauze! Drinken en bek houden! | Grote pauze! Even bijkomen en dan weer knallen!" },
+                // NOG 15!
                 rest_round_15s: { enabled: true, text: "Nog 15 seconden! Terug op je post! | Nog 15 seconden! Aantreden! | Nog 15 seconden! Klaarstaan soldaten!" },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet! | Niet verslappen nu!" },
@@ -591,16 +609,24 @@
             humor: {
                 prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen! | Zijn we er klaar voor? De bar is nog dicht! | Vergeet je handdoek niet, voor het zweet of de tranen." },
                 prep_countdown: { enabled: true, text: "" },
+                // START!
                 work_start: { enabled: true, text: "Start! Hup, actie in de taxi! | Start! Bewegen met dat lijf! | Start! Hop hop, gas erop! | Start! Niet kletsen, maar zweten! | Start! En... gaan met die banaan! | Start! Doe alsof er gratis bier is! | Start! Rennen voor je leven!" },
+                // HALVERWEGE!
                 work_halfway: { enabled: true, text: "Halverwege! De bar is al bijna open! | Halverwege! Denk aan de bitterballen! | Halverwege! Zweten is huilen van het vet! | Halverwege! Kom op, je kan het (denk ik)! | Halverwege! Kijk naar de buren, die zweten ook | Halverwege! Wissel van kant, of blijf scheef." },
                 work_30s: { enabled: false, text: "" },
+                // NOG 10!
                 work_10s: { enabled: true, text: "Nog 10 seconden! Afzien! | Nog 10 seconden! Bijna klaar, hou vol! | Nog 10 seconden! Nog even doorbijten! | Nog 10 seconden! Denk aan dat koude biertje!" },
+                // RUST!
                 rest_set_start: { enabled: true, text: "Rust! Hijgen als een postpaard | Rust! En.. relax | Rust! Zo, dat viel mee toch? | Rust! Even bijkomen | Rust! Pfoe, warm hè?" },
                 rest_set_tips: { enabled: true, text: "" },
+                // WISSEL!
                 rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen! | Wissel! Hup hup, naar de volgende martelgang | Wissel! Doorwisselen, niet stiekem rusten | Wissel! Op naar het volgende pretpark | Wissel! Hopla, doorlopen." },
                 rest_switch_info: { enabled: true, text: "" },
+                // NOG 10!
                 rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Niet treuzelen!" },
+                // GROTE PAUZE!
                 rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen | Grote pauze! Neem een slokje, je hebt het nodig | Grote pauze! Even checken of je haar nog goed zit | Grote pauze! Tijd voor een dansje." },
+                // NOG 15!
                 rest_round_15s: { enabled: true, text: "Nog 15 seconden! Kom op, buik in en borst vooruit | Nog 15 seconden! We gaan weer bijna beginnen | Nog 15 seconden! Zet je schrap." },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Lekker bezig pik! | We zijn los! | De kop is eraf (en hopelijk niet van je biertje)." },
@@ -611,7 +637,7 @@
             }
         };
 
-        // Initialize with standard settings (deep copy to avoid ref issues)
+        // Initialize
         let speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
 
         // UI Config
@@ -687,34 +713,43 @@
             }
         }
 
-        // --- AI PROMPT GENERATION (UPDATED v7.14) ---
+        // --- AI PROMPT GENERATION (UPDATED v7.15) ---
         function generateAIPrompt() {
             const baseUrl = window.location.href.split('?')[0]; // Use cleaned base URL
-            const prompt = `Fungeer als de 'FNH Timer URL Generator'.
-Ik zal hieronder beschrijven hoe mijn training eruitziet.
-Jouw taak is om **direct** een volledige URL te genereren op basis van mijn beschrijving.
-Stel **geen** vragen. Als ik iets niet specifiek benoem, gebruik dan logische standaardwaarden of laat de parameter weg.
-Alles is optioneel!
+            const prompt = `Fungeer als de 'FNH Coach Generator'.
+Jouw doel is om een URL te genereren die een unieke 'Coach Persoonlijkheid' instelt voor de timer-app.
+De gebruiker zal hieronder beschrijven wat voor soort coach hij wil (bijv. 'een boze sergeant', 'een zen meester', 'een grappige clown').
+Jij moet op basis daarvan creatieve, grappige of serieuze teksten verzinnen voor de verschillende momenten in de training.
+
+BELANGRIJK:
+- Gebruik de parameterstructuur zoals hieronder.
+- Verander GEEN tijdinstellingen (zoals r, s, e) tenzij expliciet gevraagd. Focus puur op de tekstparameters.
+- Gebruik het teken | om meerdere variaties per commando toe te voegen (de app kiest er dan willekeurig een).
+- Stel GEEN vragen terug. Genereer DIRECT de volledige URL.
 
 Basis URL: ${baseUrl}
 
-Mogelijke parameters (gebruik alleen wat nodig is):
-- r (rondes, getal)
-- e (oefeningen, getal)
-- s (sets per oefening, getal)
-- rs (rust na set, sec)
-- re (rust na wissel, sec)
-- rr (rust na ronde, sec)
-- tm (totaal minuten, getal)
-- coach-teksten (optioneel, scheid variaties met | ):
-  - work_start, work_halfway, work_10s
-  - rest_set_start, rest_switch_start, rest_switch_10s, rest_round_start, rest_round_15s
-  - mile_start, mile_half, mile_end, mile_lastround, finish
+Beschikbare tekstparameters (vul deze met creatieve teksten):
+- work_start (Start commando)
+- work_halfway (Melding halverwege)
+- work_10s (Nog 10 seconden werken)
+- rest_set_start (Start rust na set)
+- rest_switch_start (Start wissel van oefening)
+- rest_switch_10s (Nog 10 seconden wisselrust)
+- rest_round_start (Start grote pauze)
+- rest_round_15s (Nog 15 seconden grote pauze)
+- mile_start (25% mijlpaal)
+- mile_half (50% mijlpaal)
+- mile_end (75% mijlpaal)
+- mile_lastround (Start laatste ronde)
+- finish (Einde training)
+- prep_intro (Introductie tekst)
 
-Mijn trainingsomschrijving volgt hierna:`;
+Alles is optioneel. Vul alleen in wat past bij het karakter.
+Mijn gewenste coach-stijl volgt hierna:`;
 
             navigator.clipboard.writeText(prompt).then(() => {
-                alert("🤖 AI Prompt gekopieerd naar klembord!\n\n1. Ga naar ChatGPT/Claude.\n2. Plak de tekst.\n3. Typ eronder wat voor training je wilt (bijv: '3 rondes, 5 oefeningen, drill sergeant').\n4. Plak de gegenereerde link hier terug.");
+                alert("🤖 AI Prompt gekopieerd naar klembord!\n\n1. Ga naar ChatGPT/Claude.\n2. Plak de tekst.\n3. Typ eronder welk TYPE coach je wilt (bijv: 'Maffiabaas', 'Arnold Schwarzenegger', 'Kleuterjuf').\n4. Plak de gegenereerde link hier terug.");
             });
         }
 
