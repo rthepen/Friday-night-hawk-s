@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.25 (Click Fix)</title>
+    <title>Friday-night-hawk-s Timer v7.26 (Input Fix)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -363,7 +363,6 @@
 
         /* --- EDITABLE END TIME --- */
         .stat-box.editable {
-            cursor: pointer;
             border: 2px solid #30D158;
             position: relative;
             z-index: 60; 
@@ -444,16 +443,19 @@
 
         .hidden { display: none !important; }
         
-        /* HIDDEN INPUT STYLES TO PREVENT LAYOUT ISSUES */
-        #hidden-endtime-input {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            z-index: -1;
-            pointer-events: none;
+        /* TRANSPARENT INPUT STYLES */
+        .transparent-input {
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            opacity: 0; 
+            z-index: 20; 
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            margin: 0;
         }
     </style>
 </head>
@@ -467,7 +469,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.25</span>
+                FNH Timer <span class="version-tag">v7.26</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -661,7 +663,9 @@
                     </div>
                 </div>
                 <div class="stats-row-2">
-                    <div class="stat-box editable" onclick="triggerEndTimeEdit()">
+                    <div class="stat-box editable">
+                        <input type="time" id="live-endtime-input" class="transparent-input" onchange="handleNewEndTime(this.value)">
+                        
                         <div class="edit-icon">✏️</div>
                         <div class="stat-label">Einde (Klik!)</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
@@ -692,8 +696,6 @@
             <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
         </div>
     </div>
-    
-    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
     <script>
         // --- VARIABELEN ---
@@ -1406,20 +1408,6 @@
         }
 
         // --- NEW LIVE EDIT LOGIC ---
-        function triggerEndTimeEdit() {
-            // Populate hidden input with current target time
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const input = document.getElementById('hidden-endtime-input');
-            input.value = timeStr;
-            
-            // Try to open native picker
-            if ('showPicker' in HTMLInputElement.prototype) {
-                try { input.showPicker(); } catch(e) { input.click(); }
-            } else {
-                input.click();
-            }
-        }
-
         function handleNewEndTime(newVal) {
             if(!newVal) return;
             const [h, m] = newVal.split(':');
@@ -1520,6 +1508,8 @@
         function updateEndTimeDisplay() { 
             const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             document.getElementById('val-endtime').innerText = timeStr;
+            // Sync the invisible input
+            document.getElementById('live-endtime-input').value = timeStr;
         }
         
         function updateProgressBar() {
