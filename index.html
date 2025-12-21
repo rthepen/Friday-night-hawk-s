@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.2</title>
+    <title>Friday-night-hawk-s Timer v7.3</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -123,7 +123,7 @@
         .btn-header:active { opacity: 0.6; }
         .btn-save { background: #0A84FF; color: white; }
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
-        .btn-share-app { background: #BF5AF2; color: white; } /* Purple for sharing app */
+        .btn-share-app { background: #BF5AF2; color: white; }
 
         /* --- GRID SYSTEM --- */
         .grid-row {
@@ -303,7 +303,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.2</span>
+                FNH Timer <span class="version-tag">v7.3</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -498,6 +498,7 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
+        // DATASTRUCTUUR: ALLES INSTELBAAR (v7.1)
         let speechSettings = {
             // VOORBEREIDING
             prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -689,7 +690,7 @@
             setMode('endtime');
             setAudioMode('speech');
 
-            // Reset Object v7.2 (inc. promo tekst update)
+            // Reset Object v7.1
             speechSettings = {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" },
@@ -718,21 +719,21 @@
             calculateRealTime();
         }
 
-        // --- NEW SHARE APP FUNCTION ---
+        // --- NEW SHARE APP FUNCTION (v7.3 UPDATE) ---
         function shareApp() {
             // 1. Clean URL (No params)
             const cleanUrl = window.location.origin + window.location.pathname;
 
             // 2. The Text
             let text = "🦅 **Friday Night Hawks Timer**\n\n";
+            text += "🏆 **Uniek:** Jij bepaalt de EINDTIJD 🏁. De app berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent!\n\n";
             text += "De ultieme trainingspartner voor de vrijdagavond! 🚴🏋️🏊\n";
-            text += "Sluit af met bitterballen & gezelligheid! 🍖🍻\n\n";
+            text += "Sluit af met bitterballen & gezelligheid! 🍖\n\n";
             text += "✅ **Wat kan deze app?**\n";
             text += "- 🗣️ Volledige spraakbegeleiding (NL)\n";
             text += "- ⏱️ Slimme tijd- & rustberekening\n";
             text += "- 🔄 'Crash Recovery': Hervat direct na uitval\n";
             text += "- 🎨 Volledig aanpasbare commando's\n\n";
-            text += "🏆 **Uniek:** Speciaal gebouwd voor de FNH-structuur: werken, wisselen, en pauzes.\n\n";
             text += "👇 Download/Gebruik de app hier (gratis):";
 
             // 3. Execution
