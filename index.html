@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.26 (Input Fix)</title>
+    <title>Friday-night-hawk-s Timer v7.27 (Jump & Recalc)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -296,7 +296,7 @@
             align-items: center;
             width: 100%;
             padding: 10px;
-            position: relative; /* Ensure stacking context */
+            position: relative;
         }
 
         .gym-phase-title {
@@ -308,7 +308,7 @@
             line-height: 1;
             position: relative;
             z-index: 1; 
-            pointer-events: none; /* CRITICAL: Allows clicks to pass through text */
+            pointer-events: none;
         }
 
         .gym-big-time {
@@ -321,7 +321,7 @@
             margin-bottom: 10px;
             position: relative;
             z-index: 1;
-            pointer-events: none; /* CRITICAL: Allows clicks to pass through numbers */
+            pointer-events: none;
         }
 
         /* NEW STATS GRID STRUCTURE */
@@ -333,8 +333,8 @@
             flex-direction: column;
             gap: 8px;
             position: relative;
-            z-index: 50; /* Ensure this sits above text */
-            pointer-events: none; /* Wrapper shouldn't block, only children */
+            z-index: 50; 
+            pointer-events: none;
         }
 
         .stats-row-1 {
@@ -359,9 +359,10 @@
             justify-content: center;
             border: 1px solid rgba(255,255,255,0.1);
             pointer-events: auto; /* CRITICAL: Re-enable clicks on the boxes */
+            position: relative;
         }
 
-        /* --- EDITABLE END TIME --- */
+        /* --- EDITABLE STYLES --- */
         .stat-box.editable {
             border: 2px solid #30D158;
             position: relative;
@@ -456,6 +457,7 @@
             border: none;
             padding: 0;
             margin: 0;
+            appearance: none; -webkit-appearance: none; /* remove default arrow */
         }
     </style>
 </head>
@@ -469,7 +471,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.26</span>
+                FNH Timer <span class="version-tag">v7.27</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -649,15 +651,21 @@
             
             <div class="stats-wrapper" id="gym-stats-container">
                 <div class="stats-row-1">
-                    <div class="stat-box">
+                    <div class="stat-box editable">
+                        <select id="jump-round" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
                         <div class="stat-label">Ronde</div>
                         <div class="stat-value" id="val-round">-</div>
                     </div>
-                    <div class="stat-box">
+                    <div class="stat-box editable">
+                        <select id="jump-exercise" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
                         <div class="stat-label">Oefening</div>
                         <div class="stat-value" id="val-exercise">-</div>
                     </div>
-                    <div class="stat-box">
+                    <div class="stat-box editable">
+                        <select id="jump-set" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
                         <div class="stat-label">Set</div>
                         <div class="stat-value" id="val-set">-</div>
                     </div>
@@ -696,6 +704,8 @@
             <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
         </div>
     </div>
+    
+    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
     <script>
         // --- VARIABELEN ---
@@ -1265,6 +1275,10 @@
             if(audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 
             generateScheduleData(true);
+            
+            // POPULATE DROPDOWNS
+            populateJumpMenus();
+
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('timer-screen').style.display = 'flex';
 
@@ -1286,6 +1300,48 @@
             stepEndTime = Date.now() + (schedule[0].time * 1000);
             runStep();
         }
+        
+        function populateJumpMenus() {
+            const rounds = parseInt(document.getElementById('rounds').value);
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sets = parseInt(document.getElementById('sets').value);
+            
+            const rSel = document.getElementById('jump-round');
+            const eSel = document.getElementById('jump-exercise');
+            const sSel = document.getElementById('jump-set');
+            
+            rSel.innerHTML = ""; eSel.innerHTML = ""; sSel.innerHTML = "";
+            
+            for(let i=1; i<=rounds; i++) {
+                const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt);
+            }
+            for(let i=1; i<=ex; i++) {
+                const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt);
+            }
+            for(let i=1; i<=sets; i++) {
+                const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt);
+            }
+        }
+        
+        function handleJump() {
+            const r = parseInt(document.getElementById('jump-round').value);
+            const e = parseInt(document.getElementById('jump-exercise').value);
+            const s = parseInt(document.getElementById('jump-set').value);
+            
+            // Find first Work step that matches this criteria
+            const newIndex = schedule.findIndex(step => {
+                return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s;
+            });
+            
+            if(newIndex > -1) {
+                currentIndex = newIndex;
+                triggerAudio('manual_override', "Springen naar ronde " + r);
+                // Reset step logic
+                stepEndTime = Date.now(); // Will be reset in runStep mostly, but prevents negative loop
+                runStep();
+                recalculateForFixedEnd();
+            }
+        }
 
         function runStep() {
             if (currentIndex >= schedule.length) return;
@@ -1301,11 +1357,17 @@
             const titleEl = document.getElementById('gym-phase-title');
             const nextEl = document.getElementById('gym-next-info');
             
-            // UPDATE STATS
+            // UPDATE STATS & DROPDOWNS
             if(step.info && step.info.maxRounds) {
                 document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
                 document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
                 document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
+                
+                // Sync Dropdowns without triggering change event
+                document.getElementById('jump-round').value = step.info.round;
+                document.getElementById('jump-exercise').value = step.info.exercise;
+                document.getElementById('jump-set').value = step.info.set;
+                
                 document.getElementById('gym-stats-container').style.opacity = 1;
             } else {
                 // hide stats if not relevant (e.g. finish)
