@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.19</title>
+    <title>Friday-night-hawk-s Timer v7.20 (Gym Mode)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -27,6 +27,7 @@
             display: flex; flex-direction: column;
             overflow: hidden;
             overscroll-behavior: none; 
+            transition: background-color 0.3s ease;
         }
         
         .container {
@@ -249,9 +250,9 @@
             border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
-        .btn-stop { background-color: #FF453A; color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px;}
-        .btn-pause { background-color: #FF9F0A; color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 18px; border:none;}
-        .btn-nav { background: #333; color: white; border: none; width: 55px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
+        .btn-stop { background-color: rgba(255,255,255,0.2); color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);}
+        .btn-pause { background-color: rgba(255,255,255,0.9); color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 20px; border:none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
 
         /* --- INFO BOX --- */
         .info-bar {
@@ -268,33 +269,94 @@
         .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
         
-        /* --- TIMER SCREEN --- */
-        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); }
+        /* --- TIMER SCREEN (GYM MODE) --- */
+        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); width: 100vw;}
         
         /* PROGRESS BAR */
         .progress-container { 
-            width: 100%; height: 30px; background: #222; margin-top: var(--safe-top); 
+            width: 100%; height: 20px; background: rgba(0,0,0,0.2); margin-top: var(--safe-top); 
             position: relative; display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #333;
         }
         .progress-fill { 
-            position: absolute; left: 0; top: 0; bottom: 0; background: #30D158; width: 0%; 
+            position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,255,255,0.8); width: 0%; 
             transition: width 0.2s linear; z-index: 1; 
         }
-        #progress-text {
-            z-index: 2; color: white; font-size: 14px; font-weight: bold; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        
+        /* THE MAIN DISPLAY ZONE */
+        .display-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .gym-phase-title {
+            font-size: 8vw; /* Responsive font size */
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
+        .gym-big-time {
+            font-size: 35vw; /* MASSIVE */
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            line-height: 0.9;
+            letter-spacing: -5px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .gym-sub-info {
+            font-size: 5vw;
+            font-weight: 600;
+            margin-top: 20px;
+            max-width: 90%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        .timer-top { flex: 0 0 auto; padding: 15px; border-bottom: 1px solid #333; background: #000; z-index: 10; }
-        .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .big-time { font-size: 64px; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; }
-        .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
-        .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
+        .gym-next-info {
+            font-size: 3vw;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+
+        .controls-container {
+            flex: 0 0 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            width: 100%;
+            background: rgba(0,0,0,0.2); /* Slight contrast for buttons */
+        }
+        
+        .time-info-small {
+            position: absolute; top: 10px; right: 10px; font-size: 14px; font-weight: bold; opacity: 0.6; z-index: 10;
+        }
+
+        /* --- PHASE COLORS (Backgrounds) --- */
+        body.mode-work { background-color: #30D158; color: black; }
+        body.mode-work .progress-fill { background: black; }
+        
+        body.mode-rest { background-color: #FF9F0A; color: black; }
+        body.mode-rest .progress-fill { background: black; }
+
+        body.mode-switch { background-color: #BF5AF2; color: white; }
+        body.mode-long { background-color: #0A84FF; color: white; }
+        body.mode-prep { background-color: #1c1c1e; color: white; }
+        body.mode-finish { background-color: #FFD60A; color: black; }
+        body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODAL --- */
         #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
 
         .hidden { display: none !important; }
@@ -310,7 +372,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.19</span>
+                FNH Timer <span class="version-tag">v7.20</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -481,28 +543,25 @@
     <div id="timer-screen">
         <div class="progress-container">
             <div class="progress-fill" id="total-progress"></div>
-            <div id="progress-text">0%</div>
         </div>
-        <div class="timer-top">
-            <div class="top-row">
-                <div style="text-align: left;">
-                    <div class="status-text" id="current-status">KLAARMAKEN</div>
-                    <div class="big-time" id="countdown">--</div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="status-text">KLAAR OM</div>
-                    <div style="font-size: 20px; font-weight: bold;" id="display-end-time">--:--</div>
-                    <div style="font-size: 14px; color: #888; margin-top: 4px;" id="total-time-left">Nog --:--:--</div>
-                </div>
-            </div>
-            <div class="controls-row">
-                <button class="btn-nav" onclick="skipStep(-1)">❮</button>
-                <button class="btn-pause" id="btn-pause" onclick="handlePauseClick()">PAUZE</button>
-                <button class="btn-nav" onclick="skipStep(1)">❯</button>
-                <button class="btn-stop" style="margin-left: 10px;" onclick="resetApp()">STOP</button>
-            </div>
+        
+        <div class="time-info-small">
+            <span id="display-end-time">--:--</span> | <span id="total-time-left">Nog --:--</span>
         </div>
-        <div class="schedule-list-wrapper" id="schedule-list-active"></div>
+
+        <div class="display-zone">
+            <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
+            <div class="gym-big-time" id="countdown">10</div>
+            <div class="gym-sub-info" id="gym-sub-info">Ronde 1 / Oef 1</div>
+            <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
+        </div>
+
+        <div class="controls-container">
+            <button class="btn-nav" onclick="skipStep(-1)">❮</button>
+            <button class="btn-pause" id="btn-pause" onclick="handlePauseClick()">PAUZE</button>
+            <button class="btn-nav" onclick="skipStep(1)">❯</button>
+            <button class="btn-stop" style="margin-left: 10px;" onclick="resetApp()">⏹</button>
+        </div>
     </div>
 
     <div id="pause-modal">
@@ -979,7 +1038,7 @@
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
-            schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10 });
+            schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: {} });
 
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
@@ -988,18 +1047,18 @@
                         let include = true;
                         if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
                         if(include) {
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: `Ronde ${r} | Oef ${e} (Set ${s})`, info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal } });
+                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal, text: `Ronde ${r} / Oef ${e}` } });
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
                             if (!isLastSetOfWorkout) {
-                                if (isLastSetOfRound) schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: "GROTE PAUZE" });
-                                else if (isLastSetOfExercise) schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: "WISSEL OEFENING" });
-                                else schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: "Rust" });
+                                if (isLastSetOfRound) schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: "RONDE PAUZE", info: { text: "Even bijkomen..." } });
+                                else if (isLastSetOfExercise) schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: "WISSEL OEFENING", info: { text: `Op naar oefening ${e < ex ? e+1 : 1}` } });
+                                else schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: "RUST", info: { text: "Even ontspannen" } });
                             }
                         }
                     }
                 }
             }
-            if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0 }); else schedule = [];
+            if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
         }
 
         function renderPreviewList() {
@@ -1010,21 +1069,11 @@
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
                 const div = document.createElement('div'); div.className = `schedule-item`;
                 let icon = ""; if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; } else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; } else if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else icon='🚀';
-                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
-                list.appendChild(div);
-            });
-        }
-
-        function renderActiveList() {
-            const list = document.getElementById('schedule-list-active'); list.innerHTML = ""; let runningDate = new Date();
-            schedule.forEach((item, idx) => {
-                if (item.type==='finish') return;
-                let timeStr = "";
-                if (idx >= currentIndex) { timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'}); runningDate.setSeconds(runningDate.getSeconds() + item.time); } else { timeStr = "klaar"; }
-                const div = document.createElement('div'); div.className = `schedule-item ${idx===currentIndex?'active':''}`; div.id = `step-${idx}`;
-                if(item.type==='rest-long') div.style.borderLeft = "4px solid #0A84FF"; else if(item.type==='rest-exercise') div.style.borderLeft = "4px solid #BF5AF2";
-                let icon = ""; if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else if(item.type==='rest-exercise') icon='🔀'; else if(item.type==='rest-long') icon='☕'; else icon='🚀';
-                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc" style="${item.type==='work'?'color:white':''}">${icon} ${item.label}</div><div class="col-dur">${item.time}s</div>`;
+                
+                let desc = item.label;
+                if(item.info && item.info.text) desc += " (" + item.info.text + ")";
+                
+                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
                 list.appendChild(div);
             });
         }
@@ -1094,7 +1143,7 @@
             }
 
             updateEndTimeDisplay();
-            renderActiveList();
+            // REMOVED RENDER LIST - WE USE SINGLE MODE
             currentIndex = 0;
             
             speechPlaylists = {}; 
@@ -1110,14 +1159,29 @@
             const totalRounds = parseInt(document.getElementById('rounds').value);
             const totalEx = document.getElementById('exercises').value;
 
-            document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
-            const activeItem = document.getElementById(`step-${currentIndex}`);
-            if (activeItem) { activeItem.classList.add('active'); activeItem.scrollIntoView({behavior:'smooth', block:'center'}); }
+            // --- GYM MODE VISUAL UPDATE ---
+            const body = document.body;
+            body.className = ''; // reset classes
+            
+            const titleEl = document.getElementById('gym-phase-title');
+            const subEl = document.getElementById('gym-sub-info');
+            const nextEl = document.getElementById('gym-next-info');
 
-            const statusEl = document.getElementById('current-status');
+            // Text Updates
+            titleEl.innerText = step.label;
+            subEl.innerText = step.info && step.info.text ? step.info.text : "";
+            
+            let nextText = "Hierna: Klaar";
+            if(nextStep) {
+                 nextText = "Hierna: " + nextStep.label;
+                 // If next is Work, show which one
+                 if(nextStep.type === 'work' && nextStep.info) nextText += ` (${nextStep.info.text})`;
+            }
+            nextEl.innerText = nextText;
 
+            // Color & Audio Updates
             if (step.type==='work') { 
-                statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
+                body.classList.add('mode-work');
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
                 else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
                 else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
@@ -1125,24 +1189,24 @@
                 else triggerAudio('work_start', "Start");
             }
             else if (step.type==='rest') { 
-                statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
+                body.classList.add('mode-rest');
                 let info = "";
                 if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random()*tips.length)]; }
                 triggerAudio('rest_set_start', "Rust", info);
             }
             else if (step.type==='rest-exercise') {
-                statusEl.innerText="WISSEL OEFENING"; statusEl.style.color="#BF5AF2";
+                body.classList.add('mode-switch');
                 let info = "";
                 if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
                 triggerAudio('rest_switch_start', "Wissel", info);
             }
             else if (step.type==='rest-long') { 
-                statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; 
+                body.classList.add('mode-long');
                 let info = "";
                 if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
                 triggerAudio('rest_round_start', "Grote pauze", info);
             }
-            else if (step.type==='prep') { statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; triggerAudio('prep_intro', "Welkom"); }
+            else if (step.type==='prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
             else { finish(); return; }
 
             stepEndTime = Date.now() + (step.time * 1000); 
@@ -1203,7 +1267,7 @@
             if (newIndex < 0) newIndex = 0;
             if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
             currentIndex = newIndex;
-            renderActiveList(); 
+            // Removed renderActiveList
             runStep(); 
         }
 
@@ -1211,9 +1275,12 @@
             const btn = document.getElementById('btn-pause');
             if (!isPaused) {
                 isPaused = true;
-                btn.innerText = "HERVAT"; btn.style.backgroundColor = "#30D158";
-                document.getElementById('current-status').innerText = "GEPAUZEERD";
-                document.getElementById('current-status').style.color = "white";
+                btn.innerText = "HERVAT";
+                btn.style.backgroundColor = "white";
+                btn.style.color = "black";
+                
+                document.body.classList.add('mode-pause'); // Darken BG
+                document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
                 if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
@@ -1224,11 +1291,22 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             document.getElementById('btn-pause').innerText = "PAUZE";
-            document.getElementById('btn-pause').style.backgroundColor = "#FF9F0A";
+            document.getElementById('btn-pause').style.backgroundColor = "rgba(255,255,255,0.9)";
             isPaused = false;
+            
+            // Re-apply correct class by running step logic partially or just removing pause class
+            document.body.classList.remove('mode-pause');
+            // But better to just re-run step purely visual
+            const step = schedule[currentIndex];
+            // Re-trigger color class logic
+             if (step.type==='work') document.body.classList.add('mode-work');
+             else if (step.type==='rest') document.body.classList.add('mode-rest');
+             else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
+             else if (step.type==='rest-long') document.body.classList.add('mode-long');
+
             triggerAudio('manual_override', "We gaan weer door");
             if (choice === 'recalc') recalculateForFixedEnd();
-            renderActiveList();
+            document.getElementById('gym-phase-title').innerText = step.label;
         }
 
         function recalculateForFixedEnd() {
@@ -1269,12 +1347,11 @@
             const elapsed = now - workoutStartTime;
             let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100;
             document.getElementById('total-progress').style.width = pct + "%";
-            document.getElementById('progress-text').innerText = Math.floor(pct) + "%";
         }
         
         function finish() {
-            document.getElementById('current-status').innerText = "KLAAR!";
-            document.getElementById('current-status').style.color = "white";
+            document.body.className = 'mode-finish';
+            document.getElementById('gym-phase-title').innerText = "KLAAR!";
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('btn-pause').style.display='none';
             document.getElementById('total-time-left').innerText = "0:00:00";
