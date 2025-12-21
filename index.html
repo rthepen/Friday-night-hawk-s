@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.20 (Gym Mode)</title>
+    <title>Friday-night-hawk-s Timer v7.21 (Gym Mode)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -290,14 +290,14 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            padding: 20px;
+            padding: 10px;
         }
 
         .gym-phase-title {
             font-size: 8vw; /* Responsive font size */
             font-weight: 900;
             text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             opacity: 0.8;
             line-height: 1;
         }
@@ -309,22 +309,53 @@
             line-height: 0.9;
             letter-spacing: -5px;
             text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
         }
 
-        .gym-sub-info {
-            font-size: 5vw;
-            font-weight: 600;
-            margin-top: 20px;
-            max-width: 90%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        /* NEW STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            width: 95%;
+            max-width: 600px;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-label {
+            font-size: 2.5vw;
+            text-transform: uppercase;
+            opacity: 0.7;
+            font-weight: bold;
+            margin-bottom: 2px;
         }
         
+        .stat-value {
+            font-size: 5vw;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Fallback for very small or very large screens */
+        @media (min-width: 600px) {
+            .stat-label { font-size: 14px; }
+            .stat-value { font-size: 30px; }
+        }
+
         .gym-next-info {
             font-size: 3vw;
             opacity: 0.7;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
         .controls-container {
@@ -372,7 +403,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.20</span>
+                FNH Timer <span class="version-tag">v7.21</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -552,7 +583,22 @@
         <div class="display-zone">
             <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
             <div class="gym-big-time" id="countdown">10</div>
-            <div class="gym-sub-info" id="gym-sub-info">Ronde 1 / Oef 1</div>
+            
+            <div class="stats-grid" id="gym-stats-container">
+                <div class="stat-box">
+                    <div class="stat-label">Ronde</div>
+                    <div class="stat-value" id="val-round">- / -</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Oefening</div>
+                    <div class="stat-value" id="val-exercise">- / -</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Set</div>
+                    <div class="stat-value" id="val-set">- / -</div>
+                </div>
+            </div>
+
             <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
         </div>
 
@@ -1038,7 +1084,7 @@
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
-            schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: {} });
+            schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
@@ -1047,12 +1093,27 @@
                         let include = true;
                         if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
                         if(include) {
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal, text: `Ronde ${r} / Oef ${e}` } });
+                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
                             if (!isLastSetOfWorkout) {
-                                if (isLastSetOfRound) schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: "RONDE PAUZE", info: { text: "Even bijkomen..." } });
-                                else if (isLastSetOfExercise) schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: "WISSEL OEFENING", info: { text: `Op naar oefening ${e < ex ? e+1 : 1}` } });
-                                else schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: "RUST", info: { text: "Even ontspannen" } });
+                                // For rest steps, we want to display what is COMING UP next or keep current.
+                                // Usually during rest you want to see what you just finished or what is next.
+                                // Let's keep the current counters for continuity during the rest.
+                                let restLabel = "RUST";
+                                let infoText = "";
+                                if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
+                                else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
+                                else { infoText = "Even ontspannen"; }
+
+                                let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
+                                
+                                schedule.push({ 
+                                    type: type, 
+                                    time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), 
+                                    initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), 
+                                    label: restLabel, 
+                                    info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } 
+                                });
                             }
                         }
                     }
@@ -1071,7 +1132,7 @@
                 let icon = ""; if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; } else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; } else if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else icon='🚀';
                 
                 let desc = item.label;
-                if(item.info && item.info.text) desc += " (" + item.info.text + ")";
+                if(item.info && item.info.round) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
                 
                 div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
                 list.appendChild(div);
@@ -1143,7 +1204,6 @@
             }
 
             updateEndTimeDisplay();
-            // REMOVED RENDER LIST - WE USE SINGLE MODE
             currentIndex = 0;
             
             speechPlaylists = {}; 
@@ -1164,18 +1224,26 @@
             body.className = ''; // reset classes
             
             const titleEl = document.getElementById('gym-phase-title');
-            const subEl = document.getElementById('gym-sub-info');
             const nextEl = document.getElementById('gym-next-info');
+            
+            // UPDATE STATS
+            if(step.info && step.info.maxRounds) {
+                document.getElementById('val-round').innerText = `${step.info.round} / ${step.info.maxRounds}`;
+                document.getElementById('val-exercise').innerText = `${step.info.exercise} / ${step.info.maxEx}`;
+                document.getElementById('val-set').innerText = `${step.info.set} / ${step.info.maxSets}`;
+                document.getElementById('gym-stats-container').style.opacity = 1;
+            } else {
+                // hide stats if not relevant (e.g. finish)
+                 document.getElementById('gym-stats-container').style.opacity = 0.5;
+            }
 
             // Text Updates
             titleEl.innerText = step.label;
-            subEl.innerText = step.info && step.info.text ? step.info.text : "";
             
             let nextText = "Hierna: Klaar";
             if(nextStep) {
                  nextText = "Hierna: " + nextStep.label;
-                 // If next is Work, show which one
-                 if(nextStep.type === 'work' && nextStep.info) nextText += ` (${nextStep.info.text})`;
+                 if(nextStep.type === 'work' && nextStep.info) nextText += ` (Oef ${nextStep.info.exercise})`;
             }
             nextEl.innerText = nextText;
 
@@ -1267,7 +1335,6 @@
             if (newIndex < 0) newIndex = 0;
             if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
             currentIndex = newIndex;
-            // Removed renderActiveList
             runStep(); 
         }
 
@@ -1279,7 +1346,7 @@
                 btn.style.backgroundColor = "white";
                 btn.style.color = "black";
                 
-                document.body.classList.add('mode-pause'); // Darken BG
+                document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
@@ -1294,11 +1361,8 @@
             document.getElementById('btn-pause').style.backgroundColor = "rgba(255,255,255,0.9)";
             isPaused = false;
             
-            // Re-apply correct class by running step logic partially or just removing pause class
             document.body.classList.remove('mode-pause');
-            // But better to just re-run step purely visual
             const step = schedule[currentIndex];
-            // Re-trigger color class logic
              if (step.type==='work') document.body.classList.add('mode-work');
              else if (step.type==='rest') document.body.classList.add('mode-rest');
              else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
@@ -1353,6 +1417,7 @@
             document.body.className = 'mode-finish';
             document.getElementById('gym-phase-title').innerText = "KLAAR!";
             document.getElementById('countdown').innerText = "🎉";
+            document.getElementById('gym-stats-container').style.display='none';
             document.getElementById('btn-pause').style.display='none';
             document.getElementById('total-time-left').innerText = "0:00:00";
             clearInterval(timerInterval);
