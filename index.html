@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.3</title>
+    <title>Friday-night-hawk-s Timer v8.4</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -135,6 +135,15 @@
             margin-bottom: 10px;
         }
         
+        /* 2 Column Grid for Time/Duration */
+        .half-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
         .select-group { display: flex; flex-direction: column; min-width: 0; }
 
         label { 
@@ -153,34 +162,14 @@
             background-size: .65em auto;
         }
 
-        /* Used for dropdown in Duration */
-        select.full-width-select {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 18px;
-            appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23555%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1em top 50%;
-            background-size: .65em auto;
-        }
-
         .input-group { display: flex; flex-direction: column; min-width: 0; }
         
-        .input-wrapper { display: flex; align-items: center; width: 100%; }
-        .input-wrapper input {
-            flex: 1; text-align: center; font-size: 18px; padding: 10px 0;
-            background: #1c1c1e; border: 1px solid #333;
-            border-left: none; border-right: none; color: white;
-            border-radius: 0; 
-            appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
-            min-width: 0; width: 100%;
-        }
-
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 20px;
+            background: #1c1c1e; color: white; font-size: 18px;
             display: block;
             appearance: none; -webkit-appearance: none;
+            text-align: center;
             font-family: inherit;
         }
 
@@ -234,7 +223,6 @@
         .text-input-trigger { 
             width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
             padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
-            /* UPDATED: Allow text wrapping and bigger size */
             white-space: normal; 
             overflow: visible;
             min-height: 44px;
@@ -529,7 +517,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.3</span>
+                FNH Timer <span class="version-tag">v8.4</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -540,25 +528,17 @@
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
         
-        <div class="toggle-container">
-            <button class="toggle-btn active" id="btn-mode-endtime" onclick="setMode('endtime')">Eindtijd</button>
-            <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
-        </div>
-
-        <div id="wrapper-endtime">
-            <div id="input-endtime" style="margin-bottom: 5px;">
+        <div class="half-row">
+             <div class="select-group">
+                <label>Totale tijd (min)</label>
+                <select id="totalMin" class="compact-select" onchange="syncTime('duration'); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
                 <label>Klaar om (HH:MM)</label>
-                <input type="time" id="endTimeValue">
+                <input type="time" id="endTimeValue" onchange="syncTime('endtime'); saveToLocal();">
             </div>
         </div>
 
-        <div id="wrapper-duration" class="hidden">
-            <div id="input-duration">
-                <label>Totale trainingstijd (min)</label>
-                <select id="totalMin" class="full-width-select" onchange="calculateRealTime(); saveToLocal();"></select>
-            </div>
-        </div>
-        
         <div class="compact-row">
             <div class="select-group">
                 <label>Rondes</label>
@@ -759,7 +739,6 @@
 
     <script>
         // --- VARIABELEN ---
-        let mode = 'endtime';
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         let editingSpeechKey = null; // Tracks which key we are editing
@@ -905,11 +884,9 @@
             checkForSharedSettings(); // Updates internal object
             renderSpeechSettings();   // Updates UI with updated object
             
+            // Initial Time Sync if empty
             if(!document.getElementById('endTimeValue').value) {
-                const d = new Date(); 
-                d.setMinutes(d.getMinutes() + 30);
-                const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('endTimeValue').value = timeString;
+                syncTime('duration'); // Defaults to 30m from loadFromLocal or default
             }
 
             document.querySelectorAll('input.param-input').forEach(i => {
@@ -919,13 +896,59 @@
             document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
             document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
             
-            document.getElementById('btn-mode-endtime').onclick = () => { setMode('endtime'); saveToLocal(); };
-            document.getElementById('btn-mode-duration').onclick = () => { setMode('duration'); saveToLocal(); };
-            
             document.addEventListener("visibilitychange", handleVisibilityChange);
 
             calculateRealTime(); 
         });
+        
+        // --- NEW SYNC FUNCTION ---
+        function syncTime(source) {
+            if (source === 'duration') {
+                // User changed Dropdown -> Update EndTime
+                const min = parseInt(document.getElementById('totalMin').value) || 30;
+                const now = new Date();
+                const target = new Date(now.getTime() + min * 60000);
+                const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('endTimeValue').value = timeStr;
+            } else {
+                // User changed EndTime -> Update Dropdown
+                const endStr = document.getElementById('endTimeValue').value;
+                if(!endStr) return;
+                const now = new Date();
+                const [h, m] = endStr.split(':');
+                let target = new Date();
+                target.setHours(h, m, 0, 0);
+                
+                // If target is earlier than now (e.g. it's 23:00 and you set 01:00), assume next day
+                if(target < now) {
+                     // Check if it's likely next day or just a past time today
+                     // If difference is huge (like > 12 hours ago), maybe they mean tomorrow.
+                     // Simple logic: if target < now, add 1 day
+                     target.setDate(target.getDate() + 1);
+                }
+
+                const diffMs = target - now;
+                const diffMin = Math.round(diffMs / 60000);
+
+                // Update dropdown
+                const sel = document.getElementById('totalMin');
+                // Check if option exists, if not add it
+                let exists = false;
+                for(let i=0; i<sel.options.length; i++) { if(parseInt(sel.options[i].value) === diffMin) exists = true; }
+                
+                if(!exists && diffMin > 0) {
+                    const opt = document.createElement('option');
+                    opt.value = diffMin;
+                    opt.text = diffMin + "m";
+                    // Add nicely in order? Or just prepend.
+                    sel.add(opt, 0); 
+                    sel.value = diffMin;
+                } else if (diffMin > 0) {
+                    sel.value = diffMin;
+                }
+            }
+            calculateRealTime(); 
+        }
         
         function populateDropdowns() {
             // Helper to fill select
@@ -1089,9 +1112,11 @@
             document.getElementById('start-round').value = 1;
             document.getElementById('start-ex').value = 1;
             document.getElementById('start-set').value = 1;
-            const d = new Date(); d.setMinutes(d.getMinutes() + 30);
-            document.getElementById('endTimeValue').value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            setMode('endtime'); setAudioMode('speech');
+            
+            // Sync time reset
+            syncTime('duration');
+            
+            setAudioMode('speech');
             
             document.getElementById('coach-preset').value = 'standard';
             speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
@@ -1140,9 +1165,6 @@
 
         function checkForSharedSettings() {
             const params = new URLSearchParams(window.location.search);
-            // CHECK IF URL HAS ANY PARAMS (Numbers OR Text)
-            // If URL has params, we MUST update internal state.
-            
             let dataUpdated = false;
 
             // 1. Check numeric params
@@ -1177,9 +1199,9 @@
             }
 
             if(dataUpdated) {
+                // If loaded from link, sync time visual
+                syncTime('duration');
                 saveToLocal();
-                // NOTE: renderSpeechSettings() is called AFTER this function in DOMContentLoaded 
-                // to ensure the UI reflects these updates!
             }
         }
 
@@ -1188,7 +1210,7 @@
                 rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value,
                 sets: document.getElementById('sets').value, restSec: document.getElementById('restSec').value,
                 exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
-                totalMin: document.getElementById('totalMin').value, mode: mode, audioMode: audioMode, speechSettings: speechSettings, 
+                totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
@@ -1209,7 +1231,6 @@
                     if(data.startRound) document.getElementById('start-round').value = data.startRound;
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
-                    if(data.mode) setMode(data.mode);
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
                 } catch(e) { console.log("Error loading settings", e); }
@@ -1222,31 +1243,6 @@
             document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
             const panel = document.getElementById('speech-settings-panel');
             if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
-        }
-
-        function setMode(newMode) {
-            mode = newMode;
-            document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
-            document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
-            
-            if (mode==='duration') { 
-                document.getElementById('input-duration').classList.remove('hidden'); 
-                document.getElementById('input-endtime').classList.add('hidden');
-                
-                // Show duration buttons, hide endtime buttons
-                // document.getElementById('quick-buttons-duration').classList.remove('hidden');
-                document.getElementById('wrapper-endtime').classList.add('hidden');
-                document.getElementById('wrapper-duration').classList.remove('hidden');
-            } else { 
-                document.getElementById('input-duration').classList.add('hidden'); 
-                document.getElementById('input-endtime').classList.remove('hidden');
-                
-                // Show endtime buttons, hide duration buttons
-                // document.getElementById('quick-buttons-duration').classList.add('hidden');
-                document.getElementById('wrapper-endtime').classList.remove('hidden');
-                document.getElementById('wrapper-duration').classList.add('hidden');
-            }
-            calculateRealTime();
         }
 
         function calculateRealTime() {
@@ -1280,11 +1276,15 @@
             }
             remainingFixedRestTime += 10; 
 
+            // Always calculate based on the End Time input now, as that is the source of truth after sync
             let availableSec = 0;
-            if (mode === 'duration') { availableSec = (parseInt(document.getElementById('totalMin').value) || 0) * 60; } 
-            else {
-                const endStr = document.getElementById('endTimeValue').value; if (!endStr) return;
-                const now = new Date(); const [h, m] = endStr.split(':'); const target = new Date(); target.setHours(h, m, 0, 0);
+            const endStr = document.getElementById('endTimeValue').value; 
+            
+            if (endStr) {
+                const now = new Date(); 
+                const [h, m] = endStr.split(':'); 
+                const target = new Date(); 
+                target.setHours(h, m, 0, 0);
                 if (target < now) target.setDate(target.getDate() + 1);
                 availableSec = Math.floor((target - now) / 1000);
             }
@@ -1332,20 +1332,15 @@
             // Option 1: Adjust Duration
             const totalDiffSec = diffPerSet * countSets;
             const totalDiffMin = Math.round(totalDiffSec / 60);
-            const currentDur = parseInt(document.getElementById('totalMin').value) || 30;
-            const newDur = currentDur + Math.ceil(totalDiffSec/60);
             
             let sign = totalDiffMin >= 0 ? "+" : "";
-            let endText = "";
-            if (mode === 'endtime') {
-                const currentEnd = document.getElementById('endTimeValue').value;
-                const [h,m] = currentEnd.split(':');
-                const d = new Date(); d.setHours(h,m,0,0);
-                d.setMinutes(d.getMinutes() + totalDiffMin);
-                endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
-            } else {
-                endText = `Totale tijd: ${currentDur}m -> ${newDur}m`;
-            }
+            
+            const currentEnd = document.getElementById('endTimeValue').value;
+            const [h,m] = currentEnd.split(':');
+            const d = new Date(); d.setHours(h,m,0,0);
+            d.setMinutes(d.getMinutes() + totalDiffMin);
+            const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
+            
             document.getElementById('desc-calc-duration').innerText = endText;
             
             // Option 2: Adjust Rest
@@ -1369,19 +1364,13 @@
             
             if (type === 'rest') {
                 const currentRest = parseInt(document.getElementById('restSec').value);
-                // We need to set the closest option in the select
-                // Actually adjustValue works on input/select value if we change it manually
-                // Since it's a select, we must check if value exists or just set it and add option if needed?
-                // The select has intervals. Let's just set closest interval or exact if we want precision.
-                // Simple: Set value. If it doesnt exist in dropdown, add it.
                 const newVal = currentRest - diffPerSet;
-                
                 const sel = document.getElementById('restSec');
                 let exists = false;
                 for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
                 if(!exists) {
                     const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s";
-                    sel.appendChild(opt); // Append at end
+                    sel.appendChild(opt); 
                     sel.value = newVal; 
                 } else {
                     sel.value = newVal;
@@ -1392,7 +1381,6 @@
             } else {
                 // Adjust duration/endtime
                 // We need to find how many minutes to add to totalMin
-                // Re-run count
                 const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
                 const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
                 let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
@@ -1400,58 +1388,20 @@
                 const totalAddSec = diffPerSet * countSets;
                 const addMin = Math.ceil(totalAddSec / 60);
                 
-                if (mode === 'duration') {
-                    // For dropdown totalMin, we also might need to add option if it doesnt exist
-                    const currentDur = parseInt(document.getElementById('totalMin').value);
-                    const newDur = currentDur + addMin;
-                    const sel = document.getElementById('totalMin');
-                    let exists = false;
-                    for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newDur) exists=true; }
-                    if(!exists) {
-                        const opt = document.createElement('option'); opt.value = newDur; opt.text = newDur+"m";
-                        sel.appendChild(opt); 
-                        sel.value = newDur; 
-                    } else {
-                        sel.value = newDur;
-                    }
-                } else {
-                    // Update end time value
-                    const el = document.getElementById('endTimeValue');
-                    const [h,m] = el.value.split(':');
-                    const d = new Date(); d.setHours(h,m,0,0);
-                    d.setMinutes(d.getMinutes() + addMin);
-                    el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-                }
+                // Update end time value
+                const el = document.getElementById('endTimeValue');
+                const [h,m] = el.value.split(':');
+                const d = new Date(); d.setHours(h,m,0,0);
+                d.setMinutes(d.getMinutes() + addMin);
+                el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+                
+                // Sync dropdown
+                syncTime('endtime');
+                
                 calculateRealTime();
                 saveToLocal();
             }
             closeCalcModal();
-        }
-
-        // --- QUICK TIME LOGIC ---
-        function setQuickEndTime(minute) {
-            const now = new Date();
-            let target = new Date(now);
-            target.setMinutes(minute);
-            target.setSeconds(0);
-            target.setMilliseconds(0);
-
-            // If target time is in the past, move to next hour
-            if (target <= now) {
-                target.setHours(target.getHours() + 1);
-            }
-
-            const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('endTimeValue').value = timeStr;
-            
-            calculateRealTime();
-            saveToLocal();
-        }
-        
-        function setQuickDuration(min) {
-            document.getElementById('totalMin').value = min;
-            calculateRealTime();
-            saveToLocal();
         }
 
         function generateScheduleData(applyResumeFilter) {
@@ -1569,14 +1519,10 @@
             document.getElementById('timer-screen').style.display = 'flex';
 
             workoutStartTime = new Date();
-            if (mode === 'endtime') {
-                const [h, m] = document.getElementById('endTimeValue').value.split(':');
-                targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
-                if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
-            } else {
-                let totalDur = 0; schedule.forEach(s => totalDur += s.time);
-                targetEndTimeDate = new Date(workoutStartTime.getTime() + totalDur * 1000);
-            }
+            // We use the already populated End Time Value as the absolute target
+            const [h, m] = document.getElementById('endTimeValue').value.split(':');
+            targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
+            if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
 
             updateEndTimeDisplay();
             currentIndex = 0;
@@ -1844,8 +1790,9 @@
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
-                if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
-                else resolvePause('push');
+                // Since we consolidated logic, always show modal or default to push?
+                // For simplicity/consistency with end-time focus, show modal
+                 document.getElementById('pause-modal').style.display = 'flex';
             }
         }
 
