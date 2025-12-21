@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.30 (Dual Quick Buttons)</title>
+    <title>Friday-night-hawk-s Timer v8.0</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -274,8 +274,26 @@
             border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
-        .btn-stop { background-color: rgba(255,255,255,0.2); color: white; width: auto; padding: 10px 20px; font-size: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);}
-        .btn-pause { background-color: rgba(255,255,255,0.9); color: black; flex: 1; margin: 0 10px; border-radius: 8px; font-weight: bold; font-size: 20px; border:none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        
+        /* Updated Control Buttons */
+        .btn-control {
+            flex: 1; 
+            padding: 20px; 
+            font-size: 40px; 
+            font-weight: bold;
+            border: none; 
+            border-radius: 16px; 
+            cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: opacity 0.2s;
+        }
+        .btn-control:active { opacity: 0.7; }
+        
+        .btn-pause { background-color: rgba(255,255,255,0.9); color: black; }
+        /* Stop button style - distinct but matching size */
+        .btn-stop { background-color: #2c2c2e; color: #FF453A; border: 2px solid #FF453A; }
+
         .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
 
         /* --- INFO BOX --- */
@@ -444,6 +462,7 @@
             position: relative;
             z-index: 100; /* Highest priority */
             pointer-events: auto;
+            gap: 15px; /* Spacing between big buttons */
         }
         
         /* --- PHASE COLORS (Backgrounds) --- */
@@ -504,7 +523,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.30</span>
+                FNH Timer <span class="version-tag">v8.0</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -564,6 +583,7 @@
                 <button class="btn-minute" onclick="setQuickDuration(50)">50m</button>
                 <button class="btn-minute" onclick="setQuickDuration(55)">55m</button>
                 <button class="btn-minute" onclick="setQuickDuration(60)">60m</button>
+                <button class="btn-minute" onclick="setQuickDuration(75)">75m</button>
             </div>
         </div>
         
@@ -756,10 +776,8 @@
         </div>
 
         <div class="controls-container">
-            <button class="btn-nav" onclick="skipStep(-1)">❮</button>
-            <button class="btn-pause" id="btn-pause" onclick="handlePauseClick()">PAUZE</button>
-            <button class="btn-nav" onclick="skipStep(1)">❯</button>
-            <button class="btn-stop" style="margin-left: 10px;" onclick="resetApp()">⏹</button>
+            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">⏸</button>
+            <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
         </div>
     </div>
 
@@ -1692,6 +1710,20 @@
         }
 
         // --- NEW LIVE EDIT LOGIC ---
+        function triggerEndTimeEdit() {
+            // Populate hidden input with current target time
+            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+            const input = document.getElementById('hidden-endtime-input');
+            input.value = timeStr;
+            
+            // Try to open native picker
+            if ('showPicker' in HTMLInputElement.prototype) {
+                try { input.showPicker(); } catch(e) { input.click(); }
+            } else {
+                input.click();
+            }
+        }
+
         function handleNewEndTime(newVal) {
             if(!newVal) return;
             const [h, m] = newVal.split(':');
@@ -1817,6 +1849,12 @@
         }
         
         function resetApp() { clearInterval(timerInterval); location.reload(); }
+        
+        function confirmStop() {
+            if(confirm("Weet je zeker dat je de training wilt stoppen?")) {
+                resetApp();
+            }
+        }
     </script>
 </body>
 </html>
