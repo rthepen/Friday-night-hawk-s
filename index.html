@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.24 (Touch Fix)</title>
+    <title>Friday-night-hawk-s Timer v7.25 (Click Fix)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -296,21 +296,23 @@
             align-items: center;
             width: 100%;
             padding: 10px;
+            position: relative; /* Ensure stacking context */
         }
 
         .gym-phase-title {
-            font-size: 8vw; /* Responsive font size */
+            font-size: 8vw; 
             font-weight: 900;
             text-transform: uppercase;
             margin-bottom: 5px;
             opacity: 0.8;
             line-height: 1;
             position: relative;
-            z-index: 10;
+            z-index: 1; 
+            pointer-events: none; /* CRITICAL: Allows clicks to pass through text */
         }
 
         .gym-big-time {
-            font-size: 32vw; /* A bit smaller to make room for bigger stats */
+            font-size: 32vw; 
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             line-height: 0.9;
@@ -318,7 +320,8 @@
             text-shadow: 0 4px 10px rgba(0,0,0,0.2);
             margin-bottom: 10px;
             position: relative;
-            z-index: 10;
+            z-index: 1;
+            pointer-events: none; /* CRITICAL: Allows clicks to pass through numbers */
         }
 
         /* NEW STATS GRID STRUCTURE */
@@ -330,7 +333,8 @@
             flex-direction: column;
             gap: 8px;
             position: relative;
-            z-index: 20; /* Ensure clickable */
+            z-index: 50; /* Ensure this sits above text */
+            pointer-events: none; /* Wrapper shouldn't block, only children */
         }
 
         .stats-row-1 {
@@ -354,6 +358,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: auto; /* CRITICAL: Re-enable clicks on the boxes */
         }
 
         /* --- EDITABLE END TIME --- */
@@ -361,7 +366,7 @@
             cursor: pointer;
             border: 2px solid #30D158;
             position: relative;
-            z-index: 30; /* Extra high */
+            z-index: 60; 
         }
         .stat-box.editable:active { transform: scale(0.98); background: rgba(48, 209, 88, 0.2); }
         .edit-icon { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #30D158; }
@@ -394,7 +399,8 @@
             opacity: 0.7;
             margin-top: 20px;
             position: relative;
-            z-index: 10;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .controls-container {
@@ -406,7 +412,8 @@
             width: 100%;
             background: rgba(0,0,0,0.2); 
             position: relative;
-            z-index: 50; /* Ensure this is TOP layer */
+            z-index: 100; /* Highest priority */
+            pointer-events: auto;
         }
         
         /* --- PHASE COLORS (Backgrounds) --- */
@@ -431,7 +438,7 @@
         body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODAL --- */
-        #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+        #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
 
@@ -460,7 +467,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.24</span>
+                FNH Timer <span class="version-tag">v7.25</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1473,6 +1480,41 @@
             if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
             currentIndex = newIndex;
             runStep(); 
+        }
+
+        function handlePauseClick() {
+            const btn = document.getElementById('btn-pause');
+            if (!isPaused) {
+                isPaused = true;
+                btn.innerText = "HERVAT";
+                btn.style.backgroundColor = "white";
+                btn.style.color = "black";
+                
+                document.body.classList.add('mode-pause'); 
+                document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
+                triggerAudio('manual_override', "Gepauzeerd");
+            } else {
+                if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
+                else resolvePause('push');
+            }
+        }
+
+        function resolvePause(choice) {
+            document.getElementById('pause-modal').style.display = 'none';
+            document.getElementById('btn-pause').innerText = "PAUZE";
+            document.getElementById('btn-pause').style.backgroundColor = "rgba(255,255,255,0.9)";
+            isPaused = false;
+            
+            document.body.classList.remove('mode-pause');
+            const step = schedule[currentIndex];
+             if (step.type==='work') document.body.classList.add('mode-work');
+             else if (step.type==='rest') document.body.classList.add('mode-rest');
+             else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
+             else if (step.type==='rest-long') document.body.classList.add('mode-long');
+
+            triggerAudio('manual_override', "We gaan weer door");
+            if (choice === 'recalc') recalculateForFixedEnd();
+            document.getElementById('gym-phase-title').innerText = step.label;
         }
 
         function updateEndTimeDisplay() { 
