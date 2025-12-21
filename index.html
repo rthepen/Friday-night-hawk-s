@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FNH Timer v6.7</title>
+    <title>FNH Timer v7.0</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -187,7 +187,7 @@
         </div>
 
         <div class="header-row">
-            <div class="app-header">FNH Timer <span class="version-tag">v6.7</span></div>
+            <div class="app-header">FNH Timer <span class="version-tag">v7.0</span></div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
@@ -397,6 +397,7 @@
     </div>
 
     <script>
+        // --- TRANSLATIONS ---
         const texts = {
             nl: {
                 introTitle: "🦅 Welcome to the Friday Night Hawks!",
@@ -568,6 +569,7 @@
             }
         };
 
+        // --- GLOBAL VARIABLES ---
         let currentLang = 'nl'; 
         let mode = 'endtime';
         let audioMode = 'speech';
@@ -599,49 +601,19 @@
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Load settings
-            const saved = localStorage.getItem('fnh_settings_v6'); // New key to force clean slate
-            if(saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    document.getElementById('rounds').value = data.rounds || 1;
-                    document.getElementById('exercises').value = data.exercises || 8;
-                    document.getElementById('sets').value = data.sets || 2;
-                    document.getElementById('restSec').value = data.restSec || 20;
-                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
-                    document.getElementById('roundRestSec').value = data.roundRestSec || 90;
-                    document.getElementById('totalMin').value = data.totalMin || 30;
-                    
-                    if(data.mode) setMode(data.mode);
-                    if(data.audioMode) setAudioMode(data.audioMode);
-                    if(data.lang) setLang(data.lang); 
+            // Force clean reload if corrupted
+            loadFromLocal();
+            // Ensure lang is valid
+            if(!texts[currentLang]) setLang('nl');
 
-                    if(data.speechSettings) {
-                        speechSettings = data.speechSettings;
-                        allSwitchIds.forEach(id => {
-                            const key = mapIdToKey(id);
-                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
-                        });
-                        if(speechSettings.introText) document.getElementById('sp-intro-text').value = speechSettings.introText;
-                    }
-                } catch(e) { 
-                    console.log('Error loading settings', e); 
-                    resetToDefaults();
-                }
-            } else {
-                // First time load defaults
-                setLang('nl');
-                calculateRealTime();
-            }
+            checkForSharedSettings(); 
 
-            // Default time if empty
             if(!document.getElementById('endTimeValue').value) {
                 const d = new Date(); d.setHours(d.getHours()+1);
                 const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('endTimeValue').value = timeString;
             }
 
-            // Attach listeners
             document.querySelectorAll('input').forEach(i => {
                 if(i.type === 'checkbox') {
                     i.addEventListener('change', () => { updateSettings(); saveToLocal(); });
@@ -652,17 +624,20 @@
                 }
             });
             
+            // Re-bind click handlers explicitly to avoid reference issues
             document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
             document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
-            
             document.getElementById('btn-mode-endtime').onclick = () => { setMode('endtime'); saveToLocal(); };
             document.getElementById('btn-mode-duration').onclick = () => { setMode('duration'); saveToLocal(); };
+            document.getElementById('btn-start-app').onclick = startWorkout;
 
+            // Apply text
+            applyLanguage();
+            // Initial Calc
             calculateRealTime(); 
         });
 
-        // --- CORE FUNCTIONS ---
-        // Made global/accessible for onclicks
+        // --- FUNCTIONS ATTACHED TO WINDOW FOR HTML ONCLICK ---
         window.adjustValue = function(id, delta) {
             const el = document.getElementById(id);
             if(!el) return;
@@ -697,6 +672,7 @@
         };
 
         window.setLang = function(lang) {
+            if(!texts[lang]) lang = 'nl'; // Safety
             currentLang = lang;
             document.getElementById('btn-lang-nl').className = (lang === 'nl') ? 'btn-lang active' : 'btn-lang';
             document.getElementById('btn-lang-en').className = (lang === 'en') ? 'btn-lang active' : 'btn-lang';
@@ -713,7 +689,7 @@
         };
 
         function applyLanguage() {
-            const t = texts[currentLang];
+            const t = texts[currentLang] || texts['nl'];
             document.querySelectorAll('[data-key]').forEach(el => {
                 const key = el.getAttribute('data-key');
                 if(t[key]) el.innerHTML = t[key];
@@ -774,48 +750,42 @@
                 speechSettings: speechSettings,
                 lang: currentLang 
             };
-            localStorage.setItem('fnh_settings_v6', JSON.stringify(data));
+            localStorage.setItem('fnh_data_v7', JSON.stringify(data)); // NEW KEY
+        }
+        
+        function loadFromLocal() {
+            const saved = localStorage.getItem('fnh_data_v7');
+            if(saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    document.getElementById('rounds').value = data.rounds || 1;
+                    document.getElementById('exercises').value = data.exercises || 8;
+                    document.getElementById('sets').value = data.sets || 2;
+                    document.getElementById('restSec').value = data.restSec || 20;
+                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
+                    document.getElementById('roundRestSec').value = data.roundRestSec || 90;
+                    document.getElementById('totalMin').value = data.totalMin || 30;
+                    
+                    if(data.mode) setMode(data.mode);
+                    if(data.audioMode) setAudioMode(data.audioMode);
+                    if(data.lang) setLang(data.lang); 
+
+                    if(data.speechSettings) {
+                        speechSettings = data.speechSettings;
+                        allSwitchIds.forEach(id => {
+                            const key = mapIdToKey(id);
+                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
+                        });
+                        if(speechSettings.introText) document.getElementById('sp-intro-text').value = speechSettings.introText;
+                    }
+                } catch(e) { console.log('Reset local'); }
+            }
         }
 
         window.resetToDefaults = function() {
             if(!confirm("Reset?")) return; 
-
-            document.getElementById('rounds').value = 1;
-            document.getElementById('exercises').value = 8;
-            document.getElementById('sets').value = 2; 
-            document.getElementById('restSec').value = 20; 
-            document.getElementById('exerciseRestSec').value = 30; 
-            document.getElementById('roundRestSec').value = 90;
-            document.getElementById('totalMin').value = 30; 
-            
-            const d = new Date(); d.setHours(d.getHours()+1);
-            const timeString = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('endTimeValue').value = timeString;
-
-            setMode('endtime');
-            setAudioMode('speech');
-            setLang('nl'); // Default back to NL
-
-            document.getElementById('sp-intro-text').value = texts['nl'].def_intro;
-
-            // Reset speech settings
-            speechSettings = { 
-                commands: true, countdown: true, nextInfo: true,
-                promo_start: true,
-                introText: texts['nl'].def_intro,
-                halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
-                m_start: true, m_half: true, m_end: true, m_last: true,
-                t_excount: true, t_excount_switch: true,
-                t_drink: false, t_loose: false, t_breathe: false, t_focus: false
-            };
-            
-            allSwitchIds.forEach(id => {
-                const key = mapIdToKey(id);
-                if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
-            });
-
-            saveToLocal();
-            calculateRealTime();
+            localStorage.removeItem('fnh_data_v7');
+            location.reload();
         };
 
         window.shareSettings = function() {
@@ -842,7 +812,7 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
 
-            const t = texts[currentLang];
+            const t = texts[currentLang] || texts['nl'];
             let summary = t.share_title + "\n";
             summary += t.share_desc;
 
@@ -869,7 +839,7 @@
             }
         }
 
-        // --- TIMER LOGIC ---
+        // --- CORE CALCULATION ---
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
@@ -920,12 +890,60 @@
                 exerciseRestSec = exRst;
                 roundRestSec = roundRst;
                 
-                generateScheduleData();
+                generateScheduleData(); // Safe call
                 renderPreviewList();
             }
         }
 
-        window.startWorkout = function() {
+        function generateScheduleData() {
+            try {
+                const rounds = parseInt(document.getElementById('rounds').value) || 1;
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sts = parseInt(document.getElementById('sets').value);
+                // Safety check for lang
+                let t = texts[currentLang];
+                if (!t) t = texts['nl'];
+
+                totalWorkSetsGlobal = rounds * ex * sts;
+                let currentSetGlobal = 0;
+
+                schedule = [];
+                schedule.push({ type: 'prep', time: 10, label: t.s_prep, initialTime: 10 });
+
+                for (let r = 1; r <= rounds; r++) {
+                    for (let e = 1; e <= ex; e++) {
+                        for (let s = 1; s <= sts; s++) {
+                            currentSetGlobal++;
+                            let lbl = (currentLang==='nl') 
+                                ? `Ronde ${r} | Oef ${e} (Set ${s})` 
+                                : `Round ${r} | Ex ${e} (Set ${s})`;
+                            schedule.push({ 
+                                type: 'work', time: workTimeSec, initialTime: workTimeSec, label: lbl, 
+                                info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal } 
+                            });
+
+                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
+                            const isLastSetOfRound = (e===ex && s===sts);
+                            const isLastSetOfExercise = (s===sts);
+
+                            if (!isLastSetOfWorkout) {
+                                if (isLastSetOfRound) {
+                                    schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: t.s_long_rest });
+                                } else if (isLastSetOfExercise) {
+                                    schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: t.s_switch });
+                                } else {
+                                    schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: t.s_rest });
+                                }
+                            }
+                        }
+                    }
+                }
+                schedule.push({ type: 'finish', time: 0, label: t.s_finish, initialTime: 0 });
+            } catch(e) { console.error(e); }
+        }
+
+        // --- TIMER FUNCTIONS ---
+        function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
             
             if(audioMode === 'beep') {
@@ -936,6 +954,7 @@
             }
 
             generateScheduleData();
+            
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('timer-screen').style.display = 'flex';
 
@@ -954,52 +973,14 @@
             renderActiveList();
             currentIndex = 0;
             runStep();
-        };
-
-        // ... (Functions same as before, simplified for space)
-        function generateScheduleData() {
-            const rounds = parseInt(document.getElementById('rounds').value) || 1;
-            const ex = parseInt(document.getElementById('exercises').value);
-            const sts = parseInt(document.getElementById('sets').value);
-            const t = texts[currentLang]; 
-            
-            totalWorkSetsGlobal = rounds * ex * sts;
-            let currentSetGlobal = 0;
-
-            schedule = [];
-            schedule.push({ type: 'prep', time: 10, label: t.s_prep, initialTime: 10 });
-
-            for (let r = 1; r <= rounds; r++) {
-                for (let e = 1; e <= ex; e++) {
-                    for (let s = 1; s <= sts; s++) {
-                        currentSetGlobal++;
-                        let lbl = (currentLang==='nl') ? `Ronde ${r} | Oef ${e} (Set ${s})` : `Round ${r} | Ex ${e} (Set ${s})`;
-                        schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: lbl, info: { round: r, exercise: e, set: s, globalSet: currentSetGlobal } });
-
-                        const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
-                        const isLastSetOfRound = (e===ex && s===sts);
-                        const isLastSetOfExercise = (s===sts);
-
-                        if (!isLastSetOfWorkout) {
-                            if (isLastSetOfRound) {
-                                schedule.push({ type: 'rest-long', time: roundRestSec, initialTime: roundRestSec, label: t.s_long_rest });
-                            } else if (isLastSetOfExercise) {
-                                schedule.push({ type: 'rest-exercise', time: exerciseRestSec, initialTime: exerciseRestSec, label: t.s_switch });
-                            } else {
-                                schedule.push({ type: 'rest', time: restTimeSec, initialTime: restTimeSec, label: t.s_rest });
-                            }
-                        }
-                    }
-                }
-            }
-            schedule.push({ type: 'finish', time: 0, label: t.s_finish, initialTime: 0 });
         }
 
         function runStep() {
             if (currentIndex >= schedule.length) return;
             const step = schedule[currentIndex];
             const nextStep = schedule[currentIndex + 1];
-            const t = texts[currentLang];
+            let t = texts[currentLang];
+            if(!t) t = texts['nl'];
 
             document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
             const activeItem = document.getElementById(`step-${currentIndex}`);
