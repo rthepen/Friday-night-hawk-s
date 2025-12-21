@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.11</title>
+    <title>Friday-night-hawk-s Timer v7.12</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -310,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.11</span>
+                FNH Timer <span class="version-tag">v7.12</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -519,7 +519,7 @@
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.11: ALL PREFIXED) ---
+        // --- COACH PRESETS DEFINITIONS (v7.12: Drill Sergeant Update) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -545,7 +545,7 @@
                 // RONDE 15S (NOG 15 SECONDEN!)
                 rest_round_15s: { enabled: true, text: "Nog 15 seconden! Ga naar je oefening | Nog 15 seconden! Klaarstaan" }, 
                 rest_round_info: { enabled: true, text: "" }, 
-                // MILESTONES (GEEN VASTE PREFIX NODIG, MAAR WEL DUIDELIJK)
+                // MILESTONES
                 mile_start: { enabled: true, text: "Mijlpaal! Goede start, ga zo door | Mijlpaal! Lekker begin, de kop is eraf" },
                 mile_half: { enabled: true, text: "Mijlpaal! Je bent op de helft van de training | Mijlpaal! We zijn er bijna, helft gehad" },
                 mile_end: { enabled: true, text: "Mijlpaal! Laatste loodjes, eindsprint | Mijlpaal! Het einde is in zicht" },
@@ -559,11 +559,11 @@
                 work_halfway: { enabled: true, text: "Halverwege." },
                 work_30s: { enabled: false, text: "30." },
                 work_10s: { enabled: true, text: "10." },
-                rest_set_start: { enabled: true, text: "Rust." },
+                rest_set_start: { enabled: true, text: "Rust. | Stop." },
                 rest_set_tips: { enabled: false, text: "" }, 
                 rest_switch_start: { enabled: true, text: "Wissel." },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "10." },
+                rest_switch_10s: { enabled: true, text: "Nog 10." },
                 rest_round_start: { enabled: true, text: "Ronde rust." },
                 rest_round_15s: { enabled: true, text: "Klaarstaan." },
                 rest_round_info: { enabled: true, text: "" },
@@ -574,20 +574,21 @@
                 finish: { enabled: true, text: "Klaar." }
             },
             sergeant: {
-                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Klaarstaan! We gaan beginnen! | Geen genade vandaag! | Rechtop staan!" },
+                // EXERCITIE UPDATES
+                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Peloton... AANDACHT! | Geef acht! We gaan beginnen! | Geen genade vandaag! | Rechtop staan!" },
                 prep_countdown: { enabled: true, text: "" },
                 // START!
-                work_start: { enabled: true, text: "Start! Bewegen! | Start! Geen smoesjes, werken! | Start! Pijn is fijn! | Start! Tempo maken! | Start! Aan het werk! | Start! Gas erop, nu! | Start! Niet nadenken, doen! | Start! Vooruit met de geit!" },
+                work_start: { enabled: true, text: "Start! Voorwaarts... MARS! | Start! In looppas... MARS! | Start! Aanvallen! | Start! Geen gevangenen maken! | Start! Bewegen! Nu! | Start! Geen smoesjes, werken! | Start! Pijn is fijn, start! | Start! Tempo maken! Go! | Start! Gas erop, nu!" },
                 // HALVERWEGE!
                 work_halfway: { enabled: true, text: "Halverwege! Niet verslappen! | Halverwege! Doorgaan! | Halverwege! Ik wil zweet zien! | Halverwege! Is dat alles wat je hebt? | Halverwege! Kom op, sneller! | Halverwege! Niet janken, doorwerken! | Halverwege! Wisselen en door!" },
                 work_30s: { enabled: true, text: "Nog 30 seconden! Tempo! | Nog 30 seconden! Versnel!" },
-                // NOG 10 SECONDEN!
+                // NOG 10 SECONDS!
                 work_10s: { enabled: true, text: "Nog 10 seconden! Alles geven! | Nog 10 seconden! Niet stoppen nu! | Nog 10 seconden! Doorgaan tot het gaatje! | Nog 10 seconden! Pijn is tijdelijk!" },
                 // RUST!
-                rest_set_start: { enabled: true, text: "Rust! Herstel! | Rust! Sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden!" },
+                rest_set_start: { enabled: true, text: "Rust! Op de plaats... RUST! | Rust! Geef... ACHT! | Rust! Herstel! En sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden!" },
                 rest_set_tips: { enabled: false, text: "" },
                 // WISSEL!
-                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen! | Wissel! Verplaatsen!" },
+                rest_switch_start: { enabled: true, text: "Wissel! Peloton... verplaatsen! | Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen!" },
                 rest_switch_info: { enabled: true, text: "" },
                 // NOG 10!
                 rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Sta klaar! | Nog 10 seconden! In positie!" },
