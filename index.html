@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.29 (Quick Time)</title>
+    <title>Friday-night-hawk-s Timer v7.30 (Dual Quick Buttons)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -504,7 +504,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.29</span>
+                FNH Timer <span class="version-tag">v7.30</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -520,32 +520,50 @@
             <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
         </div>
 
-        <div id="input-endtime" style="margin-bottom: 5px;">
-            <label>Klaar om (HH:MM)</label>
-            <input type="time" id="endTimeValue">
-        </div>
-        
-        <div id="quick-minute-buttons" class="quick-time-grid">
-            <button class="btn-minute" onclick="setQuickEndTime(0)">:00</button>
-            <button class="btn-minute" onclick="setQuickEndTime(5)">:05</button>
-            <button class="btn-minute" onclick="setQuickEndTime(10)">:10</button>
-            <button class="btn-minute" onclick="setQuickEndTime(15)">:15</button>
-            <button class="btn-minute" onclick="setQuickEndTime(20)">:20</button>
-            <button class="btn-minute" onclick="setQuickEndTime(25)">:25</button>
-            <button class="btn-minute" onclick="setQuickEndTime(30)">:30</button>
-            <button class="btn-minute" onclick="setQuickEndTime(35)">:35</button>
-            <button class="btn-minute" onclick="setQuickEndTime(40)">:40</button>
-            <button class="btn-minute" onclick="setQuickEndTime(45)">:45</button>
-            <button class="btn-minute" onclick="setQuickEndTime(50)">:50</button>
-            <button class="btn-minute" onclick="setQuickEndTime(55)">:55</button>
+        <div id="wrapper-endtime">
+            <div id="input-endtime" style="margin-bottom: 5px;">
+                <label>Klaar om (HH:MM)</label>
+                <input type="time" id="endTimeValue">
+            </div>
+            
+            <div id="quick-buttons-endtime" class="quick-time-grid">
+                <button class="btn-minute" onclick="setQuickEndTime(0)">:00</button>
+                <button class="btn-minute" onclick="setQuickEndTime(5)">:05</button>
+                <button class="btn-minute" onclick="setQuickEndTime(10)">:10</button>
+                <button class="btn-minute" onclick="setQuickEndTime(15)">:15</button>
+                <button class="btn-minute" onclick="setQuickEndTime(20)">:20</button>
+                <button class="btn-minute" onclick="setQuickEndTime(25)">:25</button>
+                <button class="btn-minute" onclick="setQuickEndTime(30)">:30</button>
+                <button class="btn-minute" onclick="setQuickEndTime(35)">:35</button>
+                <button class="btn-minute" onclick="setQuickEndTime(40)">:40</button>
+                <button class="btn-minute" onclick="setQuickEndTime(45)">:45</button>
+                <button class="btn-minute" onclick="setQuickEndTime(50)">:50</button>
+                <button class="btn-minute" onclick="setQuickEndTime(55)">:55</button>
+            </div>
         </div>
 
-        <div class="hidden" id="input-duration">
-            <label>Totale trainingstijd (min)</label>
-            <div class="input-wrapper">
-                <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
-                <input type="number" id="totalMin" value="30" inputmode="numeric">
-                <button class="btn-adjust btn-plus" onclick="adjustValue('totalMin', 5)">+</button>
+        <div id="wrapper-duration" class="hidden">
+            <div id="input-duration">
+                <label>Totale trainingstijd (min)</label>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
+                    <input type="number" id="totalMin" value="30" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('totalMin', 5)">+</button>
+                </div>
+            </div>
+            
+            <div id="quick-buttons-duration" class="quick-time-grid" style="margin-top:5px;">
+                <button class="btn-minute" onclick="setQuickDuration(10)">10m</button>
+                <button class="btn-minute" onclick="setQuickDuration(15)">15m</button>
+                <button class="btn-minute" onclick="setQuickDuration(20)">20m</button>
+                <button class="btn-minute" onclick="setQuickDuration(25)">25m</button>
+                <button class="btn-minute" onclick="setQuickDuration(30)">30m</button>
+                <button class="btn-minute" onclick="setQuickDuration(35)">35m</button>
+                <button class="btn-minute" onclick="setQuickDuration(40)">40m</button>
+                <button class="btn-minute" onclick="setQuickDuration(45)">45m</button>
+                <button class="btn-minute" onclick="setQuickDuration(50)">50m</button>
+                <button class="btn-minute" onclick="setQuickDuration(55)">55m</button>
+                <button class="btn-minute" onclick="setQuickDuration(60)">60m</button>
             </div>
         </div>
         
@@ -1177,8 +1195,24 @@
             mode = newMode;
             document.getElementById('btn-mode-duration').className = mode==='duration'?'toggle-btn active':'toggle-btn';
             document.getElementById('btn-mode-endtime').className = mode==='endtime'?'toggle-btn active':'toggle-btn';
-            if (mode==='duration') { document.getElementById('input-duration').classList.remove('hidden'); document.getElementById('input-endtime').classList.add('hidden'); } 
-            else { document.getElementById('input-duration').classList.add('hidden'); document.getElementById('input-endtime').classList.remove('hidden'); }
+            
+            if (mode==='duration') { 
+                document.getElementById('input-duration').classList.remove('hidden'); 
+                document.getElementById('input-endtime').classList.add('hidden');
+                
+                // Show duration buttons, hide endtime buttons
+                document.getElementById('quick-buttons-duration').classList.remove('hidden');
+                document.getElementById('wrapper-endtime').classList.add('hidden');
+                document.getElementById('wrapper-duration').classList.remove('hidden');
+            } else { 
+                document.getElementById('input-duration').classList.add('hidden'); 
+                document.getElementById('input-endtime').classList.remove('hidden');
+                
+                // Show endtime buttons, hide duration buttons
+                document.getElementById('quick-buttons-duration').classList.add('hidden');
+                document.getElementById('wrapper-endtime').classList.remove('hidden');
+                document.getElementById('wrapper-duration').classList.add('hidden');
+            }
             calculateRealTime();
         }
 
@@ -1346,6 +1380,12 @@
             const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             document.getElementById('endTimeValue').value = timeStr;
             
+            calculateRealTime();
+            saveToLocal();
+        }
+        
+        function setQuickDuration(min) {
+            document.getElementById('totalMin').value = min;
             calculateRealTime();
             saveToLocal();
         }
