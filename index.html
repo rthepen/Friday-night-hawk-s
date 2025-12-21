@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.4</title>
+    <title>Friday-night-hawk-s Timer v7.5</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -221,6 +221,13 @@
             width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
             padding: 8px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
         }
+        select.text-input {
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7em top 50%;
+            background-size: .65em auto;
+        }
         .text-input::placeholder { color: #555; }
 
         /* --- COLLAPSIBLE (Resume only) --- */
@@ -303,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.4</span>
+                FNH Timer <span class="version-tag">v7.5</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -440,6 +447,16 @@
             <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
         </div>
 
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="color:#30D158; font-weight:bold;">Kies je Coach Stijl</label>
+            <select id="coach-preset" class="text-input" onchange="applyCoachPreset(this.value)" style="font-size:16px; padding:12px;">
+                <option value="standard" selected>Standaard Coach</option>
+                <option value="simple">Simpel (Alleen info)</option>
+                <option value="sergeant">Drill Sergeant 🪖</option>
+                <option value="humor">Humor & Bitterballen 🤣</option>
+            </select>
+        </div>
+
         <div id="speech-settings-panel" class="speech-options">
             </div>
 
@@ -498,28 +515,100 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
-        let speechSettings = {
-            prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
-            prep_countdown: { enabled: true, text: "" }, 
-            work_start: { enabled: true, text: "Start met werken" },
-            work_halfway: { enabled: true, text: "Halverwege!" }, 
-            work_30s: { enabled: false, text: "Nog 30 seconden" },
-            work_10s: { enabled: true, text: "Nog 10 seconden" },
-            work_5s: { enabled: false, text: "Nog 5 seconden" },
-            rest_set_start: { enabled: true, text: "Rust" },
-            rest_set_tips: { enabled: true, text: "" }, 
-            rest_switch_start: { enabled: true, text: "Wissel van oefening" },
-            rest_switch_info: { enabled: true, text: "" }, 
-            rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
-            rest_round_start: { enabled: true, text: "Grote pauze" },
-            rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
-            rest_round_info: { enabled: true, text: "" }, 
-            mile_start: { enabled: true, text: "Goede start, ga zo door" },
-            mile_half: { enabled: true, text: "Je bent op de helft van de training" },
-            mile_end: { enabled: true, text: "Laatste loodjes, eindsprint" },
-            mile_lastround: { enabled: true, text: "Laatste ronde, alles geven" },
-            finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
+        // --- COACH PRESETS DEFINITIONS ---
+        const coachPresets = {
+            standard: {
+                prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
+                prep_countdown: { enabled: true, text: "" }, 
+                work_start: { enabled: true, text: "Start met werken" },
+                work_halfway: { enabled: true, text: "Halverwege!" }, 
+                work_30s: { enabled: false, text: "Nog 30 seconden" },
+                work_10s: { enabled: true, text: "Nog 10 seconden" },
+                work_5s: { enabled: false, text: "Nog 5 seconden" },
+                rest_set_start: { enabled: true, text: "Rust" },
+                rest_set_tips: { enabled: true, text: "" }, 
+                rest_switch_start: { enabled: true, text: "Wissel van oefening" },
+                rest_switch_info: { enabled: true, text: "" }, 
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
+                rest_round_start: { enabled: true, text: "Grote pauze" },
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
+                rest_round_info: { enabled: true, text: "" }, 
+                mile_start: { enabled: true, text: "Goede start, ga zo door" },
+                mile_half: { enabled: true, text: "Je bent op de helft van de training" },
+                mile_end: { enabled: true, text: "Laatste loodjes, eindsprint" },
+                mile_lastround: { enabled: true, text: "Laatste ronde, alles geven" },
+                finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
+            },
+            simple: {
+                prep_intro: { enabled: true, text: "Training gaat beginnen." },
+                prep_countdown: { enabled: true, text: "" },
+                work_start: { enabled: true, text: "Start." },
+                work_halfway: { enabled: true, text: "Helft." },
+                work_30s: { enabled: false, text: "30." },
+                work_10s: { enabled: true, text: "10." },
+                work_5s: { enabled: false, text: "" },
+                rest_set_start: { enabled: true, text: "Rust." },
+                rest_set_tips: { enabled: false, text: "" }, // No tips
+                rest_switch_start: { enabled: true, text: "Wissel." },
+                rest_switch_info: { enabled: true, text: "" },
+                rest_switch_10s: { enabled: true, text: "Nog 10." },
+                rest_round_start: { enabled: true, text: "Ronde pauze." },
+                rest_round_15s: { enabled: true, text: "Klaarstaan." },
+                rest_round_info: { enabled: true, text: "" },
+                mile_start: { enabled: false, text: "" },
+                mile_half: { enabled: true, text: "50 procent." },
+                mile_end: { enabled: false, text: "" },
+                mile_lastround: { enabled: true, text: "Laatste ronde." },
+                finish: { enabled: true, text: "Klaar." }
+            },
+            sergeant: {
+                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag!" },
+                prep_countdown: { enabled: true, text: "" },
+                work_start: { enabled: true, text: "Bewegen! Nu!" },
+                work_halfway: { enabled: true, text: "Niet verslappen! Doorgaan!" },
+                work_30s: { enabled: true, text: "Nog 30 seconden, tempo!" },
+                work_10s: { enabled: true, text: "Laatste 10, alles geven!" },
+                work_5s: { enabled: true, text: "5, 4, 3, 2, 1" },
+                rest_set_start: { enabled: true, text: "Herstel! En sta rechtop!" },
+                rest_set_tips: { enabled: false, text: "" },
+                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende!" },
+                rest_switch_info: { enabled: true, text: "" },
+                rest_switch_10s: { enabled: true, text: "Opschieten! Nog 10!" },
+                rest_round_start: { enabled: true, text: "Ronde rust! Drinken en bek houden!" },
+                rest_round_15s: { enabled: true, text: "Terug op je post! Nu!" },
+                rest_round_info: { enabled: true, text: "" },
+                mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet!" },
+                mile_half: { enabled: true, text: "Helft erop! Is dat alles wat je hebt?" },
+                mile_end: { enabled: true, text: "Eindsprint! Pijn is fijn!" },
+                mile_lastround: { enabled: true, text: "Laatste ronde! Slopen die hap!" },
+                finish: { enabled: true, text: "Missie volbracht. Inrukken!" }
+            },
+            humor: {
+                prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen!" },
+                prep_countdown: { enabled: true, text: "" },
+                work_start: { enabled: true, text: "Hup, actie in de taxi!" },
+                work_halfway: { enabled: true, text: "Nog even, de bar is al bijna open!" },
+                work_30s: { enabled: false, text: "" },
+                work_10s: { enabled: true, text: "Nog 10 seconden afzien!" },
+                work_5s: { enabled: false, text: "" },
+                rest_set_start: { enabled: true, text: "Even hijgen als een postpaard." },
+                rest_set_tips: { enabled: true, text: "" },
+                rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen!" },
+                rest_switch_info: { enabled: true, text: "" },
+                rest_switch_10s: { enabled: true, text: "Hup hup, naar de volgende martelgang." },
+                rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen." },
+                rest_round_15s: { enabled: true, text: "Kom op, buik in en borst vooruit." },
+                rest_round_info: { enabled: true, text: "" },
+                mile_start: { enabled: true, text: "Lekker bezig pik!" },
+                mile_half: { enabled: true, text: "We zijn op de helft, de bitterballen komen dichterbij!" },
+                mile_end: { enabled: true, text: "Laatste loodjes wegen het zwaarst, maar smaken het best!" },
+                mile_lastround: { enabled: true, text: "Laatste ronde, daarna bier!" },
+                finish: { enabled: true, text: "Jaaa! Tijd voor bier en ballen! Goed gewerkt!" }
+            }
         };
+
+        // Initialize with standard settings (deep copy to avoid ref issues)
+        let speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
 
         const uiConfig = [
             { header: "Voorbereiding" },
@@ -558,8 +647,6 @@
         let workoutStartTime, targetEndTimeDate;
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
-        
-        // Timer Logic Vars
         let stepEndTime = 0; 
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -584,7 +671,6 @@
             document.getElementById('btn-mode-endtime').onclick = () => { setMode('endtime'); saveToLocal(); };
             document.getElementById('btn-mode-duration').onclick = () => { setMode('duration'); saveToLocal(); };
             
-            // BACKGROUND SYNC LISTENER
             document.addEventListener("visibilitychange", handleVisibilityChange);
 
             calculateRealTime(); 
@@ -592,11 +678,18 @@
         
         function handleVisibilityChange() {
             if (document.visibilityState === 'visible' && !isPaused && timerInterval) {
-                // Force resync on wake
-                // Calculate current theoretical step based on time elapsed
-                // We let the interval loop handle the logic, but we can force an immediate check
-                // by running the logic inside runStep's interval immediately or wait 1s.
-                // The existing interval will pick it up on next tick.
+                // Interval logic handles catch up automatically
+            }
+        }
+
+        // --- NEW: APPLY PRESET FUNCTION ---
+        function applyCoachPreset(presetName) {
+            const preset = coachPresets[presetName];
+            if (preset) {
+                // Deep copy to break reference
+                speechSettings = JSON.parse(JSON.stringify(preset));
+                saveToLocal();
+                renderSpeechSettings();
             }
         }
 
@@ -649,7 +742,6 @@
 
         function resetToDefaults() {
             if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
-            // ... (Reset logic same as before, cleared for brevity but kept functionality)
             document.getElementById('rounds').value = 2; 
             document.getElementById('exercises').value = 6; 
             document.getElementById('sets').value = 2; 
@@ -663,28 +755,11 @@
             const d = new Date(); d.setMinutes(d.getMinutes() + 30);
             document.getElementById('endTimeValue').value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             setMode('endtime'); setAudioMode('speech');
-            speechSettings = {
-                prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
-                prep_countdown: { enabled: true, text: "" }, 
-                work_start: { enabled: true, text: "Start met werken" },
-                work_halfway: { enabled: true, text: "Halverwege!" }, 
-                work_30s: { enabled: false, text: "Nog 30 seconden" },
-                work_10s: { enabled: true, text: "Nog 10 seconden" },
-                work_5s: { enabled: false, text: "Nog 5 seconden" },
-                rest_set_start: { enabled: true, text: "Rust" },
-                rest_set_tips: { enabled: true, text: "" }, 
-                rest_switch_start: { enabled: true, text: "Wissel van oefening" },
-                rest_switch_info: { enabled: true, text: "" }, 
-                rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
-                rest_round_start: { enabled: true, text: "Grote pauze" },
-                rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
-                rest_round_info: { enabled: true, text: "" }, 
-                mile_start: { enabled: true, text: "Goede start, ga zo door" },
-                mile_half: { enabled: true, text: "Je bent op de helft van de training" },
-                mile_end: { enabled: true, text: "Laatste loodjes, eindsprint" },
-                mile_lastround: { enabled: true, text: "Laatste ronde, alles geven" },
-                finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
-            };
+            
+            // Reset to Standard Preset
+            document.getElementById('coach-preset').value = 'standard';
+            speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
+
             saveToLocal(); renderSpeechSettings(); calculateRealTime();
         }
 
@@ -802,7 +877,6 @@
         }
 
         function calculateRealTime() {
-            // ... (Calculation logic same as v7.3, abbreviated for clarity)
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
             const sts = parseInt(document.getElementById('sets').value) || 0;
@@ -884,7 +958,6 @@
         }
 
         function renderPreviewList() {
-            // ... (Same as v7.3)
             const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
             schedule.forEach((item) => {
                 if (item.type==='finish') return;
@@ -933,7 +1006,6 @@
             document.getElementById('timer-screen').style.display = 'flex';
 
             workoutStartTime = new Date();
-            // CALC TARGET END
             if (mode === 'endtime') {
                 const [h, m] = document.getElementById('endTimeValue').value.split(':');
                 targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
@@ -965,7 +1037,6 @@
 
             const statusEl = document.getElementById('current-status');
 
-            // STATUS & AUDIO LOGIC
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
@@ -995,41 +1066,32 @@
             else if (step.type==='prep') { statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; triggerAudio('prep_intro', "Welkom"); }
             else { finish(); return; }
 
-            // Initialize End Time for this step if not set (or after switch)
-            // Use Math.ceil to prevent instant skip on fast updates
+            // Initialize End Time for this step
             stepEndTime = Date.now() + (step.time * 1000); 
             document.getElementById('countdown').innerText = step.time;
 
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 if (!isPaused) {
-                    // REALTIME CALCULATION
                     const now = Date.now();
                     const remainingMs = stepEndTime - now;
                     let remainingSec = Math.ceil(remainingMs / 1000);
                     
-                    // HANDLE CATCH UP (Negative time)
                     if (remainingSec < 0) {
-                        // We fell behind (e.g. background tab). Fast forward.
                         while (remainingSec < 0) {
                             currentIndex++;
                             if(currentIndex >= schedule.length) { finish(); return; }
                             const skippedStep = schedule[currentIndex];
-                            // Add skipped step duration to the timeline cursor
                             stepEndTime += (skippedStep.time * 1000); 
                             remainingSec = Math.ceil((stepEndTime - Date.now()) / 1000);
                         }
-                        // We arrived at the correct step for "NOW"
-                        runStep(); 
-                        return;
+                        runStep(); return;
                     }
 
-                    // Normal update
                     step.time = remainingSec;
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
-                    // Total time display update
                     const totalDiff = targetEndTimeDate - now;
                     if(totalDiff > 0) {
                         const h = Math.floor(totalDiff / 3600000);
@@ -1038,7 +1100,6 @@
                         document.getElementById('total-time-left').innerText = `Nog ${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
                     } else { document.getElementById('total-time-left').innerText = "0:00:00"; }
 
-                    // TRIGGERS
                     const init = step.initialTime;
                     if (step.type === 'work') {
                         if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('work_halfway', "Halverwege");
@@ -1049,18 +1110,12 @@
                     if (step.type === 'rest-long' && step.time === 15 && init > 20) triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
                     if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
 
-                    if (step.time <= 0) {
-                        clearInterval(timerInterval);
-                        currentIndex++;
-                        runStep();
-                    } else if (step.time <= 3) { 
-                        triggerAudio('tick', step.time.toString());
-                    }
+                    if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
+                    else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
                 } else {
-                    // IF PAUSED: shift the end time forward so we don't skip time when resuming
                     stepEndTime += 1000; 
-                    targetEndTimeDate = new Date(targetEndTimeDate.getTime() + 1000); // Also push back total end time
-                    updateEndTimeDisplay(); // Update display to show pushed back time
+                    targetEndTimeDate = new Date(targetEndTimeDate.getTime() + 1000); 
+                    updateEndTimeDisplay();
                 }
             }, 1000);
         }
@@ -1095,20 +1150,12 @@
             isPaused = false;
             triggerAudio('manual_override', "We gaan weer door");
             if (choice === 'recalc') recalculateForFixedEnd();
-            // Else 'push' (default behavior in loop is essentially 'push' by adding time)
             renderActiveList();
         }
 
         function recalculateForFixedEnd() {
-            // Recalculate logic based on current targetEndTimeDate (which hasn't moved yet if we chose recalc)
-            // But wait, the loop was pushing targetTime back while paused.
-            // If user wants to "catch up/recalc", we reset targetTime to original?
-            // This complex logic is simplified here: Recalc divides remaining time by work steps.
             const now = new Date();
-            // Reset target to original intention? No, standard logic: Target is fixed.
-            // If we paused for 5 mins, target is passed or close.
             const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            
             if (secsRemaining <= 0) { alert("Tijd is op!"); finish(); return; }
 
             let workStepsLeft = 0; let fixedRest = 0;
@@ -1128,15 +1175,12 @@
                          schedule[i].initialTime = newWork; 
                     }
                 }
-                // Reset end time of current step based on new duration
                 stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
                 document.getElementById('countdown').innerText = schedule[currentIndex].time;
             }
         }
 
-        function updateTargetTimeFromNow() {
-            // Already handled by loop incrementing targetTime
-        }
+        function updateTargetTimeFromNow() {}
 
         function updateEndTimeDisplay() { document.getElementById('display-end-time').innerText = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
         
