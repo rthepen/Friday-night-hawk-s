@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.8</title>
+    <title>Friday-night-hawk-s Timer v6.9</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -320,7 +320,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v6.8</span>
+                FNH Timer <span class="version-tag">v6.9</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -836,9 +836,43 @@
             let val = parseInt(el.value) || 0;
             val += delta;
             if (val < 1) val = 1; 
+
+            // --- NIEUWE LOGICA: LIMIETEN VOOR STARTPUNT ---
+            if(id === 'start-round') {
+                const max = parseInt(document.getElementById('rounds').value);
+                if(val > max) val = max;
+            }
+            if(id === 'start-ex') {
+                const max = parseInt(document.getElementById('exercises').value);
+                if(val > max) val = max;
+            }
+            if(id === 'start-set') {
+                const max = parseInt(document.getElementById('sets').value);
+                if(val > max) val = max;
+            }
+            // ------------------------------------------------
+
             el.value = val;
+            
+            // Controleer na elke wijziging of de resume velden nog kloppen
+            validateResumeInputs();
+
             calculateRealTime();
             saveToLocal();
+        }
+
+        function validateResumeInputs() {
+            const maxR = parseInt(document.getElementById('rounds').value) || 1;
+            const maxE = parseInt(document.getElementById('exercises').value) || 1;
+            const maxS = parseInt(document.getElementById('sets').value) || 1;
+
+            const rEl = document.getElementById('start-round');
+            const eEl = document.getElementById('start-ex');
+            const sEl = document.getElementById('start-set');
+
+            if(parseInt(rEl.value) > maxR) rEl.value = maxR;
+            if(parseInt(eEl.value) > maxE) eEl.value = maxE;
+            if(parseInt(sEl.value) > maxS) sEl.value = maxS;
         }
 
         function setMode(newMode) {
@@ -855,7 +889,7 @@
             calculateRealTime();
         }
 
-        // --- CALCULATION LOGIC UPDATED FOR RESUME ---
+        // --- CALCULATION LOGIC ---
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
