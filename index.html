@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.5</title>
+    <title>Friday-night-hawk-s Timer v8.6</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -139,7 +139,7 @@
         .half-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px; /* Iets meer ruimte */
+            gap: 12px;
             width: 100%;
             margin-bottom: 15px;
         }
@@ -162,7 +162,6 @@
             background-size: .65em auto;
         }
         
-        /* Highlighted inputs for Time/Duration */
         .highlight-input {
             border: 1px solid #555 !important;
             background: #222 !important;
@@ -230,10 +229,9 @@
         .text-input-trigger { 
             width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
             padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; margin-top: 5px;
-            /* BIGGER AND FULL WIDTH */
             white-space: pre-wrap; 
             overflow: visible;
-            min-height: 80px; /* VEEL GROTER */
+            min-height: 80px; 
             line-height: 1.4;
             cursor: pointer;
             display: flex;
@@ -291,7 +289,13 @@
             transition: all 0.2s;
         }
         .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
-        .btn-control.paused { background: white !important; color: black !important; }
+        
+        /* STRICT PAUSED STATE */
+        .btn-control.paused { 
+            background-color: white !important; 
+            color: black !important; 
+            border-color: white !important;
+        }
         
         .btn-stop { color: #FF453A; /* Red icon for stop */ }
 
@@ -362,7 +366,7 @@
         }
 
         .gym-phase-title.huge-text {
-            font-size: 16vw; /* DOUBLE SIZE for Werken/Rust */
+            font-size: 16vw; 
         }
 
         .gym-big-time {
@@ -495,17 +499,21 @@
 
         /* --- MODALS --- */
         #pause-modal, #calc-modal, #speech-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
-        .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
+        .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
+        .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
         
         .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
         .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
         
         /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
-            width: 100%; height: 150px; background: #222; border: 1px solid #555; color: white;
-            font-size: 16px; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 15px;
+            width: 100%; 
+            height: 200px; /* Big height */
+            background: #222; border: 1px solid #555; color: white;
+            font-size: 16px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
             font-family: inherit;
+            box-sizing: border-box; /* Ensures padding doesn't overflow */
         }
 
         .hidden { display: none !important; }
@@ -537,7 +545,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.5</span>
+                FNH Timer <span class="version-tag">v8.6</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -720,9 +728,32 @@
     <div id="pause-modal">
         <div class="modal-content">
             <h2 style="margin-top:0;">Pauze voorbij</h2>
-            <p style="color:#aaa;">Wat wil je doen?</p>
-            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">⏱️ Inhalen (korter werken)</button>
-            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd. Hoe halen we dit in?</p>
+            
+            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">
+                🐢 Eindtijd verzetten
+                <span class="btn-subtext" id="btn-text-push">...</span>
+            </button>
+            
+            <button class="modal-btn" id="btn-catch-work" style="background: #0A84FF; color: white;" onclick="resolvePause('work')">
+                ⏱️ Inhalen via Werktijd
+                <span class="btn-subtext" id="btn-text-work">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-rest" style="background: #FF9F0A; color: black;" onclick="resolvePause('rest')">
+                💤 Inhalen via Rust (Set)
+                <span class="btn-subtext" id="btn-text-rest">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-switch" style="background: #BF5AF2; color: white;" onclick="resolvePause('switch')">
+                🔀 Inhalen via Wissels
+                <span class="btn-subtext" id="btn-text-switch">...</span>
+            </button>
+            
+            <button class="modal-btn" id="btn-catch-round" style="background: #30D158; color: black;" onclick="resolvePause('round')">
+                ☕ Inhalen via Ronde Rust
+                <span class="btn-subtext" id="btn-text-round">...</span>
+            </button>
         </div>
     </div>
     
@@ -746,7 +777,7 @@
     </div>
     
     <div id="speech-edit-modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 90%;">
             <h3 style="margin-top:0;">Spraak aanpassen</h3>
             <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Gebruik | voor variatie</div>
             <textarea id="speech-edit-area"></textarea>
@@ -761,7 +792,7 @@
         // --- VARIABELEN ---
         let audioMode = 'speech';
         let speechPlaylists = {}; 
-        let editingSpeechKey = null; // Tracks which key we are editing
+        let editingSpeechKey = null; 
         
         // --- COACH PRESETS DEFINITIONS ---
         const coachPresets = {
@@ -852,7 +883,6 @@
             }
         };
 
-        // Initialize with standard settings (deep copy to avoid ref issues)
         let speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
 
         // UI Config
@@ -890,23 +920,21 @@
         let currentIndex = 0;
         let timerInterval;
         let isPaused = false;
+        let pauseStartTime = 0; // NEW for accurate calculation
         let workoutStartTime, targetEndTimeDate;
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
         let stepEndTime = 0; 
+        let currentPauseDuration = 0; // Stored when pause ends
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Populate drop downs BEFORE loading settings
             populateDropdowns();
-            
             loadFromLocal();
-            // --- FIX FOR BUG v7.18: Check shared settings FIRST then render UI ---
-            checkForSharedSettings(); // Updates internal object
-            renderSpeechSettings();   // Updates UI with updated object
+            checkForSharedSettings();
+            renderSpeechSettings();
             
-            // Initial Time Sync if empty
             if(!document.getElementById('endTimeValue').value) {
-                syncTime('duration'); // Defaults to 30m from loadFromLocal or default
+                syncTime('duration');
             }
 
             document.querySelectorAll('input.param-input').forEach(i => {
@@ -921,17 +949,14 @@
             calculateRealTime(); 
         });
         
-        // --- NEW SYNC FUNCTION ---
         function syncTime(source) {
             if (source === 'duration') {
-                // User changed Dropdown -> Update EndTime
                 const min = parseInt(document.getElementById('totalMin').value) || 30;
                 const now = new Date();
                 const target = new Date(now.getTime() + min * 60000);
                 const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('endTimeValue').value = timeStr;
             } else {
-                // User changed EndTime -> Update Dropdown
                 const endStr = document.getElementById('endTimeValue').value;
                 if(!endStr) return;
                 const now = new Date();
@@ -939,20 +964,14 @@
                 let target = new Date();
                 target.setHours(h, m, 0, 0);
                 
-                // If target is earlier than now (e.g. it's 23:00 and you set 01:00), assume next day
                 if(target < now) {
-                     // Check if it's likely next day or just a past time today
-                     // If difference is huge (like > 12 hours ago), maybe they mean tomorrow.
-                     // Simple logic: if target < now, add 1 day
                      target.setDate(target.getDate() + 1);
                 }
 
                 const diffMs = target - now;
                 const diffMin = Math.round(diffMs / 60000);
 
-                // Update dropdown
                 const sel = document.getElementById('totalMin');
-                // Check if option exists, if not add it
                 let exists = false;
                 for(let i=0; i<sel.options.length; i++) { if(parseInt(sel.options[i].value) === diffMin) exists = true; }
                 
@@ -960,7 +979,6 @@
                     const opt = document.createElement('option');
                     opt.value = diffMin;
                     opt.text = diffMin + "m";
-                    // Add nicely in order? Or just prepend.
                     sel.add(opt, 0); 
                     sel.value = diffMin;
                 } else if (diffMin > 0) {
@@ -971,68 +989,34 @@
         }
         
         function populateDropdowns() {
-            // Helper to fill select
             const fill = (id, start, end, step=1, suffix="") => {
                 const sel = document.getElementById(id);
-                // Also try to find resume selectors
                 const resumeSel = document.getElementById("start-" + (id === 'rounds' ? 'round' : (id==='exercises'?'ex':(id==='sets'?'set':''))));
-
                 if(sel) sel.innerHTML = "";
                 if(resumeSel) resumeSel.innerHTML = "";
-                
                 for(let i=start; i<=end; i+=step) {
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    opt.text = i + suffix;
-                    if(sel) sel.appendChild(opt);
-                    
-                    if(resumeSel) {
-                        const opt2 = document.createElement('option');
-                        opt2.value = i;
-                        opt2.text = i + suffix;
-                        resumeSel.appendChild(opt2);
-                    }
+                    const opt = document.createElement('option'); opt.value = i; opt.text = i + suffix; if(sel) sel.appendChild(opt);
+                    if(resumeSel) { const opt2 = document.createElement('option'); opt2.value = i; opt2.text = i + suffix; resumeSel.appendChild(opt2); }
                 }
             };
-            
             fill('rounds', 1, 10);
             fill('exercises', 1, 20);
             fill('sets', 1, 10);
             
-            // Fill Total Time Dropdown (1-10 single, 15-120 steps of 5)
             const fillTotal = (id) => {
-                const sel = document.getElementById(id);
-                sel.innerHTML = "";
-                for(let i=1; i<=10; i++) {
-                    const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt);
-                }
-                for(let i=15; i<=120; i+=5) {
-                    const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt);
-                }
+                const sel = document.getElementById(id); sel.innerHTML = "";
+                for(let i=1; i<=10; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt); }
+                for(let i=15; i<=120; i+=5) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt); }
             };
             fillTotal('totalMin');
             
-            // Rest times: 5s to 300s
             const fillRest = (id) => {
-                const sel = document.getElementById(id);
-                sel.innerHTML = "";
-                // 5-60s steps of 5
-                for(let i=5; i<=60; i+=5) {
-                    const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt);
-                }
-                // 60-180s steps of 10
-                for(let i=70; i<=180; i+=10) {
-                    const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt);
-                }
-                // up to 300
-                for(let i=210; i<=300; i+=30) {
-                    const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt);
-                }
+                const sel = document.getElementById(id); sel.innerHTML = "";
+                for(let i=5; i<=60; i+=5) { const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt); }
+                for(let i=70; i<=180; i+=10) { const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt); }
+                for(let i=210; i<=300; i+=30) { const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt); }
             };
-            
-            fillRest('restSec');
-            fillRest('exerciseRestSec');
-            fillRest('roundRestSec');
+            fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
         }
         
         function handleVisibilityChange() {
@@ -1041,7 +1025,6 @@
             }
         }
 
-        // --- NEW: APPLY PRESET FUNCTION ---
         function applyCoachPreset(presetName) {
             const preset = coachPresets[presetName];
             if (preset) {
@@ -1052,43 +1035,24 @@
             }
         }
 
-        // --- RENDER SPEECH SETTINGS ---
         function renderSpeechSettings() {
             const container = document.getElementById('speech-settings-panel');
             container.innerHTML = "";
-
             uiConfig.forEach(item => {
                 if(item.header) {
-                    const h = document.createElement('div');
-                    h.className = "category-header";
-                    h.innerText = item.header;
-                    container.appendChild(h);
+                    const h = document.createElement('div'); h.className = "category-header"; h.innerText = item.header; container.appendChild(h);
                 } else {
                     const wrapper = document.createElement('div');
-                    const row = document.createElement('div');
-                    row.className = "switch-row";
-                    const label = document.createElement('span');
-                    label.className = "switch-label";
-                    label.innerText = item.label;
-                    const switchLabel = document.createElement('label');
-                    switchLabel.className = "switch";
-                    const cb = document.createElement('input');
-                    cb.type = "checkbox";
-                    cb.id = `sw_${item.id}`;
+                    const row = document.createElement('div'); row.className = "switch-row";
+                    const label = document.createElement('span'); label.className = "switch-label"; label.innerText = item.label;
+                    const switchLabel = document.createElement('label'); switchLabel.className = "switch";
+                    const cb = document.createElement('input'); cb.type = "checkbox"; cb.id = `sw_${item.id}`;
                     cb.checked = speechSettings[item.id] ? speechSettings[item.id].enabled : false;
                     cb.onchange = () => { if(speechSettings[item.id]) { speechSettings[item.id].enabled = cb.checked; saveToLocal(); } };
-                    const slider = document.createElement('span');
-                    slider.className = "slider";
-                    switchLabel.appendChild(cb);
-                    switchLabel.appendChild(slider);
-                    row.appendChild(label);
-                    row.appendChild(switchLabel);
-                    wrapper.appendChild(row);
-
+                    const slider = document.createElement('span'); slider.className = "slider";
+                    switchLabel.appendChild(cb); switchLabel.appendChild(slider); row.appendChild(label); row.appendChild(switchLabel); wrapper.appendChild(row);
                     if(item.type === 'text') {
-                        // Use a Div to look like an input but trigger modal
-                        const trigger = document.createElement('div');
-                        trigger.className = "text-input-trigger";
+                        const trigger = document.createElement('div'); trigger.className = "text-input-trigger";
                         const val = speechSettings[item.id] ? speechSettings[item.id].text : "";
                         trigger.innerText = val || "(Klik om te bewerken...)";
                         trigger.onclick = () => openSpeechEdit(item.id, val);
@@ -1099,7 +1063,6 @@
             });
         }
         
-        // --- SPEECH EDITOR MODAL LOGIC ---
         function openSpeechEdit(key, currentText) {
             editingSpeechKey = key;
             document.getElementById('speech-edit-area').value = currentText;
@@ -1122,26 +1085,11 @@
 
         function resetToDefaults() {
             if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
-            document.getElementById('rounds').value = 2; 
-            document.getElementById('exercises').value = 6; 
-            document.getElementById('sets').value = 2; 
-            document.getElementById('restSec').value = 20; 
-            document.getElementById('exerciseRestSec').value = 30; 
-            document.getElementById('roundRestSec').value = 90;
-            document.getElementById('totalMin').value = 30; 
-            document.getElementById('start-round').value = 1;
-            document.getElementById('start-ex').value = 1;
-            document.getElementById('start-set').value = 1;
-            
-            // Sync time reset
-            syncTime('duration');
-            
-            setAudioMode('speech');
-            
-            document.getElementById('coach-preset').value = 'standard';
-            speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
-            speechPlaylists = {}; 
-
+            document.getElementById('rounds').value = 2; document.getElementById('exercises').value = 6; document.getElementById('sets').value = 2; 
+            document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
+            document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
+            syncTime('duration'); setAudioMode('speech');
+            document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
             saveToLocal(); renderSpeechSettings(); calculateRealTime();
         }
 
@@ -1162,23 +1110,14 @@
         }
 
         function shareSettings() {
-            const rounds = document.getElementById('rounds').value;
-            const exercises = document.getElementById('exercises').value;
-            const sets = document.getElementById('sets').value;
-            const restSec = document.getElementById('restSec').value;
-            const exerciseRestSec = document.getElementById('exerciseRestSec').value;
-            const roundRestSec = document.getElementById('roundRestSec').value;
+            const rounds = document.getElementById('rounds').value; const exercises = document.getElementById('exercises').value; const sets = document.getElementById('sets').value;
+            const restSec = document.getElementById('restSec').value; const exerciseRestSec = document.getElementById('exerciseRestSec').value; const roundRestSec = document.getElementById('roundRestSec').value;
             const totalMin = document.getElementById('totalMin').value;
             const params = new URLSearchParams();
             params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
             params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
-            
-            for (const [key, value] of Object.entries(speechSettings)) {
-                if(value.text) { params.set(key, value.text); }
-            }
-
-            const baseUrl = window.location.origin + window.location.pathname;
-            const shareUrl = baseUrl + '?' + params.toString();
+            for (const [key, value] of Object.entries(speechSettings)) { if(value.text) { params.set(key, value.text); } }
+            const baseUrl = window.location.origin + window.location.pathname; const shareUrl = baseUrl + '?' + params.toString();
             if (navigator.share) { navigator.share({ title: 'FNH Training Settings', url: shareUrl }).catch(console.error); } 
             else { navigator.clipboard.writeText(shareUrl).then(() => { alert("Link met instellingen gekopieerd!"); }); }
         }
@@ -1186,50 +1125,21 @@
         function checkForSharedSettings() {
             const params = new URLSearchParams(window.location.search);
             let dataUpdated = false;
-
-            // 1. Check numeric params
             if(params.has('r')) {
-                document.getElementById('rounds').value = params.get('r');
-                document.getElementById('exercises').value = params.get('e');
-                document.getElementById('sets').value = params.get('s');
-                document.getElementById('restSec').value = params.get('rs');
-                document.getElementById('exerciseRestSec').value = params.get('re');
-                document.getElementById('roundRestSec').value = params.get('rr');
-                document.getElementById('totalMin').value = params.get('tm');
-                dataUpdated = true;
+                document.getElementById('rounds').value = params.get('r'); document.getElementById('exercises').value = params.get('e'); document.getElementById('sets').value = params.get('s');
+                document.getElementById('restSec').value = params.get('rs'); document.getElementById('exerciseRestSec').value = params.get('re'); document.getElementById('roundRestSec').value = params.get('rr');
+                document.getElementById('totalMin').value = params.get('tm'); dataUpdated = true;
             }
-
-            // 2. Check speech params
             let speechUpdated = false;
-            for (const key in speechSettings) {
-                if (params.has(key)) {
-                    speechSettings[key].text = params.get(key);
-                    speechUpdated = true;
-                    dataUpdated = true;
-                }
-            }
-            
-            if(speechUpdated) {
-                const dropdown = document.getElementById('coach-preset');
-                if(dropdown) {
-                    dropdown.value = 'custom';
-                    dropdown.querySelector('option[value="custom"]').removeAttribute('hidden');
-                    dropdown.querySelector('option[value="custom"]').removeAttribute('disabled');
-                }
-            }
-
-            if(dataUpdated) {
-                // If loaded from link, sync time visual
-                syncTime('duration');
-                saveToLocal();
-            }
+            for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
+            if(speechUpdated) { const dropdown = document.getElementById('coach-preset'); if(dropdown) { dropdown.value = 'custom'; dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } }
+            if(dataUpdated) { syncTime('duration'); saveToLocal(); }
         }
 
         function saveToLocal() {
             const data = {
-                rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value,
-                sets: document.getElementById('sets').value, restSec: document.getElementById('restSec').value,
-                exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
+                rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value, sets: document.getElementById('sets').value,
+                restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value
             };
@@ -1241,12 +1151,8 @@
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
-                    document.getElementById('rounds').value = data.rounds || 2;
-                    document.getElementById('exercises').value = data.exercises || 6;
-                    document.getElementById('sets').value = data.sets || 2;
-                    document.getElementById('restSec').value = data.restSec || 20;
-                    document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
-                    document.getElementById('roundRestSec').value = data.roundRestSec || 90;
+                    document.getElementById('rounds').value = data.rounds || 2; document.getElementById('exercises').value = data.exercises || 6; document.getElementById('sets').value = data.sets || 2;
+                    document.getElementById('restSec').value = data.restSec || 20; document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30; document.getElementById('roundRestSec').value = data.roundRestSec || 90;
                     document.getElementById('totalMin').value = data.totalMin || 30;
                     if(data.startRound) document.getElementById('start-round').value = data.startRound;
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
@@ -1266,45 +1172,27 @@
         }
 
         function calculateRealTime() {
-            const rounds = parseInt(document.getElementById('rounds').value) || 1;
-            const ex = parseInt(document.getElementById('exercises').value) || 0;
-            const sts = parseInt(document.getElementById('sets').value) || 0;
-            const rst = parseInt(document.getElementById('restSec').value) || 0;
-            const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0;
-            const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
-            const startRound = parseInt(document.getElementById('start-round').value) || 1;
-            const startEx = parseInt(document.getElementById('start-ex').value) || 1;
-            const startSet = parseInt(document.getElementById('start-set').value) || 1;
+            const rounds = parseInt(document.getElementById('rounds').value) || 1; const ex = parseInt(document.getElementById('exercises').value) || 0; const sts = parseInt(document.getElementById('sets').value) || 0;
+            const rst = parseInt(document.getElementById('restSec').value) || 0; const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0; const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
+            const startRound = parseInt(document.getElementById('start-round').value) || 1; const startEx = parseInt(document.getElementById('start-ex').value) || 1; const startSet = parseInt(document.getElementById('start-set').value) || 1;
 
             if (ex === 0 || sts === 0 || rounds === 0) return;
 
             let remainingWorkSets = 0; let remainingFixedRestTime = 0;
-            for (let r = 1; r <= rounds; r++) {
-                for (let e = 1; e <= ex; e++) {
-                    for (let s = 1; s <= sts; s++) {
-                        let isFuture = false;
-                        if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                        if (isFuture) {
-                            remainingWorkSets++;
-                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                            if (!isLastSetOfWorkout) {
-                                if (isLastSetOfRound) remainingFixedRestTime += roundRst; else if (isLastSetOfExercise) remainingFixedRestTime += exRst; else remainingFixedRestTime += rst;
-                            }
-                        }
-                    }
+            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                if (isFuture) {
+                    remainingWorkSets++;
+                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
+                    if (!isLastSetOfWorkout) { if (isLastSetOfRound) remainingFixedRestTime += roundRst; else if (isLastSetOfExercise) remainingFixedRestTime += exRst; else remainingFixedRestTime += rst; }
                 }
-            }
+            }}}
             remainingFixedRestTime += 10; 
 
-            // Always calculate based on the End Time input now, as that is the source of truth after sync
             let availableSec = 0;
             const endStr = document.getElementById('endTimeValue').value; 
-            
             if (endStr) {
-                const now = new Date(); 
-                const [h, m] = endStr.split(':'); 
-                const target = new Date(); 
-                target.setHours(h, m, 0, 0);
+                const now = new Date(); const [h, m] = endStr.split(':'); const target = new Date(); target.setHours(h, m, 0, 0);
                 if (target < now) target.setDate(target.getDate() + 1);
                 availableSec = Math.floor((target - now) / 1000);
             }
@@ -1329,97 +1217,44 @@
             document.getElementById('target-work-sec').value = workTimeSec;
             previewCalc();
         }
-        function closeCalcModal() {
-            document.getElementById('calc-modal').style.display = 'none';
-        }
+        function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
         
         function previewCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-            
-            // Get total remaining work sets
-            // Re-run minimal logic from calculateRealTime to get counts
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; const diffPerSet = targetW - currentW;
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            
             let countSets = 0;
             for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
                 let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
                 if (isFuture) countSets++;
             }}}
             
-            // Option 1: Adjust Duration
-            const totalDiffSec = diffPerSet * countSets;
-            const totalDiffMin = Math.round(totalDiffSec / 60);
-            
-            let sign = totalDiffMin >= 0 ? "+" : "";
-            
-            const currentEnd = document.getElementById('endTimeValue').value;
-            const [h,m] = currentEnd.split(':');
-            const d = new Date(); d.setHours(h,m,0,0);
+            const totalDiffSec = diffPerSet * countSets; const totalDiffMin = Math.round(totalDiffSec / 60); let sign = totalDiffMin >= 0 ? "+" : "";
+            const currentEnd = document.getElementById('endTimeValue').value; const [h,m] = currentEnd.split(':'); const d = new Date(); d.setHours(h,m,0,0);
             d.setMinutes(d.getMinutes() + totalDiffMin);
             const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
-            
             document.getElementById('desc-calc-duration').innerText = endText;
             
-            // Option 2: Adjust Rest
-            const currentRest = parseInt(document.getElementById('restSec').value);
-            const newRest = currentRest - diffPerSet;
-            
-            const btnRest = document.getElementById('btn-calc-rest');
-            if (newRest < 5) {
-                btnRest.style.opacity = 0.5; btnRest.disabled = true;
-                document.getElementById('desc-calc-rest').innerText = `Niet mogelijk (Rust wordt ${newRest}s)`;
-            } else {
-                btnRest.style.opacity = 1; btnRest.disabled = false;
-                document.getElementById('desc-calc-rest').innerText = `Rust: ${currentRest}s -> ${newRest}s`;
-            }
+            const currentRest = parseInt(document.getElementById('restSec').value); const newRest = currentRest - diffPerSet; const btnRest = document.getElementById('btn-calc-rest');
+            if (newRest < 5) { btnRest.style.opacity = 0.5; btnRest.disabled = true; document.getElementById('desc-calc-rest').innerText = `Niet mogelijk (Rust wordt ${newRest}s)`; } 
+            else { btnRest.style.opacity = 1; btnRest.disabled = false; document.getElementById('desc-calc-rest').innerText = `Rust: ${currentRest}s -> ${newRest}s`; }
         }
         
         function applyCalc(type) {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-            
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; const diffPerSet = targetW - currentW;
             if (type === 'rest') {
-                const currentRest = parseInt(document.getElementById('restSec').value);
-                const newVal = currentRest - diffPerSet;
-                const sel = document.getElementById('restSec');
-                let exists = false;
-                for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
-                if(!exists) {
-                    const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s";
-                    sel.appendChild(opt); 
-                    sel.value = newVal; 
-                } else {
-                    sel.value = newVal;
-                }
-                
-                calculateRealTime();
-                saveToLocal();
+                const currentRest = parseInt(document.getElementById('restSec').value); const newVal = currentRest - diffPerSet; const sel = document.getElementById('restSec');
+                let exists = false; for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
+                if(!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s"; sel.appendChild(opt); sel.value = newVal; } else { sel.value = newVal; }
+                calculateRealTime(); saveToLocal();
             } else {
-                // Adjust duration/endtime
-                // We need to find how many minutes to add to totalMin
                 const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
                 const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
                 let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
-                
-                const totalAddSec = diffPerSet * countSets;
-                const addMin = Math.ceil(totalAddSec / 60);
-                
-                // Update end time value
-                const el = document.getElementById('endTimeValue');
-                const [h,m] = el.value.split(':');
-                const d = new Date(); d.setHours(h,m,0,0);
-                d.setMinutes(d.getMinutes() + addMin);
-                el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-                
-                // Sync dropdown
-                syncTime('endtime');
-                
-                calculateRealTime();
-                saveToLocal();
+                const totalAddSec = diffPerSet * countSets; const addMin = Math.ceil(totalAddSec / 60);
+                const el = document.getElementById('endTimeValue'); const [h,m] = el.value.split(':'); const d = new Date(); d.setHours(h,m,0,0);
+                d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+                syncTime('endtime'); calculateRealTime(); saveToLocal();
             }
             closeCalcModal();
         }
@@ -1430,36 +1265,22 @@
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
             schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
-            for (let r = 1; r <= rounds; r++) {
-                for (let e = 1; e <= ex; e++) {
-                    for (let s = 1; s <= sts; s++) {
-                        currentSetGlobal++;
-                        let include = true;
-                        if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
-                        if(include) {
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
-                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                            if (!isLastSetOfWorkout) {
-                                let restLabel = "RUST";
-                                let infoText = "";
-                                if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
-                                else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
-                                else { infoText = "Even ontspannen"; }
-
-                                let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
-                                
-                                schedule.push({ 
-                                    type: type, 
-                                    time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), 
-                                    initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), 
-                                    label: restLabel, 
-                                    info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } 
-                                });
-                            }
-                        }
+            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                currentSetGlobal++; let include = true;
+                if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
+                if(include) {
+                    schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
+                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
+                    if (!isLastSetOfWorkout) {
+                        let restLabel = "RUST"; let infoText = "";
+                        if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
+                        else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
+                        else { infoText = "Even ontspannen"; }
+                        let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
+                        schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
                     }
                 }
-            }
+            }}}
             if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
         }
 
@@ -1471,10 +1292,7 @@
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
                 const div = document.createElement('div'); div.className = `schedule-item`;
                 let icon = ""; if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; } else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; } else if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else icon='🚀';
-                
-                let desc = item.label;
-                if(item.info && item.info.round) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
-                
+                let desc = item.label; if(item.info && item.info.round) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
                 div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
                 list.appendChild(div);
             });
@@ -1484,44 +1302,20 @@
             if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; } 
             if (!window.speechSynthesis) return;
             if(key === 'manual_override') { const utterance = new SpeechSynthesisUtterance(fallbackText); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance); return; }
-            
             let setting = speechSettings[key]; if (!setting && key === 'tick') setting = speechSettings.prep_countdown; 
             if (!setting || !setting.enabled) return;
-
             let textToSpeak = fallbackText;
-            
             if (setting.text && setting.text.trim() !== "") {
                 const rawText = setting.text;
-                
                 if (!speechPlaylists[key] || speechPlaylists[key].originalText !== rawText) {
                     let phrases = rawText.split('|').map(s => s.trim()).filter(s => s !== "");
-                    for (let i = phrases.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [phrases[i], phrases[j]] = [phrases[j], phrases[i]];
-                    }
-                    speechPlaylists[key] = {
-                        phrases: phrases,
-                        index: 0,
-                        originalText: rawText
-                    };
+                    for (let i = phrases.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [phrases[i], phrases[j]] = [phrases[j], phrases[i]]; }
+                    speechPlaylists[key] = { phrases: phrases, index: 0, originalText: rawText };
                 }
-
-                let pl = speechPlaylists[key];
-                if (pl.phrases.length > 0) {
-                    textToSpeak = pl.phrases[pl.index];
-                    pl.index++;
-                    if (pl.index >= pl.phrases.length) {
-                        pl.index = 0; 
-                    }
-                }
+                let pl = speechPlaylists[key]; if (pl.phrases.length > 0) { textToSpeak = pl.phrases[pl.index]; pl.index++; if (pl.index >= pl.phrases.length) pl.index = 0; }
             }
-
             if (extraInfo) textToSpeak += ". " + extraInfo;
-
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.lang = 'nl-NL';
-            window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance);
         }
 
         function playBeep(f,t){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.frequency.value=f;o.type='sine'; const n=audioCtx.currentTime; if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);} else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);} else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);} }
@@ -1531,65 +1325,39 @@
             if(audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 
             generateScheduleData(true);
-            
-            // POPULATE DROPDOWNS
             populateJumpMenus();
 
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('timer-screen').style.display = 'flex';
 
             workoutStartTime = new Date();
-            // We use the already populated End Time Value as the absolute target
             const [h, m] = document.getElementById('endTimeValue').value.split(':');
             targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
             if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
 
             updateEndTimeDisplay();
             currentIndex = 0;
-            
             speechPlaylists = {}; 
-
             stepEndTime = Date.now() + (schedule[0].time * 1000);
             runStep();
         }
         
         function populateJumpMenus() {
-            const rounds = parseInt(document.getElementById('rounds').value);
-            const ex = parseInt(document.getElementById('exercises').value);
-            const sets = parseInt(document.getElementById('sets').value);
-            
-            const rSel = document.getElementById('jump-round');
-            const eSel = document.getElementById('jump-exercise');
-            const sSel = document.getElementById('jump-set');
-            
+            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sets = parseInt(document.getElementById('sets').value);
+            const rSel = document.getElementById('jump-round'); const eSel = document.getElementById('jump-exercise'); const sSel = document.getElementById('jump-set');
             rSel.innerHTML = ""; eSel.innerHTML = ""; sSel.innerHTML = "";
-            
-            for(let i=1; i<=rounds; i++) {
-                const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt);
-            }
-            for(let i=1; i<=ex; i++) {
-                const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt);
-            }
-            for(let i=1; i<=sets; i++) {
-                const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt);
-            }
+            for(let i=1; i<=rounds; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt); }
+            for(let i=1; i<=ex; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt); }
+            for(let i=1; i<=sets; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt); }
         }
         
         function handleJump() {
-            const r = parseInt(document.getElementById('jump-round').value);
-            const e = parseInt(document.getElementById('jump-exercise').value);
-            const s = parseInt(document.getElementById('jump-set').value);
-            
-            // Find first Work step that matches this criteria
-            const newIndex = schedule.findIndex(step => {
-                return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s;
-            });
-            
+            const r = parseInt(document.getElementById('jump-round').value); const e = parseInt(document.getElementById('jump-exercise').value); const s = parseInt(document.getElementById('jump-set').value);
+            const newIndex = schedule.findIndex(step => { return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s; });
             if(newIndex > -1) {
                 currentIndex = newIndex;
                 triggerAudio('manual_override', "Springen naar ronde " + r);
-                // Reset step logic
-                stepEndTime = Date.now(); // Will be reset in runStep mostly, but prevents negative loop
+                stepEndTime = Date.now(); 
                 runStep();
                 recalculateForFixedEnd();
             }
@@ -1602,48 +1370,25 @@
             const totalRounds = parseInt(document.getElementById('rounds').value);
             const totalEx = document.getElementById('exercises').value;
 
-            // --- GYM MODE VISUAL UPDATE ---
-            const body = document.body;
-            body.className = ''; // reset classes
+            const body = document.body; body.className = ''; 
+            const titleEl = document.getElementById('gym-phase-title'); const nextEl = document.getElementById('gym-next-info');
             
-            const titleEl = document.getElementById('gym-phase-title');
-            const nextEl = document.getElementById('gym-next-info');
-            
-            // UPDATE STATS & DROPDOWNS
             if(step.info && step.info.maxRounds) {
                 document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
                 document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
                 document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
-                
-                // Sync Dropdowns without triggering change event
-                document.getElementById('jump-round').value = step.info.round;
-                document.getElementById('jump-exercise').value = step.info.exercise;
-                document.getElementById('jump-set').value = step.info.set;
-                
+                document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
                 document.getElementById('gym-stats-container').style.opacity = 1;
-            } else {
-                // hide stats if not relevant (e.g. finish)
-                 document.getElementById('gym-stats-container').style.opacity = 0.5;
-            }
+            } else { document.getElementById('gym-stats-container').style.opacity = 0.5; }
 
-            // Text Updates
             titleEl.innerText = step.label;
-            
-            // **HUGE TEXT LOGIC**
-            // Reset classes
             titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST') {
-                titleEl.classList.add('huge-text');
-            }
+            if (step.label === 'WERKEN' || step.label === 'RUST') { titleEl.classList.add('huge-text'); }
             
             let nextText = "Hierna: Klaar";
-            if(nextStep) {
-                 nextText = "Hierna: " + nextStep.label;
-                 if(nextStep.type === 'work' && nextStep.info) nextText += ` (Oef ${nextStep.info.exercise})`;
-            }
+            if(nextStep) { nextText = "Hierna: " + nextStep.label; if(nextStep.type === 'work' && nextStep.info) nextText += ` (Oef ${nextStep.info.exercise})`; }
             nextEl.innerText = nextText;
 
-            // Color & Audio Updates
             if (step.type==='work') { 
                 body.classList.add('mode-work');
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
@@ -1654,20 +1399,17 @@
             }
             else if (step.type==='rest') { 
                 body.classList.add('mode-rest');
-                let info = "";
-                if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random()*tips.length)]; }
+                let info = ""; if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random()*tips.length)]; }
                 triggerAudio('rest_set_start', "Rust", info);
             }
             else if (step.type==='rest-exercise') {
                 body.classList.add('mode-switch');
-                let info = "";
-                if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
+                let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
                 triggerAudio('rest_switch_start', "Wissel", info);
             }
             else if (step.type==='rest-long') { 
                 body.classList.add('mode-long');
-                let info = "";
-                if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
+                let info = ""; if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
                 triggerAudio('rest_round_start', "Grote pauze", info);
             }
             else if (step.type==='prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
@@ -1685,8 +1427,7 @@
                     
                     if (remainingSec < 0) {
                         while (remainingSec < 0) {
-                            currentIndex++;
-                            if(currentIndex >= schedule.length) { finish(); return; }
+                            currentIndex++; if(currentIndex >= schedule.length) { finish(); return; }
                             const skippedStep = schedule[currentIndex];
                             stepEndTime += (skippedStep.time * 1000); 
                             remainingSec = Math.ceil((stepEndTime - Date.now()) / 1000);
@@ -1698,15 +1439,11 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
-                    // Update Time Left Calculation
                     const totalDiff = targetEndTimeDate - now;
                     if(totalDiff > 0) {
-                        const m = Math.floor(totalDiff / 60000);
-                        const s = Math.floor((totalDiff % 60000) / 1000);
+                        const m = Math.floor(totalDiff / 60000); const s = Math.floor((totalDiff % 60000) / 1000);
                         document.getElementById('val-remaining').innerText = `${m}m ${s}s`;
-                    } else { 
-                        document.getElementById('val-remaining').innerText = "0m 0s"; 
-                    }
+                    } else { document.getElementById('val-remaining').innerText = "0m 0s"; }
 
                     const init = step.initialTime;
                     if (step.type === 'work') {
@@ -1721,59 +1458,37 @@
                     if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
                     else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
                 } else {
-                    stepEndTime += 1000; 
-                    targetEndTimeDate = new Date(targetEndTimeDate.getTime() + 1000); 
-                    updateEndTimeDisplay();
+                    // Do nothing while paused, we track total paused time via timestamps now
                 }
             }, 1000);
         }
 
-        // --- NEW LIVE EDIT LOGIC ---
         function triggerEndTimeEdit() {
-            // Populate hidden input with current target time
             const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const input = document.getElementById('hidden-endtime-input');
-            input.value = timeStr;
-            
-            // Try to open native picker
-            if ('showPicker' in HTMLInputElement.prototype) {
-                try { input.showPicker(); } catch(e) { input.click(); }
-            } else {
-                input.click();
-            }
+            const input = document.getElementById('hidden-endtime-input'); input.value = timeStr;
+            if ('showPicker' in HTMLInputElement.prototype) { try { input.showPicker(); } catch(e) { input.click(); } } else { input.click(); }
         }
 
         function handleNewEndTime(newVal) {
             if(!newVal) return;
-            const [h, m] = newVal.split(':');
-            const newDate = new Date();
-            newDate.setHours(h, m, 0, 0);
-            
+            const [h, m] = newVal.split(':'); const newDate = new Date(); newDate.setHours(h, m, 0, 0);
             const now = new Date();
-            if (newDate < now) {
-                 if (newDate.getTime() < now.getTime() - 12*3600*1000) {
-                     newDate.setDate(newDate.getDate() + 1);
-                 }
-            }
+            if (newDate < now) { if (newDate.getTime() < now.getTime() - 12*3600*1000) { newDate.setDate(newDate.getDate() + 1); } }
 
             targetEndTimeDate = newDate;
-            updateEndTimeDisplay();
-            recalculateForFixedEnd();
-            
+            updateEndTimeDisplay(); recalculateForFixedEnd();
             triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
         }
 
         function recalculateForFixedEnd() {
             const now = new Date();
             const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            
             let workStepsLeft = 0; let fixedRest = 0;
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
                 else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
             }
-
             if (workStepsLeft > 0) {
                 const availableForWork = secsRemaining - fixedRest;
                 let newWork = Math.floor(availableForWork / workStepsLeft);
@@ -1783,12 +1498,8 @@
                 const oldWorkVal = schedule[currentIndex].initialTime; 
 
                 for(let i=currentIndex; i<schedule.length; i++){
-                    if (schedule[i].type==='work') {
-                         schedule[i].time = newWork;
-                         schedule[i].initialTime = newWork; 
-                    }
+                    if (schedule[i].type==='work') { schedule[i].time = newWork; schedule[i].initialTime = newWork; }
                 }
-                
                 if(currentIsWork) {
                     const diff = newWork - oldWorkVal;
                     stepEndTime += (diff * 1000);
@@ -1797,66 +1508,165 @@
             }
         }
 
-        function skipStep(dir) {
-            let newIndex = currentIndex + dir;
-            if (newIndex < 0) newIndex = 0;
-            if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
-            currentIndex = newIndex;
-            runStep(); 
-        }
-
         function handlePauseClick() {
             const btn = document.getElementById('btn-pause');
             if (!isPaused) {
                 isPaused = true;
+                pauseStartTime = Date.now();
                 btn.innerText = "▶️"; // Show Play icon to resume
-                btn.classList.add('paused'); // Use class instead of direct style
+                btn.classList.add('paused');
                 
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
+                 previewPauseOptions(); // Calculate BEFORE showing modal
                  document.getElementById('pause-modal').style.display = 'flex';
             }
+        }
+
+        // --- NEW PAUSE RESOLUTION LOGIC ---
+        function previewPauseOptions() {
+            const now = Date.now();
+            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
+            document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
+            
+            // 1. Push Endtime (Always possible)
+            const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
+            const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+            const newEndStr = newEndDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+            const extraMin = Math.ceil(currentPauseDuration / 60);
+            document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
+            
+            // 2. Catch up Work
+            const workSteps = countRemainingSteps('work');
+            const btnWork = document.getElementById('btn-catch-work');
+            if (workSteps > 0) {
+                const deduction = Math.ceil(currentPauseDuration / workSteps);
+                const currentWork = getFirstStepTime('work');
+                const newWork = currentWork - deduction;
+                if (newWork >= 5) {
+                    btnWork.disabled = false; btnWork.style.opacity = 1;
+                    document.getElementById('btn-text-work').innerText = `Werk: ${currentWork}s -> ${newWork}s`;
+                } else {
+                    btnWork.disabled = true; btnWork.style.opacity = 0.5;
+                    document.getElementById('btn-text-work').innerText = `Niet mogelijk (Werk wordt < 5s)`;
+                }
+            } else {
+                 btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
+            }
+            
+            // 3. Catch up Rest (Set)
+            updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
+            // 4. Catch up Switch
+            updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
+            // 5. Catch up Round
+            updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
+        }
+        
+        function updateCatchUpButton(type, btnId, textId, label) {
+            const steps = countRemainingSteps(type);
+            const btn = document.getElementById(btnId);
+            if (steps > 0) {
+                const deduction = Math.ceil(currentPauseDuration / steps);
+                const currentVal = getFirstStepTime(type);
+                const newVal = currentVal - deduction;
+                if (newVal >= 5) {
+                    btn.disabled = false; btn.style.opacity = 1;
+                    document.getElementById(textId).innerText = `${label}: ${currentVal}s -> ${newVal}s`;
+                } else {
+                    btn.disabled = true; btn.style.opacity = 0.5;
+                    document.getElementById(textId).innerText = `Niet mogelijk (${label} < 5s)`;
+                }
+            } else {
+                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
+            }
+        }
+        
+        function countRemainingSteps(type) {
+            let count = 0;
+            for(let i=currentIndex; i<schedule.length; i++) { if (schedule[i].type === type) count++; }
+            return count;
+        }
+        
+        function getFirstStepTime(type) {
+            for(let i=currentIndex; i<schedule.length; i++) { if (schedule[i].type === type) return schedule[i].time; }
+            return 0;
         }
 
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; 
-            btn.classList.remove('paused'); // Remove class
-            
+            btn.innerText = "⏸"; btn.classList.remove('paused');
             isPaused = false;
             
             document.body.classList.remove('mode-pause');
+            
+            // Apply Logic
+            if (choice === 'push') {
+                targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
+                updateEndTimeDisplay();
+                // Move step end time forward by pause duration so the countdown continues correctly
+                stepEndTime += (currentPauseDuration * 1000); 
+            } else {
+                // We are catching up, so targetEndTime stays same, but we reduce durations
+                // First, fix current step timer. The pause didn't happen in "simulation time", so stepEndTime simply extends by pause duration
+                // BUT we want to finish at original time.
+                // We reduce durations.
+                
+                // First shift stepEndTime to account for the pause delay, effectively resuming where we left off
+                stepEndTime += (currentPauseDuration * 1000); 
+                
+                // Now Reduce
+                let typeToReduce = '';
+                if(choice === 'work') typeToReduce = 'work';
+                else if(choice === 'rest') typeToReduce = 'rest';
+                else if(choice === 'switch') typeToReduce = 'rest-exercise';
+                else if(choice === 'round') typeToReduce = 'rest-long';
+                
+                const steps = countRemainingSteps(typeToReduce);
+                const deduction = Math.ceil(currentPauseDuration / steps);
+                
+                // Apply deduction
+                let currentStepReduced = false;
+                for(let i=currentIndex; i<schedule.length; i++) { 
+                    if (schedule[i].type === typeToReduce) {
+                        schedule[i].time = Math.max(5, schedule[i].time - deduction);
+                        schedule[i].initialTime = schedule[i].time;
+                        if(i === currentIndex) currentStepReduced = true;
+                    }
+                }
+                
+                if(currentStepReduced) {
+                    // If we reduced current step, pull back stepEndTime
+                    stepEndTime -= (deduction * 1000);
+                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
+                }
+            }
+            
+            // UI Restore
             const step = schedule[currentIndex];
-             if (step.type==='work') document.body.classList.add('mode-work');
-             else if (step.type==='rest') document.body.classList.add('mode-rest');
-             else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
-             else if (step.type==='rest-long') document.body.classList.add('mode-long');
+            if (step.type==='work') document.body.classList.add('mode-work');
+            else if (step.type==='rest') document.body.classList.add('mode-rest');
+            else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
+            else if (step.type==='rest-long') document.body.classList.add('mode-long');
 
             triggerAudio('manual_override', "We gaan weer door");
-            if (choice === 'recalc') recalculateForFixedEnd();
             document.getElementById('gym-phase-title').innerText = step.label;
             
-            // Re-apply huge text class if needed
              const titleEl = document.getElementById('gym-phase-title');
              titleEl.className = 'gym-phase-title';
-             if (step.label === 'WERKEN' || step.label === 'RUST') {
-                titleEl.classList.add('huge-text');
-            }
+             if (step.label === 'WERKEN' || step.label === 'RUST') { titleEl.classList.add('huge-text'); }
         }
 
         function updateEndTimeDisplay() { 
             const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             document.getElementById('val-endtime').innerText = timeStr;
-            // Sync the invisible input
             document.getElementById('live-endtime-input').value = timeStr;
         }
         
         function updateProgressBar() {
-            const now = new Date();
-            const totalMs = targetEndTimeDate - workoutStartTime; 
+            const now = new Date(); const totalMs = targetEndTimeDate - workoutStartTime; 
             if (totalMs <= 0) return;
             const elapsed = now - workoutStartTime;
             let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100; if(pct<0) pct=0;
@@ -1867,7 +1677,7 @@
         function finish() {
             document.body.className = 'mode-finish';
             document.getElementById('gym-phase-title').innerText = "KLAAR!";
-             document.getElementById('gym-phase-title').classList.remove('huge-text'); // Remove huge text for finish
+            document.getElementById('gym-phase-title').classList.remove('huge-text');
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('gym-stats-container').style.display='none';
             document.getElementById('btn-pause').style.display='none';
@@ -1877,11 +1687,7 @@
         
         function resetApp() { clearInterval(timerInterval); location.reload(); }
         
-        function confirmStop() {
-            if(confirm("Weet je zeker dat je de training wilt stoppen?")) {
-                resetApp();
-            }
-        }
+        function confirmStop() { if(confirm("Weet je zeker dat je de training wilt stoppen?")) { resetApp(); } }
     </script>
 </body>
 </html>
