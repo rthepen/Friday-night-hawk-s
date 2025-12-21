@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.28 (Reverse Calc)</title>
+    <title>Friday-night-hawk-s Timer v7.29 (Quick Time)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -178,6 +178,30 @@
             color: #666; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
         }
         .toggle-btn.active { background: #333; color: #fff; }
+
+        /* --- QUICK TIME BUTTONS --- */
+        .quick-time-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .btn-minute {
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            color: #ccc;
+            padding: 8px 0;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .btn-minute:active {
+            background: #30D158;
+            color: black;
+            border-color: #30D158;
+        }
 
         /* --- SPEECH SETTINGS --- */
         .speech-options, .resume-options {
@@ -480,7 +504,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.28</span>
+                FNH Timer <span class="version-tag">v7.29</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -496,9 +520,24 @@
             <button class="toggle-btn" id="btn-mode-duration" onclick="setMode('duration')">Tijdsduur</button>
         </div>
 
-        <div id="input-endtime" style="margin-bottom: 10px;">
+        <div id="input-endtime" style="margin-bottom: 5px;">
             <label>Klaar om (HH:MM)</label>
             <input type="time" id="endTimeValue">
+        </div>
+        
+        <div id="quick-minute-buttons" class="quick-time-grid">
+            <button class="btn-minute" onclick="setQuickEndTime(0)">:00</button>
+            <button class="btn-minute" onclick="setQuickEndTime(5)">:05</button>
+            <button class="btn-minute" onclick="setQuickEndTime(10)">:10</button>
+            <button class="btn-minute" onclick="setQuickEndTime(15)">:15</button>
+            <button class="btn-minute" onclick="setQuickEndTime(20)">:20</button>
+            <button class="btn-minute" onclick="setQuickEndTime(25)">:25</button>
+            <button class="btn-minute" onclick="setQuickEndTime(30)">:30</button>
+            <button class="btn-minute" onclick="setQuickEndTime(35)">:35</button>
+            <button class="btn-minute" onclick="setQuickEndTime(40)">:40</button>
+            <button class="btn-minute" onclick="setQuickEndTime(45)">:45</button>
+            <button class="btn-minute" onclick="setQuickEndTime(50)">:50</button>
+            <button class="btn-minute" onclick="setQuickEndTime(55)">:55</button>
         </div>
 
         <div class="hidden" id="input-duration">
@@ -1289,6 +1328,26 @@
                 }
             }
             closeCalcModal();
+        }
+
+        // --- QUICK TIME LOGIC ---
+        function setQuickEndTime(minute) {
+            const now = new Date();
+            let target = new Date(now);
+            target.setMinutes(minute);
+            target.setSeconds(0);
+            target.setMilliseconds(0);
+
+            // If target time is in the past, move to next hour
+            if (target <= now) {
+                target.setHours(target.getHours() + 1);
+            }
+
+            const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('endTimeValue').value = timeStr;
+            
+            calculateRealTime();
+            saveToLocal();
         }
 
         function generateScheduleData(applyResumeFilter) {
