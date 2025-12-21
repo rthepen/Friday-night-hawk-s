@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.16</title>
+    <title>Friday-night-hawk-s Timer v7.17</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -293,10 +293,15 @@
         .status-text { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 5px;}
         .controls-row { display: flex; justify-content: space-between; height: 55px; margin-top: 10px; }
 
-        /* --- MODAL --- */
-        #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+        /* --- MODAL (Shared styles for pause & AI) --- */
+        #pause-modal, #ai-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        
+        /* AI Modal Specifics */
+        .ai-link-row { margin-top: 15px; display: flex; justify-content: space-around; }
+        .ai-link-btn { background: #333; border: 1px solid #555; color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold; }
+        .ai-textarea { width: 100%; height: 80px; background: #2c2c2e; border: 1px solid #555; color: white; border-radius: 8px; padding: 10px; margin-top: 10px; font-family: inherit; font-size: 14px; }
 
         .hidden { display: none !important; }
     </style>
@@ -311,11 +316,11 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.16</span>
+                FNH Timer <span class="version-tag">v7.17</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
-                <button class="btn-header btn-ai" onclick="generateAIPrompt()">✨ AI</button>
+                <button class="btn-header btn-ai" onclick="openAIModal()">✨ AI</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
                 <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
             </div>
@@ -516,13 +521,30 @@
         </div>
     </div>
 
+    <div id="ai-modal">
+        <div class="modal-content">
+            <h3 style="color:#AF52DE; margin-top:0;">✨ AI Coach Generator</h3>
+            <p style="font-size:14px; color:#ccc;">Omschrijf je ideale coach en karakter (optioneel):</p>
+            <textarea id="ai-user-input" class="ai-textarea" placeholder="Bijv: Een boze kerstman die haast heeft..."></textarea>
+            
+            <button class="modal-btn" style="background: #AF52DE; color: white; margin-top:15px;" id="btn-copy-prompt" onclick="copyCustomPrompt()">Genereer & Kopieer Prompt</button>
+            
+            <div class="ai-link-row">
+                <a href="https://gemini.google.com/app" target="_blank" class="ai-link-btn">Open Gemini</a>
+                <a href="https://chat.openai.com" target="_blank" class="ai-link-btn">Open ChatGPT</a>
+            </div>
+
+            <button class="modal-btn" style="background: #333; color: #ccc; margin-top:20px; padding:10px;" onclick="closeAIModal()">Sluiten</button>
+        </div>
+    </div>
+
     <script>
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.11) ---
+        // --- COACH PRESETS DEFINITIONS (v7.11: ALL PREFIXED) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -687,14 +709,24 @@
             }
         }
 
-        // --- AI PROMPT GENERATION (UPDATED v7.16) ---
-        function generateAIPrompt() {
+        // --- NEW: AI MODAL LOGIC (v7.17) ---
+        function openAIModal() {
+            document.getElementById('ai-modal').style.display = 'flex';
+        }
+
+        function closeAIModal() {
+            document.getElementById('ai-modal').style.display = 'none';
+        }
+
+        function copyCustomPrompt() {
+            const userInput = document.getElementById('ai-user-input').value;
             const baseUrl = window.location.href.split('?')[0]; 
             const exampleUrl = "https://rthepen.github.io/Friday-night-hawk-s/?r=2&e=6&s=2&rs=20&re=35&rr=90&tm=30&prep_intro=Aantreden%21+Ik+wil+zweet+zien+vandaag%21+%7C+Peloton...+AANDACHT%21+%7C+Geef+acht%21+We+gaan+beginnen%21+%7C+Geen+genade+vandaag%21+%7C+Rechtop+staan%21&work_start=Start%21+Voorwaarts...+MARS%21+%7C+Start%21+In+looppas...+MARS%21+%7C+Start%21+Aanvallen%21+%7C+Start%21+Geen+gevangenen+maken%21+%7C+Start%21+Bewegen%21+Nu%21+%7C+Start%21+Geen+smoesjes%2C+werken%21+%7C+Start%21+Pijn+is+fijn%2C+start%21+%7C+Start%21+Tempo+maken%21+Go%21+%7C+Start%21+Gas+erop%2C+nu%21&work_halfway=Halverwege%21+Niet+verslappen%21+%7C+Halverwege%21+Doorgaan%21+%7C+Halverwege%21+Ik+wil+zweet+zien%21+%7C+Halverwege%21+Is+dat+alles+wat+je+hebt%3F+%7C+Halverwege%21+Kom+op%2C+sneller%21+%7C+Halverwege%21+Niet+janken%2C+doorwerken%21+%7C+Halverwege%21+Wisselen+en+door%21&work_30s=Nog+30+seconden%21+Tempo%21+%7C+Nog+30+seconden%21+Versnel%21&work_10s=Nog+10+seconden%21+Alles+geven%21+%7C+Nog+10+seconden%21+Niet+stoppen+nu%21+%7C+Nog+10+seconden%21+Doorgaan+tot+het+gaatje%21+%7C+Nog+10+seconden%21+Pijn+is+tijdelijk%21&rest_set_start=Rust%21+Op+de+plaats...+RUST%21+%7C+Rust%21+Geef...+ACHT%21+%7C+Rust%21+Herstel%21+En+sta+rechtop%21+%7C+Rust%21+Stop%21+Blijf+in+beweging%21+%7C+Rust%21+Niet+gaan+liggen%21+%7C+Rust%21+Staande+houden%21&rest_switch_start=Wissel%21+Peloton...+verplaatsen%21+%7C+Wissel%21+Marcheer+naar+de+volgende%21+%7C+Wissel%21+Opschieten%2C+doorlopen%21+%7C+Wissel%21+Volgende+oefening%2C+nu%21+%7C+Wissel%21+Geen+tijd+te+verliezen%21&rest_switch_10s=Nog+10+seconden%21+Opschieten%21+%7C+Nog+10+seconden%21+Sta+klaar%21+%7C+Nog+10+seconden%21+In+positie%21&rest_round_start=Grote+pauze%21+Drinken+en+bek+houden%21+%7C+Grote+pauze%21+Even+bijkomen+en+dan+weer+knallen%21&rest_round_15s=Nog+15+seconden%21+Terug+op+je+post%21+%7C+Nog+15+seconden%21+Aantreden%21+%7C+Nog+15+seconden%21+Klaarstaan+soldaten%21&mile_start=Begin+is+er%2C+maar+we+zijn+er+nog+lang+niet%21+%7C+Niet+verslappen+nu%21&mile_half=Helft+erop%21+Is+dat+alles+wat+je+hebt%3F+%7C+We+zijn+pas+op+de+helft%21+%7C+Tandje+erbij%21&mile_end=Eindsprint%21+Pijn+is+fijn%21+%7C+Alles+eruit+persen+nu%21+%7C+Ik+wil+dat+je+kruipend+naar+huis+gaat%21&mile_lastround=Laatste+ronde%21+Slopen+die+hap%21+%7C+Maak+me+trots%2C+laatste+ronde%21&finish=Missie+volbracht.+Inrukken%21+%7C+Training+voltooid.+Douchen+en+wegwezen.";
 
             const prompt = `Fungeer als de 'FNH Coach Generator' (gebruik Gemini, ChatGPT of Claude).
 Jouw doel is om een URL te genereren die een unieke 'Coach Persoonlijkheid' instelt voor de timer-app.
-De gebruiker zal hieronder beschrijven wat voor soort coach hij wil.
+
+De gebruiker wil het volgende karakter: ${userInput}
 
 BELANGRIJK:
 1. Genereer DIRECT de volledige URL. Geen uitleg vooraf.
@@ -725,11 +757,17 @@ Beschikbare parameters (vul deze met creatieve teksten):
 - finish (Einde training)
 - prep_intro (Introductie tekst)
 
-Mijn gewenste coach-stijl volgt hierna:`;
+Alles is optioneel. Maak er wat moois van!`;
 
             navigator.clipboard.writeText(prompt).then(() => {
-                window.open('https://gemini.google.com/app', '_blank');
-                alert("🤖 AI Prompt gekopieerd!\n\n1. Gemini is geopend in een nieuw tabblad.\n2. Plak de tekst (Ctrl+V).\n3. Typ eronder welk TYPE coach je wilt.\n4. Kopieer de link die Gemini maakt en gebruik die hier.");
+                const btn = document.getElementById('btn-copy-prompt');
+                const originalText = btn.innerText;
+                btn.innerText = "✅ Gekopieerd! Klik nu hieronder:";
+                btn.style.backgroundColor = "#30D158";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.backgroundColor = "#AF52DE";
+                }, 3000);
             });
         }
 
