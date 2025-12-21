@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.7</title>
+    <title>Friday-night-hawk-s Timer v8.8</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -290,6 +290,13 @@
         }
         .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
         
+        /* STRICT PAUSED STATE - NO WHITE BG */
+        .btn-control.paused { 
+            /* background-color: white !important;  <-- REMOVED WHITE BG */
+            /* color: black !important;             <-- REMOVED BLACK COLOR */
+            border-color: rgba(255,255,255,0.5) !important;
+        }
+        
         .btn-stop { color: #FF453A; /* Red icon for stop */ }
 
         .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
@@ -492,11 +499,10 @@
 
         /* --- MODALS --- */
         #pause-modal, #calc-modal, #speech-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        /* INCREASED WIDTH AND MAX-WIDTH FOR SPEECH/CALC MODALS */
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
         
-        /* Specific style for speech modal to fill width */
-        #speech-edit-modal .modal-content { width: 98%; max-width: 98%; }
+        /* SPEECH MODAL FIX: Almost full screen */
+        #speech-edit-modal .modal-content { width: 98%; max-width: 98%; padding: 15px; }
 
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
@@ -504,10 +510,10 @@
         .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
         .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
         
-        /* SPEECH EDIT TEXTAREA */
+        /* SPEECH EDIT TEXTAREA - MAXIMIZED */
         #speech-edit-area {
             width: 100%; 
-            min-height: 300px; /* VEEL GROTER */
+            min-height: 350px; /* Huge height */
             background: #222; border: 1px solid #555; color: white;
             font-size: 16px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
             font-family: inherit;
@@ -543,7 +549,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.7</span>
+                FNH Timer <span class="version-tag">v8.8</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -848,25 +854,25 @@
                 finish: { enabled: true, text: "Klaar." }
             },
             sergeant: {
-                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Peloton... AANDACHT! | Geef acht! We gaan beginnen! | Geen genade vandaag! | Rechtop staan!" },
+                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Peloton... AANDACHT! | Geef acht! We gaan beginnen! | Geen genade vandaag! | Rechtop staan, borst vooruit! | Jullie zijn hier om te lijden! | Klaarmaken voor de hel! | Ik wil inzet zien, geen excuses! | Vandaag scheiden we de mannen van de jongens! | Stilte in de gelederen! Focus!" },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Start! Voorwaarts... MARS! | Start! In looppas... MARS! | Start! Aanvallen! | Start! Geen gevangenen maken! | Start! Bewegen! Nu! | Start! Geen smoesjes, werken! | Start! Pijn is fijn, start! | Start! Tempo maken! Go! | Start! Gas erop, nu!" },
-                work_halfway: { enabled: true, text: "Halverwege! Niet verslappen! | Halverwege! Doorgaan! | Halverwege! Ik wil zweet zien! | Halverwege! Is dat alles wat je hebt? | Halverwege! Kom op, sneller! | Halverwege! Niet janken, doorwerken! | Halverwege! Wisselen en door!" },
-                work_30s: { enabled: true, text: "Nog 30 seconden! Tempo! | Nog 30 seconden! Versnel!" },
-                work_10s: { enabled: true, text: "Nog 10 seconden! Alles geven! | Nog 10 seconden! Niet stoppen nu! | Nog 10 seconden! Doorgaan tot het gaatje! | Nog 10 seconden! Pijn is tijdelijk!" },
-                rest_set_start: { enabled: true, text: "Rust! Op de plaats... RUST! | Rust! Geef... ACHT! | Rust! Herstel! En sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden!" },
+                work_start: { enabled: true, text: "Start! Voorwaarts... MARS! | Start! In looppas... MARS! | Start! Aanvallen! | Start! Geen gevangenen maken! | Start! Bewegen! Nu! | Start! Geen smoesjes, werken! | Start! Pijn is fijn, start! | Start! Tempo maken! Go! | Start! Gas erop, nu! | Start! Bewegen tot je erbij neervalt! | Start! Ik wil dat je kruipt van de pijn! | Start! Laat die spieren branden! | Start! Niet nadenken, doen!" },
+                work_halfway: { enabled: true, text: "Halverwege! Niet verslappen! | Halverwege! Doorgaan! | Halverwege! Ik wil zweet zien! | Halverwege! Is dat alles wat je hebt? | Halverwege! Kom op, sneller! | Halverwege! Niet janken, doorwerken! | Halverwege! Wisselen en door! | Pijn is een emotie, die kun je uitschakelen! | Zweet is huilend vet! | Mijn oma kan dit sneller! | Niet stoppen! Pijn is zwakte die het lichaam verlaat!" },
+                work_30s: { enabled: true, text: "Nog 30 seconden! Tempo! | Nog 30 seconden! Versnel! | Nog 30 seconden! Niet inzakken nu! | Nog 30 seconden! Tandje erbij! | Nog 30 seconden! Pijn is tijdelijk! | Nog 30 seconden! Geen genade! | Nog 30 seconden! Alles geven! | Nog 30 seconden! Doorgaan! | Nog 30 seconden! Niet stoppen! | Nog 30 seconden! Branden!" },
+                work_10s: { enabled: true, text: "Nog 10 seconden! Alles geven! | Nog 10 seconden! Niet stoppen nu! | Nog 10 seconden! Doorgaan tot het gaatje! | Nog 10 seconden! Pijn is tijdelijk! | Nog 10 seconden! Pers het eruit! | Nog 10 seconden! Laatste beetje energie! | Nog 10 seconden! Schreeuw het uit als het moet! | Nog 10 seconden! Niet opgeven! | Nog 10 seconden! Sterf staande! | Nog 10 seconden! Kom op!" },
+                rest_set_start: { enabled: true, text: "Rust! Op de plaats... RUST! | Rust! Geef... ACHT! | Rust! Herstel! En sta rechtop! | Rust! Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Rust! Staande houden! | Rust! Adem in, borst vooruit! | Rust! Herpak jezelf! | Rust! Drinken en bek houden! | Rust! Focus op de volgende ronde!" },
                 rest_set_tips: { enabled: false, text: "" },
-                rest_switch_start: { enabled: true, text: "Wissel! Peloton... verplaatsen! | Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen!" },
+                rest_switch_start: { enabled: true, text: "Wissel! Peloton... verplaatsen! | Wissel! Marcheer naar de volgende! | Wissel! Opschieten, doorlopen! | Wissel! Volgende oefening, nu! | Wissel! Geen tijd te verliezen! | Wissel! Rennen! | Wissel! Verplaatsen, dubbele pas! | Wissel! Niet wandelen! | Wissel! Hup, hup, hup! | Wissel! Naar je volgende post!" },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Sta klaar! | Nog 10 seconden! In positie!" },
-                rest_round_start: { enabled: true, text: "Grote pauze! Drinken en bek houden! | Grote pauze! Even bijkomen en dan weer knallen!" },
-                rest_round_15s: { enabled: true, text: "Nog 15 seconden! Terug op je post! | Nog 15 seconden! Aantreden! | Nog 15 seconden! Klaarstaan soldaten!" },
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden! Opschieten! | Nog 10 seconden! Sta klaar! | Nog 10 seconden! In positie! | Nog 10 seconden! Wachten op mijn teken! | Nog 10 seconden! Focus! | Nog 10 seconden! Klaarstaan! | Nog 10 seconden! Geen beweging meer! | Nog 10 seconden! Aandacht! | Nog 10 seconden! Ogen vooruit! | Nog 10 seconden!" },
+                rest_round_start: { enabled: true, text: "Grote pauze! Drinken en bek houden! | Grote pauze! Even bijkomen en dan weer knallen! | Grote pauze! Niet gaan zitten! | Grote pauze! Blijf alert! | Grote pauze! Herstel je ademhaling! | Grote pauze! Maak je klaar voor de volgende hel! | Grote pauze! Geen smoesjes! | Grote pauze! Water drinken, nu! | Grote pauze! Sta rechtop! | Grote pauze! Discipline!" },
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden! Terug op je post! | Nog 15 seconden! Aantreden! | Nog 15 seconden! Klaarstaan soldaten! | Nog 15 seconden! In positie! | Nog 15 seconden! Ogen op mij gericht! | Nog 15 seconden! Stop met drinken! | Nog 15 seconden! Focus! | Nog 15 seconden! Geen geluid meer! | Nog 15 seconden! Borst vooruit! | Nog 15 seconden! We gaan weer!" },
                 rest_round_info: { enabled: true, text: "" },
-                mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet! | Niet verslappen nu!" },
-                mile_half: { enabled: true, text: "Helft erop! Is dat alles wat je hebt? | We zijn pas op de helft! | Tandje erbij!" },
-                mile_end: { enabled: true, text: "Eindsprint! Pijn is fijn! | Alles eruit persen nu! | Ik wil dat je kruipend naar huis gaat!" },
-                mile_lastround: { enabled: true, text: "Laatste ronde! Slopen die hap! | Maak me trots, laatste ronde!" },
-                finish: { enabled: true, text: "Missie volbracht. Inrukken! | Training voltooid. Douchen en wegwezen." }
+                mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet! | Niet verslappen nu! | Dit is pas het begin! | Laat zien uit welk hout je gesneden bent! | Ik wil bloed, zweet en tranen zien! | Geen genade voor jezelf! | Aanvallen! | Doorzetten! | Discipline is vrijheid! | Pijn is fijn!" },
+                mile_half: { enabled: true, text: "Helft erop! Is dat alles wat je hebt? | We zijn pas op de helft! | Tandje erbij! | Niet janken, werken! | Als je nog kunt praten, train je niet hard genoeg! | Ik zie vermoeidheid, ik wil inzet zien! | Opgeven staat niet in mijn woordenboek! | Doorgaan tot je erbij neervalt! | Kom op, sneller! | Nog even en dan mag je kruipen!" },
+                mile_end: { enabled: true, text: "Eindsprint! Pijn is fijn! | Alles eruit persen nu! | Ik wil dat je kruipend naar huis gaat! | Laatste loodjes! | Geen medelijden! | Vecht tegen de vermoeidheid! | Je bent hier om te breken of te maken! | Laat zien wie de baas is! | Niet stoppen! | Tot het gaatje!" },
+                mile_lastround: { enabled: true, text: "Laatste ronde! Slopen die hap! | Maak me trots, laatste ronde! | Alles of niets! | Dit is de finale! | Geen reserves meer! | Leeg die tank! | Ik wil dat je sterft van de inspanning! | Laatste keer, make it count! | Eer je uniform! | Tot het einde!" },
+                finish: { enabled: true, text: "Missie volbracht. Inrukken! | Training voltooid. Douchen en wegwezen. | Goed gewerkt, soldaten. | Jullie hebben het overleefd. | Rust! | Einde oefening. | Trots op jullie inzet. | Volgende keer harder! | Geniet van de pijn morgen. | Ontspan." }
             },
             humor: {
                 prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen! | Zijn we er klaar voor? De bar is nog dicht! | Vergeet je handdoek niet, voor het zweet of de tranen." },
@@ -1229,12 +1235,7 @@
         
         function previewCalc() {
             const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; 
-            
-            // NOTE: We are calculating how to accommodate the New Work Time.
-            // If Target > Current, we need MORE time. To keep End Time fixed, we must REDUCE rests.
-            // If Target < Current, we have LESS work. We can INCREASE rests.
-            const diffPerSet = targetW - currentW; // Positive if we increased work
-            
+            const diffPerSet = targetW - currentW; 
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             let countSets = 0;
@@ -1243,40 +1244,29 @@
                 if (isFuture) countSets++;
             }}}
             
-            // Total Time Impact
             const totalDiffSec = diffPerSet * countSets; 
             const totalDiffMin = Math.round(totalDiffSec / 60); 
             let sign = totalDiffMin >= 0 ? "+" : "";
-            
             const currentEnd = document.getElementById('endTimeValue').value; const [h,m] = currentEnd.split(':'); const d = new Date(); d.setHours(h,m,0,0);
             d.setMinutes(d.getMinutes() + totalDiffMin);
             const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
             document.getElementById('desc-calc-duration').innerText = endText;
             
-            // Update Rest Buttons
             updateRestCalcButton('rest', 'btn-calc-rest', 'desc-calc-rest', totalDiffSec);
             updateRestCalcButton('exerciseRest', 'btn-calc-switch', 'desc-calc-switch', totalDiffSec);
             updateRestCalcButton('roundRest', 'btn-calc-round', 'desc-calc-round', totalDiffSec);
         }
         
         function updateRestCalcButton(type, btnId, textId, totalWorkDiff) {
-            // Logic: Total Time is fixed.
-            // If Work increases by TotalWorkDiff (positive), Rest must DECREASE by TotalWorkDiff.
-            // If Work decreases (negative), Rest must INCREASE.
-            // Formula: NewTotalRest = CurrentTotalRest - TotalWorkDiff
-            
             const btn = document.getElementById(btnId);
             const steps = countFutureRestSteps(type);
-            
             if (steps > 0) {
                 let currentVal = 0;
                 if(type === 'rest') currentVal = parseInt(document.getElementById('restSec').value);
                 if(type === 'exerciseRest') currentVal = parseInt(document.getElementById('exerciseRestSec').value);
                 if(type === 'roundRest') currentVal = parseInt(document.getElementById('roundRestSec').value);
-                
                 const reductionPerStep = Math.ceil(totalWorkDiff / steps);
                 const newVal = currentVal - reductionPerStep;
-                
                 if (newVal >= 5) {
                     btn.disabled = false; btn.style.opacity = 1;
                     document.getElementById(textId).innerText = `${currentVal}s -> ${newVal}s`;
@@ -1290,19 +1280,13 @@
         }
         
         function countFutureRestSteps(type) {
-            // Count how many rest intervals of 'type' are remaining
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            
             let count = 0;
             for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
                 let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                
                 if (isFuture) {
-                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); 
-                    const isLastSetOfRound = (e===ex && s===sts); 
-                    const isLastSetOfExercise = (s===sts);
-                    
+                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
                     if (!isLastSetOfWorkout) {
                         if (isLastSetOfRound) { if(type === 'roundRest') count++; }
                         else if (isLastSetOfExercise) { if(type === 'exerciseRest') count++; }
@@ -1319,9 +1303,7 @@
             const diffPerSet = targetW - currentW;
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            
             let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
-            
             const totalWorkDiff = diffPerSet * countSets;
 
             if (targetType === 'duration') {
@@ -1331,25 +1313,20 @@
                 d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
                 syncTime('endtime'); 
             } else {
-                // Adjusting a Rest
                 const steps = countFutureRestSteps(targetType);
                 let elementId = '';
                 if(targetType === 'rest') elementId = 'restSec';
                 if(targetType === 'exerciseRest') elementId = 'exerciseRestSec';
                 if(targetType === 'roundRest') elementId = 'roundRestSec';
-                
                 const currentRest = parseInt(document.getElementById(elementId).value);
                 const reductionPerStep = Math.ceil(totalWorkDiff / steps);
                 const newVal = currentRest - reductionPerStep;
-                
                 const sel = document.getElementById(elementId);
                 let exists = false; for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
                 if(!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s"; sel.appendChild(opt); }
                 sel.value = newVal;
             }
-            
-            calculateRealTime(); saveToLocal();
-            closeCalcModal();
+            calculateRealTime(); saveToLocal(); closeCalcModal();
         }
 
         function generateScheduleData(applyResumeFilter) {
@@ -1608,9 +1585,6 @@
                 pauseStartTime = Date.now();
                 btn.innerText = "▶️"; // Show Play icon to resume
                 
-                // NO CSS CLASS 'paused' that changes background to white!
-                // We keep it dark/transparent.
-                
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
@@ -1692,7 +1666,7 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; 
+            btn.innerText = "⏸"; btn.classList.remove('paused');
             isPaused = false;
             
             document.body.classList.remove('mode-pause');
