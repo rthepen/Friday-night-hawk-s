@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.23 (Live Edit)</title>
+    <title>Friday-night-hawk-s Timer v7.24 (Touch Fix)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -305,6 +305,8 @@
             margin-bottom: 5px;
             opacity: 0.8;
             line-height: 1;
+            position: relative;
+            z-index: 10;
         }
 
         .gym-big-time {
@@ -315,6 +317,8 @@
             letter-spacing: -5px;
             text-shadow: 0 4px 10px rgba(0,0,0,0.2);
             margin-bottom: 10px;
+            position: relative;
+            z-index: 10;
         }
 
         /* NEW STATS GRID STRUCTURE */
@@ -325,6 +329,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            position: relative;
+            z-index: 20; /* Ensure clickable */
         }
 
         .stats-row-1 {
@@ -355,6 +361,7 @@
             cursor: pointer;
             border: 2px solid #30D158;
             position: relative;
+            z-index: 30; /* Extra high */
         }
         .stat-box.editable:active { transform: scale(0.98); background: rgba(48, 209, 88, 0.2); }
         .edit-icon { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #30D158; }
@@ -386,6 +393,8 @@
             font-size: 3vw;
             opacity: 0.7;
             margin-top: 20px;
+            position: relative;
+            z-index: 10;
         }
 
         .controls-container {
@@ -395,7 +404,9 @@
             justify-content: space-between;
             padding: 10px 20px;
             width: 100%;
-            background: rgba(0,0,0,0.2); /* Slight contrast for buttons */
+            background: rgba(0,0,0,0.2); 
+            position: relative;
+            z-index: 50; /* Ensure this is TOP layer */
         }
         
         /* --- PHASE COLORS (Backgrounds) --- */
@@ -425,6 +436,18 @@
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
 
         .hidden { display: none !important; }
+        
+        /* HIDDEN INPUT STYLES TO PREVENT LAYOUT ISSUES */
+        #hidden-endtime-input {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -437,7 +460,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.23</span>
+                FNH Timer <span class="version-tag">v7.24</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -643,8 +666,6 @@
                 </div>
             </div>
 
-            <input type="time" id="hidden-endtime-input" style="opacity:0; position:absolute; z-index:-1;" onchange="handleNewEndTime(this.value)">
-
             <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
         </div>
 
@@ -664,6 +685,8 @@
             <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
         </div>
     </div>
+    
+    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
     <script>
         // --- VARIABELEN ---
@@ -1396,76 +1419,28 @@
             const newDate = new Date();
             newDate.setHours(h, m, 0, 0);
             
-            // Handle day rollover if needed (simple check: if new time is > 12 hours ago, it's probably tomorrow)
-            // Or simpler: stick to closest future match.
             const now = new Date();
             if (newDate < now) {
-                // If the time passed is earlier than now, assume user means "tomorrow" OR check if it's just a few mins ago (finished).
-                // Let's assume user picks a future time. If they pick 1 AM and it's 8 PM, it's tomorrow.
                  if (newDate.getTime() < now.getTime() - 12*3600*1000) {
                      newDate.setDate(newDate.getDate() + 1);
                  }
             }
 
-            // Save old work time for smooth transition
-            const oldWorkTime = schedule[currentIndex].time;
-
             targetEndTimeDate = newDate;
             updateEndTimeDisplay();
-            
-            // Recalculate everything
             recalculateForFixedEnd();
-
-            // Handle current step smoothness
-            // Recalc resets .time to full new duration.
-            // But we might be halfway through.
-            const newWorkTime = schedule[currentIndex].initialTime;
-            const diff = newWorkTime - schedule[currentIndex].initialTime; // Wait, recalculate updates initialTime too.
-            // Logic: `recalculateForFixedEnd` updates the CURRENT step's .time property to the NEW calculated work time.
-            // We need to adjust `stepEndTime` by the difference between new work time and what the work time WAS.
-            // Actually, `recalculateForFixedEnd` below does NOT differentiate between partial steps.
-            // It just sets `schedule[i].time = newWork`.
-            // So if I had 10s left of a 40s interval, and new work time becomes 50s.
-            // The step.time becomes 50s.
-            // We need to ensure we don't restart the step.
-            // We need to ADD the increase to the current stepEndTime.
-            
-            // Let's find the diff in Work Time calculated.
-            // Since we ran recalc, schedule[currentIndex].time IS the new work time.
-            // But we need to know what it WAS.
-            // Actually, we can just solve this by re-calcing stepEndTime based on elapsed.
-            // But we don't track start time of step.
-            
-            // Simplest fix: The recalc function below blindly resets .time. 
-            // We should modify it to be smarter? 
-            // No, let's keep it simple: Reset the timer interval for current step to reflect new duration relative to *progress*?
-            // Actually, if we just let it be, the `stepEndTime` is still old. 
-            // The loop uses `step.time = remainingSec`.
-            // If we update `step.time` in the object, the loop overwrites it next tick based on `stepEndTime`.
-            // SO: We MUST update `stepEndTime`.
-            
-            // We need to know the delta.
-            // We can infer delta by comparing new calculated work time vs old known work time.
-            // Since we know `recalculateForFixedEnd` sets ALL work steps to the same value.
-            // We can look at a future step (currentIndex + 1 or similar) to see the new value.
-            // But if we are at the last step, that fails.
-            
-            // Let's refine `recalculateForFixedEnd` slightly to return the new work time.
-            // (See modified function below)
             
             triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
         }
 
-        // Modified Recalc Logic for Live Edit
         function recalculateForFixedEnd() {
             const now = new Date();
             const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
             
             let workStepsLeft = 0; let fixedRest = 0;
-            // Scan current and future
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
-                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; // Note: this uses current remaining time for current step if rest, which is correct-ish.
+                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
                 else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
             }
 
@@ -1474,9 +1449,8 @@
                 let newWork = Math.floor(availableForWork / workStepsLeft);
                 if (newWork < 5) newWork = 5; 
                 
-                // Check if current step is work
                 const currentIsWork = (schedule[currentIndex].type === 'work');
-                const oldWorkVal = schedule[currentIndex].initialTime; // approximate
+                const oldWorkVal = schedule[currentIndex].initialTime; 
 
                 for(let i=currentIndex; i<schedule.length; i++){
                     if (schedule[i].type==='work') {
@@ -1485,11 +1459,9 @@
                     }
                 }
                 
-                // Correct stepEndTime if we are currently working
                 if(currentIsWork) {
                     const diff = newWork - oldWorkVal;
                     stepEndTime += (diff * 1000);
-                    // Also update the displayed countdown immediately
                     document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
                 }
             }
