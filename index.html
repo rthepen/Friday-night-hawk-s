@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.21 (Gym Mode)</title>
+    <title>Friday-night-hawk-s Timer v7.22 (Gym Mode)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -274,12 +274,17 @@
         
         /* PROGRESS BAR */
         .progress-container { 
-            width: 100%; height: 20px; background: rgba(0,0,0,0.2); margin-top: var(--safe-top); 
+            width: 100%; height: 50px; background: rgba(0,0,0,0.2); margin-top: var(--safe-top); 
             position: relative; display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         .progress-fill { 
             position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,255,255,0.8); width: 0%; 
             transition: width 0.2s linear; z-index: 1; 
+        }
+        #progress-text-center {
+            position: relative; z-index: 2; font-size: 20px; font-weight: 900; color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         
         /* THE MAIN DISPLAY ZONE */
@@ -303,7 +308,7 @@
         }
 
         .gym-big-time {
-            font-size: 35vw; /* MASSIVE */
+            font-size: 32vw; /* A bit smaller to make room for bigger stats */
             font-weight: bold;
             font-variant-numeric: tabular-nums;
             line-height: 0.9;
@@ -312,36 +317,50 @@
             margin-bottom: 10px;
         }
 
-        /* NEW STATS GRID */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+        /* NEW STATS GRID STRUCTURE */
+        .stats-wrapper {
             width: 95%;
             max-width: 600px;
-            gap: 10px;
             margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stats-row-1 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stats-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
         .stat-box {
-            background: rgba(0,0,0,0.25);
+            background: rgba(0,0,0,0.3);
             border-radius: 8px;
             padding: 10px 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .stat-label {
             font-size: 2.5vw;
             text-transform: uppercase;
-            opacity: 0.7;
+            opacity: 0.8;
             font-weight: bold;
             margin-bottom: 2px;
+            color: #ddd;
         }
         
         .stat-value {
-            font-size: 5vw;
+            font-size: 6vw; /* Bigger as requested */
             font-weight: 900;
             font-variant-numeric: tabular-nums;
         }
@@ -349,7 +368,9 @@
         /* Fallback for very small or very large screens */
         @media (min-width: 600px) {
             .stat-label { font-size: 14px; }
-            .stat-value { font-size: 30px; }
+            .stat-value { font-size: 36px; }
+            .gym-phase-title { font-size: 40px; }
+            .gym-big-time { font-size: 180px; }
         }
 
         .gym-next-info {
@@ -368,16 +389,16 @@
             background: rgba(0,0,0,0.2); /* Slight contrast for buttons */
         }
         
-        .time-info-small {
-            position: absolute; top: 10px; right: 10px; font-size: 14px; font-weight: bold; opacity: 0.6; z-index: 10;
-        }
-
         /* --- PHASE COLORS (Backgrounds) --- */
         body.mode-work { background-color: #30D158; color: black; }
         body.mode-work .progress-fill { background: black; }
+        body.mode-work .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-work .stat-label { color: rgba(0,0,0,0.6); }
         
         body.mode-rest { background-color: #FF9F0A; color: black; }
         body.mode-rest .progress-fill { background: black; }
+        body.mode-rest .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-rest .stat-label { color: rgba(0,0,0,0.6); }
 
         body.mode-switch { background-color: #BF5AF2; color: white; }
         body.mode-long { background-color: #0A84FF; color: white; }
@@ -403,7 +424,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.21</span>
+                FNH Timer <span class="version-tag">v7.22</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -574,28 +595,37 @@
     <div id="timer-screen">
         <div class="progress-container">
             <div class="progress-fill" id="total-progress"></div>
+            <div id="progress-text-center">0%</div>
         </div>
         
-        <div class="time-info-small">
-            <span id="display-end-time">--:--</span> | <span id="total-time-left">Nog --:--</span>
-        </div>
-
         <div class="display-zone">
             <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
             <div class="gym-big-time" id="countdown">10</div>
             
-            <div class="stats-grid" id="gym-stats-container">
-                <div class="stat-box">
-                    <div class="stat-label">Ronde</div>
-                    <div class="stat-value" id="val-round">- / -</div>
+            <div class="stats-wrapper" id="gym-stats-container">
+                <div class="stats-row-1">
+                    <div class="stat-box">
+                        <div class="stat-label">Ronde</div>
+                        <div class="stat-value" id="val-round">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Oefening</div>
+                        <div class="stat-value" id="val-exercise">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Set</div>
+                        <div class="stat-value" id="val-set">-</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Oefening</div>
-                    <div class="stat-value" id="val-exercise">- / -</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Set</div>
-                    <div class="stat-value" id="val-set">- / -</div>
+                <div class="stats-row-2">
+                    <div class="stat-box">
+                        <div class="stat-label">Einde</div>
+                        <div class="stat-value" id="val-endtime">--:--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Nog</div>
+                        <div class="stat-value" id="val-remaining">--m</div>
+                    </div>
                 </div>
             </div>
 
@@ -625,7 +655,7 @@
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.11) ---
+        // --- COACH PRESETS DEFINITIONS ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -1228,9 +1258,9 @@
             
             // UPDATE STATS
             if(step.info && step.info.maxRounds) {
-                document.getElementById('val-round').innerText = `${step.info.round} / ${step.info.maxRounds}`;
-                document.getElementById('val-exercise').innerText = `${step.info.exercise} / ${step.info.maxEx}`;
-                document.getElementById('val-set').innerText = `${step.info.set} / ${step.info.maxSets}`;
+                document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
+                document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
+                document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
                 document.getElementById('gym-stats-container').style.opacity = 1;
             } else {
                 // hide stats if not relevant (e.g. finish)
@@ -1302,13 +1332,15 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
+                    // Update Time Left Calculation
                     const totalDiff = targetEndTimeDate - now;
                     if(totalDiff > 0) {
-                        const h = Math.floor(totalDiff / 3600000);
-                        const m = Math.floor((totalDiff % 3600000) / 60000);
+                        const m = Math.floor(totalDiff / 60000);
                         const s = Math.floor((totalDiff % 60000) / 1000);
-                        document.getElementById('total-time-left').innerText = `Nog ${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                    } else { document.getElementById('total-time-left').innerText = "0:00:00"; }
+                        document.getElementById('val-remaining').innerText = `${m}m ${s}s`;
+                    } else { 
+                        document.getElementById('val-remaining').innerText = "0m 0s"; 
+                    }
 
                     const init = step.initialTime;
                     if (step.type === 'work') {
@@ -1402,15 +1434,19 @@
 
         function updateTargetTimeFromNow() {}
 
-        function updateEndTimeDisplay() { document.getElementById('display-end-time').innerText = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+        function updateEndTimeDisplay() { 
+            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+            document.getElementById('val-endtime').innerText = timeStr;
+        }
         
         function updateProgressBar() {
             const now = new Date();
             const totalMs = targetEndTimeDate - workoutStartTime; 
             if (totalMs <= 0) return;
             const elapsed = now - workoutStartTime;
-            let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100;
+            let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100; if(pct<0) pct=0;
             document.getElementById('total-progress').style.width = pct + "%";
+            document.getElementById('progress-text-center').innerText = Math.floor(pct) + "%";
         }
         
         function finish() {
@@ -1419,7 +1455,6 @@
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('gym-stats-container').style.display='none';
             document.getElementById('btn-pause').style.display='none';
-            document.getElementById('total-time-left').innerText = "0:00:00";
             clearInterval(timerInterval);
             triggerAudio('finish', "Training klaar");
         }
