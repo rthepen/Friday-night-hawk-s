@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.1</title>
+    <title>Friday-night-hawk-s Timer v7.2</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -106,13 +106,13 @@
             border: 1px solid #333;
         }
         
-        .header-buttons { display: flex; gap: 8px; }
+        .header-buttons { display: flex; gap: 5px; }
 
         .btn-header {
             border: none;
             border-radius: 20px;
-            padding: 6px 12px;
-            font-size: 13px;
+            padding: 6px 10px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -123,6 +123,7 @@
         .btn-header:active { opacity: 0.6; }
         .btn-save { background: #0A84FF; color: white; }
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
+        .btn-share-app { background: #BF5AF2; color: white; } /* Purple for sharing app */
 
         /* --- GRID SYSTEM --- */
         .grid-row {
@@ -302,11 +303,12 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.1</span>
+                FNH Timer <span class="version-tag">v7.2</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
+                <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
             </div>
         </div>
 
@@ -496,7 +498,6 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
-        // NIEUWE DATASTRUCTUUR: ALLES INSTELBAAR (v7.1)
         let speechSettings = {
             // VOORBEREIDING
             prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -504,7 +505,7 @@
 
             // OEFENING (WERKEN)
             work_start: { enabled: true, text: "Start met werken" },
-            work_halfway: { enabled: true, text: "Halverwege!" }, // AANGEPAST
+            work_halfway: { enabled: true, text: "Halverwege!" }, 
             work_30s: { enabled: false, text: "Nog 30 seconden" },
             work_10s: { enabled: true, text: "Nog 10 seconden" },
             work_5s: { enabled: false, text: "Nog 5 seconden" },
@@ -516,11 +517,11 @@
             // RUST (WISSEL - OEFENING)
             rest_switch_start: { enabled: true, text: "Wissel van oefening" },
             rest_switch_info: { enabled: true, text: "" }, 
-            rest_switch_10s: { enabled: true, text: "Nog 10 seconden" }, // NIEUW
+            rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
 
             // RUST (GROOT - RONDE)
             rest_round_start: { enabled: true, text: "Grote pauze" },
-            rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, // AANGEPAST
+            rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
             rest_round_info: { enabled: true, text: "" }, 
 
             // MIJLPALEN
@@ -688,7 +689,7 @@
             setMode('endtime');
             setAudioMode('speech');
 
-            // Reset Object v7.1
+            // Reset Object v7.2 (inc. promo tekst update)
             speechSettings = {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" },
@@ -717,7 +718,37 @@
             calculateRealTime();
         }
 
-        // --- SHARE / SAVE LOGIC ---
+        // --- NEW SHARE APP FUNCTION ---
+        function shareApp() {
+            // 1. Clean URL (No params)
+            const cleanUrl = window.location.origin + window.location.pathname;
+
+            // 2. The Text
+            let text = "🦅 **Friday Night Hawks Timer**\n\n";
+            text += "De ultieme trainingspartner voor de vrijdagavond! 🚴🏋️🏊\n";
+            text += "Sluit af met bitterballen & gezelligheid! 🍖🍻\n\n";
+            text += "✅ **Wat kan deze app?**\n";
+            text += "- 🗣️ Volledige spraakbegeleiding (NL)\n";
+            text += "- ⏱️ Slimme tijd- & rustberekening\n";
+            text += "- 🔄 'Crash Recovery': Hervat direct na uitval\n";
+            text += "- 🎨 Volledig aanpasbare commando's\n\n";
+            text += "🏆 **Uniek:** Speciaal gebouwd voor de FNH-structuur: werken, wisselen, en pauzes.\n\n";
+            text += "👇 Download/Gebruik de app hier (gratis):";
+
+            // 3. Execution
+            if (navigator.share) {
+                navigator.share({
+                    title: "Friday Night Hawks Timer 🦅",
+                    text: text,
+                    url: cleanUrl
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(text + "\n" + cleanUrl)
+                    .then(() => alert("Promotietekst en link gekopieerd!"));
+            }
+        }
+
+        // --- SAVE SETTINGS LOGIC ---
         function shareSettings() {
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
@@ -740,9 +771,9 @@
             const shareUrl = baseUrl + '?' + params.toString();
             
             if (navigator.share) {
-                navigator.share({ title: 'FNH Training', url: shareUrl }).catch(console.error);
+                navigator.share({ title: 'FNH Training Settings', url: shareUrl }).catch(console.error);
             } else {
-                navigator.clipboard.writeText(shareUrl).then(() => { alert("Link gekopieerd!"); });
+                navigator.clipboard.writeText(shareUrl).then(() => { alert("Link met instellingen gekopieerd!"); });
             }
         }
 
@@ -1228,13 +1259,14 @@
                         if (step.time === 5 && init > 10) triggerAudio('work_5s', "5 seconden");
                     }
                     
+                    // Trigger voor RONDE rust (15s)
                     if (step.type === 'rest-long') {
                          if (step.time === 15 && init > 20) {
-                             triggerAudio('rest_round_15s', "Loop terug");
+                             triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
                          }
                     }
                     
-                    // NIEUW: Trigger voor WISSEL rust (10 seconden)
+                    // Trigger voor WISSEL rust (10s)
                     if (step.type === 'rest-exercise') {
                          if (step.time === 10 && init > 15) {
                              triggerAudio('rest_switch_10s', "Nog 10 seconden");
