@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.2</title>
+    <title>Friday-night-hawk-s Timer v8.3</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -175,18 +175,7 @@
             appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
             min-width: 0; width: 100%;
         }
-        .btn-adjust {
-            background: #333; color: #fff; border: 1px solid #333;
-            font-size: 20px; font-weight: bold; 
-            width: 40px; height: 44px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; touch-action: manipulation;
-            user-select: none;
-            flex-shrink: 0;
-        }
-        .btn-minus { border-radius: 8px 0 0 8px; }
-        .btn-plus { border-radius: 0 8px 8px 0; }
-
+        
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
             background: #1c1c1e; color: white; font-size: 20px;
@@ -202,6 +191,30 @@
             color: #666; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
         }
         .toggle-btn.active { background: #333; color: #fff; }
+
+        /* --- QUICK TIME BUTTONS --- */
+        .quick-time-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .btn-minute {
+            background: #2c2c2e;
+            border: 1px solid #3a3a3c;
+            color: #ccc;
+            padding: 8px 0;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .btn-minute:active {
+            background: #30D158;
+            color: black;
+            border-color: #30D158;
+        }
 
         /* --- SPEECH SETTINGS --- */
         .speech-options, .resume-options {
@@ -354,12 +367,12 @@
         }
 
         .gym-phase-title {
-            font-size: 8vw; 
+            font-size: 18vw; 
             font-weight: 900;
             text-transform: uppercase;
             margin-bottom: 5px;
             opacity: 0.8;
-            line-height: 1;
+            line-height: 0.85;
             position: relative;
             z-index: 1; 
             pointer-events: none;
@@ -444,7 +457,7 @@
         @media (min-width: 600px) {
             .stat-label { font-size: 14px; }
             .stat-value { font-size: 36px; }
-            .gym-phase-title { font-size: 40px; }
+            .gym-phase-title { font-size: 80px; }
             .gym-big-time { font-size: 180px; }
         }
 
@@ -494,7 +507,7 @@
 
         /* --- MODALS --- */
         #pause-modal, #calc-modal, #speech-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
         
         .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
@@ -502,9 +515,9 @@
         
         /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
-            width: 100%; height: 150px; background: #222; border: 1px solid #555; color: white;
-            font-size: 16px; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 15px;
-            font-family: inherit;
+            width: 100%; height: 60vh; background: #222; border: 1px solid #555; color: white;
+            font-size: 20px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
+            font-family: inherit; line-height: 1.5;
         }
 
         .hidden { display: none !important; }
@@ -536,7 +549,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.2</span>
+                FNH Timer <span class="version-tag">v8.3</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -557,41 +570,75 @@
                 <label>Klaar om (HH:MM)</label>
                 <input type="time" id="endTimeValue">
             </div>
+            
+            <div id="quick-buttons-endtime" class="quick-time-grid">
+                <button class="btn-minute" onclick="setQuickEndTime(0)">:00</button>
+                <button class="btn-minute" onclick="setQuickEndTime(5)">:05</button>
+                <button class="btn-minute" onclick="setQuickEndTime(10)">:10</button>
+                <button class="btn-minute" onclick="setQuickEndTime(15)">:15</button>
+                <button class="btn-minute" onclick="setQuickEndTime(20)">:20</button>
+                <button class="btn-minute" onclick="setQuickEndTime(25)">:25</button>
+                <button class="btn-minute" onclick="setQuickEndTime(30)">:30</button>
+                <button class="btn-minute" onclick="setQuickEndTime(35)">:35</button>
+                <button class="btn-minute" onclick="setQuickEndTime(40)">:40</button>
+                <button class="btn-minute" onclick="setQuickEndTime(45)">:45</button>
+                <button class="btn-minute" onclick="setQuickEndTime(50)">:50</button>
+                <button class="btn-minute" onclick="setQuickEndTime(55)">:55</button>
+            </div>
         </div>
 
         <div id="wrapper-duration" class="hidden">
             <div id="input-duration">
                 <label>Totale trainingstijd (min)</label>
-                <select id="totalMin" class="full-width-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <div class="input-wrapper">
+                    <button class="btn-adjust btn-minus" onclick="adjustValue('totalMin', -5)">−</button>
+                    <input type="number" id="totalMin" value="30" inputmode="numeric">
+                    <button class="btn-adjust btn-plus" onclick="adjustValue('totalMin', 5)">+</button>
+                </div>
+            </div>
+            
+            <div id="quick-buttons-duration" class="quick-time-grid" style="margin-top:5px;">
+                <button class="btn-minute" onclick="setQuickDuration(10)">10m</button>
+                <button class="btn-minute" onclick="setQuickDuration(15)">15m</button>
+                <button class="btn-minute" onclick="setQuickDuration(20)">20m</button>
+                <button class="btn-minute" onclick="setQuickDuration(25)">25m</button>
+                <button class="btn-minute" onclick="setQuickDuration(30)">30m</button>
+                <button class="btn-minute" onclick="setQuickDuration(35)">35m</button>
+                <button class="btn-minute" onclick="setQuickDuration(40)">40m</button>
+                <button class="btn-minute" onclick="setQuickDuration(45)">45m</button>
+                <button class="btn-minute" onclick="setQuickDuration(50)">50m</button>
+                <button class="btn-minute" onclick="setQuickDuration(55)">55m</button>
+                <button class="btn-minute" onclick="setQuickDuration(60)">60m</button>
+                <button class="btn-minute" onclick="setQuickDuration(75)">75m</button>
             </div>
         </div>
         
         <div class="compact-row">
             <div class="select-group">
                 <label>Rondes</label>
-                <select id="rounds" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="rounds" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
             </div>
             <div class="select-group">
                 <label>Oefeningen</label>
-                <select id="exercises" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="exercises" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
             </div>
             <div class="select-group">
                 <label>Sets</label>
-                <select id="sets" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="sets" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
             </div>
         </div>
 
         <div class="compact-row">
             <div class="select-group">
-                <label>Rust tussen set</label>
+                <label>Rust tussen sets</label>
                 <select id="restSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
             <div class="select-group">
-                <label>Rust wissel</label>
+                <label>Rust tijdens wissel</label>
                 <select id="exerciseRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
             <div class="select-group">
-                <label>Rust ronde</label>
+                <label>Rust tussen rondes</label>
                 <select id="roundRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
         </div>
@@ -611,31 +658,19 @@
                 <span class="arrow">▼</span>
             </div>
             <div id="sec-resume" class="collapsible-content">
-                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Vul hieronder in waar je wilt starten.</div>
-                <div class="grid-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <div class="input-group">
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Kies hieronder waar je wilt starten.</div>
+                <div class="compact-row">
+                    <div class="select-group">
                         <label>Ronde</label>
-                        <div class="input-wrapper">
-                            <button class="btn-adjust btn-minus" onclick="adjustValue('start-round', -1)">−</button>
-                            <input type="number" id="start-round" value="1" inputmode="numeric">
-                            <button class="btn-adjust btn-plus" onclick="adjustValue('start-round', 1)">+</button>
-                        </div>
+                        <select id="start-round" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
                     </div>
-                    <div class="input-group">
+                    <div class="select-group">
                         <label>Oefening</label>
-                        <div class="input-wrapper">
-                             <button class="btn-adjust btn-minus" onclick="adjustValue('start-ex', -1)">−</button>
-                            <input type="number" id="start-ex" value="1" inputmode="numeric">
-                             <button class="btn-adjust btn-plus" onclick="adjustValue('start-ex', 1)">+</button>
-                        </div>
+                        <select id="start-ex" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
                     </div>
-                    <div class="input-group">
+                    <div class="select-group">
                         <label>Set</label>
-                        <div class="input-wrapper">
-                             <button class="btn-adjust btn-minus" onclick="adjustValue('start-set', -1)">−</button>
-                            <input type="number" id="start-set" value="1" inputmode="numeric">
-                             <button class="btn-adjust btn-plus" onclick="adjustValue('start-set', 1)">+</button>
-                        </div>
+                        <select id="start-set" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
                     </div>
                 </div>
             </div>
@@ -997,6 +1032,32 @@
             fillRest('roundRestSec');
         }
         
+        function updateResumeDropdowns() {
+            // Get max values from settings
+            const maxR = parseInt(document.getElementById('rounds').value) || 1;
+            const maxE = parseInt(document.getElementById('exercises').value) || 1;
+            const maxS = parseInt(document.getElementById('sets').value) || 1;
+            
+            // Helper to refill options while trying to keep selected value
+            const updateSelect = (id, max, prefix) => {
+                const sel = document.getElementById(id);
+                const currentVal = parseInt(sel.value) || 1;
+                sel.innerHTML = "";
+                for(let i=1; i<=max; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.text = prefix + " " + i;
+                    sel.appendChild(opt);
+                }
+                // Restore value if within range, else max
+                sel.value = (currentVal <= max) ? currentVal : max;
+            };
+            
+            updateSelect('start-round', maxR, "Ronde");
+            updateSelect('start-ex', maxE, "Oef");
+            updateSelect('start-set', maxS, "Set");
+        }
+        
         function handleVisibilityChange() {
             if (document.visibilityState === 'visible' && !isPaused && timerInterval) {
                 // Interval logic handles catch up automatically
@@ -1091,9 +1152,9 @@
             document.getElementById('exerciseRestSec').value = 30; 
             document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; 
-            document.getElementById('start-round').value = 1;
-            document.getElementById('start-ex').value = 1;
-            document.getElementById('start-set').value = 1;
+            // Reset start values
+            updateResumeDropdowns();
+            
             const d = new Date(); d.setMinutes(d.getMinutes() + 30);
             document.getElementById('endTimeValue').value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             setMode('endtime'); setAudioMode('speech');
@@ -1204,6 +1265,7 @@
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
+                    // Dropdowns must exist first (which they do via populateDropdowns on DOMContentLoaded)
                     document.getElementById('rounds').value = data.rounds || 2;
                     document.getElementById('exercises').value = data.exercises || 6;
                     document.getElementById('sets').value = data.sets || 2;
@@ -1211,6 +1273,10 @@
                     document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
                     document.getElementById('roundRestSec').value = data.roundRestSec || 90;
                     document.getElementById('totalMin').value = data.totalMin || 30;
+                    
+                    // Trigger update for resume dropdowns based on loaded values
+                    updateResumeDropdowns();
+                    
                     if(data.startRound) document.getElementById('start-round').value = data.startRound;
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
@@ -1218,6 +1284,8 @@
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
                 } catch(e) { console.log("Error loading settings", e); }
+            } else {
+                updateResumeDropdowns();
             }
         }
         
@@ -1229,21 +1297,11 @@
             if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
         }
 
+        // AdjustValue only used for what? Ah, nothing now! Everything is dropdown or time input.
+        // We can remove it unless we kept something. No, all dropdowns. 
+        // Keeping it just in case logic needs it, but effectively unused in UI.
         function adjustValue(id, delta) {
-            // Only used for Start Resume inputs now, which are still input[number]
-            const el = document.getElementById(id); let val = parseInt(el.value) || 0; val += delta; if (val < 1) val = 1; 
-            if(id === 'start-round') { const max = parseInt(document.getElementById('rounds').value); if(val > max) val = max; }
-            if(id === 'start-ex') { const max = parseInt(document.getElementById('exercises').value); if(val > max) val = max; }
-            if(id === 'start-set') { const max = parseInt(document.getElementById('sets').value); if(val > max) val = max; }
-            el.value = val; validateResumeInputs(); calculateRealTime(); saveToLocal();
-        }
-
-        function validateResumeInputs() {
-            const maxR = parseInt(document.getElementById('rounds').value) || 1;
-            const maxE = parseInt(document.getElementById('exercises').value) || 1;
-            const maxS = parseInt(document.getElementById('sets').value) || 1;
-            const rEl = document.getElementById('start-round'); const eEl = document.getElementById('start-ex'); const sEl = document.getElementById('start-set');
-            if(parseInt(rEl.value) > maxR) rEl.value = maxR; if(parseInt(eEl.value) > maxE) eEl.value = maxE; if(parseInt(sEl.value) > maxS) sEl.value = maxS;
+             // ... legacy code not needed for dropdowns
         }
 
         function setMode(newMode) {
@@ -1471,7 +1529,10 @@
         }
         
         function setQuickDuration(min) {
-            document.getElementById('totalMin').value = min;
+            // Need to set dropdown value
+            const sel = document.getElementById('totalMin');
+            sel.value = min;
+            // If option doesn't exist, we skip or add it. But our list is quite complete.
             calculateRealTime();
             saveToLocal();
         }
@@ -1778,20 +1839,6 @@
         }
 
         // --- NEW LIVE EDIT LOGIC ---
-        function triggerEndTimeEdit() {
-            // Populate hidden input with current target time
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const input = document.getElementById('hidden-endtime-input');
-            input.value = timeStr;
-            
-            // Try to open native picker
-            if ('showPicker' in HTMLInputElement.prototype) {
-                try { input.showPicker(); } catch(e) { input.click(); }
-            } else {
-                input.click();
-            }
-        }
-
         function handleNewEndTime(newVal) {
             if(!newVal) return;
             const [h, m] = newVal.split(':');
