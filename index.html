@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.22 (Gym Mode)</title>
+    <title>Friday-night-hawk-s Timer v7.23 (Live Edit)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -350,6 +350,15 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
+        /* --- EDITABLE END TIME --- */
+        .stat-box.editable {
+            cursor: pointer;
+            border: 2px solid #30D158;
+            position: relative;
+        }
+        .stat-box.editable:active { transform: scale(0.98); background: rgba(48, 209, 88, 0.2); }
+        .edit-icon { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #30D158; }
+
         .stat-label {
             font-size: 2.5vw;
             text-transform: uppercase;
@@ -393,11 +402,15 @@
         body.mode-work { background-color: #30D158; color: black; }
         body.mode-work .progress-fill { background: black; }
         body.mode-work .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-work .stat-box.editable { border-color: #000; } 
+        body.mode-work .edit-icon { color: #000; }
         body.mode-work .stat-label { color: rgba(0,0,0,0.6); }
         
         body.mode-rest { background-color: #FF9F0A; color: black; }
         body.mode-rest .progress-fill { background: black; }
         body.mode-rest .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-rest .stat-box.editable { border-color: #000; }
+        body.mode-rest .edit-icon { color: #000; }
         body.mode-rest .stat-label { color: rgba(0,0,0,0.6); }
 
         body.mode-switch { background-color: #BF5AF2; color: white; }
@@ -424,7 +437,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.22</span>
+                FNH Timer <span class="version-tag">v7.23</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -618,8 +631,9 @@
                     </div>
                 </div>
                 <div class="stats-row-2">
-                    <div class="stat-box">
-                        <div class="stat-label">Einde</div>
+                    <div class="stat-box editable" onclick="triggerEndTimeEdit()">
+                        <div class="edit-icon">✏️</div>
+                        <div class="stat-label">Einde (Klik!)</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
                     </div>
                     <div class="stat-box">
@@ -628,6 +642,8 @@
                     </div>
                 </div>
             </div>
+
+            <input type="time" id="hidden-endtime-input" style="opacity:0; position:absolute; z-index:-1;" onchange="handleNewEndTime(this.value)">
 
             <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
         </div>
@@ -1126,9 +1142,6 @@
                             schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
                             if (!isLastSetOfWorkout) {
-                                // For rest steps, we want to display what is COMING UP next or keep current.
-                                // Usually during rest you want to see what you just finished or what is next.
-                                // Let's keep the current counters for continuity during the rest.
                                 let restLabel = "RUST";
                                 let infoText = "";
                                 if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
@@ -1362,58 +1375,97 @@
             }, 1000);
         }
 
-        function skipStep(dir) {
-            let newIndex = currentIndex + dir;
-            if (newIndex < 0) newIndex = 0;
-            if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
-            currentIndex = newIndex;
-            runStep(); 
-        }
-
-        function handlePauseClick() {
-            const btn = document.getElementById('btn-pause');
-            if (!isPaused) {
-                isPaused = true;
-                btn.innerText = "HERVAT";
-                btn.style.backgroundColor = "white";
-                btn.style.color = "black";
-                
-                document.body.classList.add('mode-pause'); 
-                document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
-                triggerAudio('manual_override', "Gepauzeerd");
+        // --- NEW LIVE EDIT LOGIC ---
+        function triggerEndTimeEdit() {
+            // Populate hidden input with current target time
+            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+            const input = document.getElementById('hidden-endtime-input');
+            input.value = timeStr;
+            
+            // Try to open native picker
+            if ('showPicker' in HTMLInputElement.prototype) {
+                try { input.showPicker(); } catch(e) { input.click(); }
             } else {
-                if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
-                else resolvePause('push');
+                input.click();
             }
         }
 
-        function resolvePause(choice) {
-            document.getElementById('pause-modal').style.display = 'none';
-            document.getElementById('btn-pause').innerText = "PAUZE";
-            document.getElementById('btn-pause').style.backgroundColor = "rgba(255,255,255,0.9)";
-            isPaused = false;
+        function handleNewEndTime(newVal) {
+            if(!newVal) return;
+            const [h, m] = newVal.split(':');
+            const newDate = new Date();
+            newDate.setHours(h, m, 0, 0);
             
-            document.body.classList.remove('mode-pause');
-            const step = schedule[currentIndex];
-             if (step.type==='work') document.body.classList.add('mode-work');
-             else if (step.type==='rest') document.body.classList.add('mode-rest');
-             else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
-             else if (step.type==='rest-long') document.body.classList.add('mode-long');
+            // Handle day rollover if needed (simple check: if new time is > 12 hours ago, it's probably tomorrow)
+            // Or simpler: stick to closest future match.
+            const now = new Date();
+            if (newDate < now) {
+                // If the time passed is earlier than now, assume user means "tomorrow" OR check if it's just a few mins ago (finished).
+                // Let's assume user picks a future time. If they pick 1 AM and it's 8 PM, it's tomorrow.
+                 if (newDate.getTime() < now.getTime() - 12*3600*1000) {
+                     newDate.setDate(newDate.getDate() + 1);
+                 }
+            }
 
-            triggerAudio('manual_override', "We gaan weer door");
-            if (choice === 'recalc') recalculateForFixedEnd();
-            document.getElementById('gym-phase-title').innerText = step.label;
+            // Save old work time for smooth transition
+            const oldWorkTime = schedule[currentIndex].time;
+
+            targetEndTimeDate = newDate;
+            updateEndTimeDisplay();
+            
+            // Recalculate everything
+            recalculateForFixedEnd();
+
+            // Handle current step smoothness
+            // Recalc resets .time to full new duration.
+            // But we might be halfway through.
+            const newWorkTime = schedule[currentIndex].initialTime;
+            const diff = newWorkTime - schedule[currentIndex].initialTime; // Wait, recalculate updates initialTime too.
+            // Logic: `recalculateForFixedEnd` updates the CURRENT step's .time property to the NEW calculated work time.
+            // We need to adjust `stepEndTime` by the difference between new work time and what the work time WAS.
+            // Actually, `recalculateForFixedEnd` below does NOT differentiate between partial steps.
+            // It just sets `schedule[i].time = newWork`.
+            // So if I had 10s left of a 40s interval, and new work time becomes 50s.
+            // The step.time becomes 50s.
+            // We need to ensure we don't restart the step.
+            // We need to ADD the increase to the current stepEndTime.
+            
+            // Let's find the diff in Work Time calculated.
+            // Since we ran recalc, schedule[currentIndex].time IS the new work time.
+            // But we need to know what it WAS.
+            // Actually, we can just solve this by re-calcing stepEndTime based on elapsed.
+            // But we don't track start time of step.
+            
+            // Simplest fix: The recalc function below blindly resets .time. 
+            // We should modify it to be smarter? 
+            // No, let's keep it simple: Reset the timer interval for current step to reflect new duration relative to *progress*?
+            // Actually, if we just let it be, the `stepEndTime` is still old. 
+            // The loop uses `step.time = remainingSec`.
+            // If we update `step.time` in the object, the loop overwrites it next tick based on `stepEndTime`.
+            // SO: We MUST update `stepEndTime`.
+            
+            // We need to know the delta.
+            // We can infer delta by comparing new calculated work time vs old known work time.
+            // Since we know `recalculateForFixedEnd` sets ALL work steps to the same value.
+            // We can look at a future step (currentIndex + 1 or similar) to see the new value.
+            // But if we are at the last step, that fails.
+            
+            // Let's refine `recalculateForFixedEnd` slightly to return the new work time.
+            // (See modified function below)
+            
+            triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
         }
 
+        // Modified Recalc Logic for Live Edit
         function recalculateForFixedEnd() {
             const now = new Date();
             const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            if (secsRemaining <= 0) { alert("Tijd is op!"); finish(); return; }
-
+            
             let workStepsLeft = 0; let fixedRest = 0;
+            // Scan current and future
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
-                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time;
+                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; // Note: this uses current remaining time for current step if rest, which is correct-ish.
                 else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
             }
 
@@ -1421,18 +1473,35 @@
                 const availableForWork = secsRemaining - fixedRest;
                 let newWork = Math.floor(availableForWork / workStepsLeft);
                 if (newWork < 5) newWork = 5; 
+                
+                // Check if current step is work
+                const currentIsWork = (schedule[currentIndex].type === 'work');
+                const oldWorkVal = schedule[currentIndex].initialTime; // approximate
+
                 for(let i=currentIndex; i<schedule.length; i++){
                     if (schedule[i].type==='work') {
                          schedule[i].time = newWork;
                          schedule[i].initialTime = newWork; 
                     }
                 }
-                stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
-                document.getElementById('countdown').innerText = schedule[currentIndex].time;
+                
+                // Correct stepEndTime if we are currently working
+                if(currentIsWork) {
+                    const diff = newWork - oldWorkVal;
+                    stepEndTime += (diff * 1000);
+                    // Also update the displayed countdown immediately
+                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
+                }
             }
         }
 
-        function updateTargetTimeFromNow() {}
+        function skipStep(dir) {
+            let newIndex = currentIndex + dir;
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex >= schedule.length - 1) newIndex = schedule.length - 1;
+            currentIndex = newIndex;
+            runStep(); 
+        }
 
         function updateEndTimeDisplay() { 
             const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
