@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.2</title>
+    <title>Friday-night-hawk-s Timer v8.3</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -175,17 +175,6 @@
             appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
             min-width: 0; width: 100%;
         }
-        .btn-adjust {
-            background: #333; color: #fff; border: 1px solid #333;
-            font-size: 20px; font-weight: bold; 
-            width: 40px; height: 44px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; touch-action: manipulation;
-            user-select: none;
-            flex-shrink: 0;
-        }
-        .btn-minus { border-radius: 8px 0 0 8px; }
-        .btn-plus { border-radius: 0 8px 8px 0; }
 
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
@@ -245,7 +234,11 @@
         .text-input-trigger { 
             width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
             padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
-            text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+            /* UPDATED: Allow text wrapping and bigger size */
+            white-space: normal; 
+            overflow: visible;
+            min-height: 44px;
+            line-height: 1.4;
             cursor: pointer;
         }
         .text-input-trigger:active { background: #3a3a3c; }
@@ -536,7 +529,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.2</span>
+                FNH Timer <span class="version-tag">v8.3</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -583,15 +576,15 @@
 
         <div class="compact-row">
             <div class="select-group">
-                <label>Rust tussen set</label>
+                <label>Rust tussen sets</label>
                 <select id="restSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
             <div class="select-group">
-                <label>Rust wissel</label>
+                <label>Rust tijdens wissel</label>
                 <select id="exerciseRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
             <div class="select-group">
-                <label>Rust ronde</label>
+                <label>Rust tussen rondes</label>
                 <select id="roundRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
         </div>
@@ -612,32 +605,22 @@
             </div>
             <div id="sec-resume" class="collapsible-content">
                 <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Vul hieronder in waar je wilt starten.</div>
-                <div class="grid-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <div class="input-group">
+                
+                <div class="compact-row">
+                    <div class="select-group">
                         <label>Ronde</label>
-                        <div class="input-wrapper">
-                            <button class="btn-adjust btn-minus" onclick="adjustValue('start-round', -1)">−</button>
-                            <input type="number" id="start-round" value="1" inputmode="numeric">
-                            <button class="btn-adjust btn-plus" onclick="adjustValue('start-round', 1)">+</button>
-                        </div>
+                        <select id="start-round" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
                     </div>
-                    <div class="input-group">
+                    <div class="select-group">
                         <label>Oefening</label>
-                        <div class="input-wrapper">
-                             <button class="btn-adjust btn-minus" onclick="adjustValue('start-ex', -1)">−</button>
-                            <input type="number" id="start-ex" value="1" inputmode="numeric">
-                             <button class="btn-adjust btn-plus" onclick="adjustValue('start-ex', 1)">+</button>
-                        </div>
+                        <select id="start-ex" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
                     </div>
-                    <div class="input-group">
+                    <div class="select-group">
                         <label>Set</label>
-                        <div class="input-wrapper">
-                             <button class="btn-adjust btn-minus" onclick="adjustValue('start-set', -1)">−</button>
-                            <input type="number" id="start-set" value="1" inputmode="numeric">
-                             <button class="btn-adjust btn-plus" onclick="adjustValue('start-set', 1)">+</button>
-                        </div>
+                        <select id="start-set" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -948,12 +931,24 @@
             // Helper to fill select
             const fill = (id, start, end, step=1, suffix="") => {
                 const sel = document.getElementById(id);
-                sel.innerHTML = "";
+                // Also try to find resume selectors
+                const resumeSel = document.getElementById("start-" + (id === 'rounds' ? 'round' : (id==='exercises'?'ex':(id==='sets'?'set':''))));
+
+                if(sel) sel.innerHTML = "";
+                if(resumeSel) resumeSel.innerHTML = "";
+                
                 for(let i=start; i<=end; i+=step) {
                     const opt = document.createElement('option');
                     opt.value = i;
                     opt.text = i + suffix;
-                    sel.appendChild(opt);
+                    if(sel) sel.appendChild(opt);
+                    
+                    if(resumeSel) {
+                        const opt2 = document.createElement('option');
+                        opt2.value = i;
+                        opt2.text = i + suffix;
+                        resumeSel.appendChild(opt2);
+                    }
                 }
             };
             
@@ -1196,11 +1191,11 @@
                 totalMin: document.getElementById('totalMin').value, mode: mode, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value
             };
-            localStorage.setItem('fnh_settings_v7', JSON.stringify(data));
+            localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
 
         function loadFromLocal() {
-            const saved = localStorage.getItem('fnh_settings_v7');
+            const saved = localStorage.getItem('fnh_settings_v8');
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -1227,23 +1222,6 @@
             document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
             const panel = document.getElementById('speech-settings-panel');
             if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
-        }
-
-        function adjustValue(id, delta) {
-            // Only used for Start Resume inputs now, which are still input[number]
-            const el = document.getElementById(id); let val = parseInt(el.value) || 0; val += delta; if (val < 1) val = 1; 
-            if(id === 'start-round') { const max = parseInt(document.getElementById('rounds').value); if(val > max) val = max; }
-            if(id === 'start-ex') { const max = parseInt(document.getElementById('exercises').value); if(val > max) val = max; }
-            if(id === 'start-set') { const max = parseInt(document.getElementById('sets').value); if(val > max) val = max; }
-            el.value = val; validateResumeInputs(); calculateRealTime(); saveToLocal();
-        }
-
-        function validateResumeInputs() {
-            const maxR = parseInt(document.getElementById('rounds').value) || 1;
-            const maxE = parseInt(document.getElementById('exercises').value) || 1;
-            const maxS = parseInt(document.getElementById('sets').value) || 1;
-            const rEl = document.getElementById('start-round'); const eEl = document.getElementById('start-ex'); const sEl = document.getElementById('start-set');
-            if(parseInt(rEl.value) > maxR) rEl.value = maxR; if(parseInt(eEl.value) > maxE) eEl.value = maxE; if(parseInt(sEl.value) > maxS) sEl.value = maxS;
         }
 
         function setMode(newMode) {
