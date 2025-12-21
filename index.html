@@ -126,7 +126,7 @@
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
         .btn-share-app { background: #BF5AF2; color: white; }
 
-        /* --- NEW COMPACT GRID (3 Columns) --- */
+        /* --- COMPACT GRID (3 Columns) --- */
         .compact-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -175,7 +175,18 @@
             appearance: none; -webkit-appearance: none; -moz-appearance: textfield;
             min-width: 0; width: 100%;
         }
-        
+        .btn-adjust {
+            background: #333; color: #fff; border: 1px solid #333;
+            font-size: 20px; font-weight: bold; 
+            width: 40px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .btn-minus { border-radius: 8px 0 0 8px; }
+        .btn-plus { border-radius: 0 8px 8px 0; }
+
         input[type="time"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
             background: #1c1c1e; color: white; font-size: 20px;
@@ -367,12 +378,12 @@
         }
 
         .gym-phase-title {
-            font-size: 18vw; 
+            font-size: 8vw; 
             font-weight: 900;
             text-transform: uppercase;
             margin-bottom: 5px;
             opacity: 0.8;
-            line-height: 0.85;
+            line-height: 1;
             position: relative;
             z-index: 1; 
             pointer-events: none;
@@ -457,7 +468,7 @@
         @media (min-width: 600px) {
             .stat-label { font-size: 14px; }
             .stat-value { font-size: 36px; }
-            .gym-phase-title { font-size: 80px; }
+            .gym-phase-title { font-size: 40px; }
             .gym-big-time { font-size: 180px; }
         }
 
@@ -515,9 +526,9 @@
         
         /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
-            width: 100%; height: 60vh; background: #222; border: 1px solid #555; color: white;
-            font-size: 20px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
-            font-family: inherit; line-height: 1.5;
+            width: 100%; height: 250px; background: #222; border: 1px solid #555; color: white;
+            font-size: 18px; padding: 10px; border-radius: 8px; resize: none; margin-bottom: 15px;
+            font-family: inherit;
         }
 
         .hidden { display: none !important; }
@@ -616,15 +627,15 @@
         <div class="compact-row">
             <div class="select-group">
                 <label>Rondes</label>
-                <select id="rounds" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
+                <select id="rounds" class="compact-select" onchange="calculateRealTime(); saveToLocal(); populateResumeDropdowns();"></select>
             </div>
             <div class="select-group">
                 <label>Oefeningen</label>
-                <select id="exercises" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
+                <select id="exercises" class="compact-select" onchange="calculateRealTime(); saveToLocal(); populateResumeDropdowns();"></select>
             </div>
             <div class="select-group">
                 <label>Sets</label>
-                <select id="sets" class="compact-select" onchange="calculateRealTime(); updateResumeDropdowns(); saveToLocal();"></select>
+                <select id="sets" class="compact-select" onchange="calculateRealTime(); saveToLocal(); populateResumeDropdowns();"></select>
             </div>
         </div>
 
@@ -658,7 +669,7 @@
                 <span class="arrow">▼</span>
             </div>
             <div id="sec-resume" class="collapsible-content">
-                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Kies hieronder waar je wilt starten.</div>
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Kies startpunt:</div>
                 <div class="compact-row">
                     <div class="select-group">
                         <label>Ronde</label>
@@ -1032,30 +1043,35 @@
             fillRest('roundRestSec');
         }
         
-        function updateResumeDropdowns() {
-            // Get max values from settings
-            const maxR = parseInt(document.getElementById('rounds').value) || 1;
-            const maxE = parseInt(document.getElementById('exercises').value) || 1;
-            const maxS = parseInt(document.getElementById('sets').value) || 1;
-            
-            // Helper to refill options while trying to keep selected value
-            const updateSelect = (id, max, prefix) => {
+        function populateResumeDropdowns() {
+            // Get current max values
+            const rounds = parseInt(document.getElementById('rounds').value) || 1;
+            const exercises = parseInt(document.getElementById('exercises').value) || 1;
+            const sets = parseInt(document.getElementById('sets').value) || 1;
+
+            // Get current selected values to try and preserve them
+            const curR = parseInt(document.getElementById('start-round').value) || 1;
+            const curE = parseInt(document.getElementById('start-ex').value) || 1;
+            const curS = parseInt(document.getElementById('start-set').value) || 1;
+
+            // Helper to fill
+            const fill = (id, max, current) => {
                 const sel = document.getElementById(id);
-                const currentVal = parseInt(sel.value) || 1;
                 sel.innerHTML = "";
                 for(let i=1; i<=max; i++) {
                     const opt = document.createElement('option');
                     opt.value = i;
-                    opt.text = prefix + " " + i;
+                    opt.text = i;
+                    if(i === current) opt.selected = true;
                     sel.appendChild(opt);
                 }
-                // Restore value if within range, else max
-                sel.value = (currentVal <= max) ? currentVal : max;
-            };
-            
-            updateSelect('start-round', maxR, "Ronde");
-            updateSelect('start-ex', maxE, "Oef");
-            updateSelect('start-set', maxS, "Set");
+                // If current was higher than max, select max by default logic of dropdown (or force last)
+                if(current > max) sel.value = max;
+            }
+
+            fill('start-round', rounds, curR);
+            fill('start-ex', exercises, curE);
+            fill('start-set', sets, curS);
         }
         
         function handleVisibilityChange() {
@@ -1153,7 +1169,9 @@
             document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; 
             // Reset start values
-            updateResumeDropdowns();
+            document.getElementById('start-round').value = 1;
+            document.getElementById('start-ex').value = 1;
+            document.getElementById('start-set').value = 1;
             
             const d = new Date(); d.setMinutes(d.getMinutes() + 30);
             document.getElementById('endTimeValue').value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -1163,7 +1181,7 @@
             speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
             speechPlaylists = {}; 
 
-            saveToLocal(); renderSpeechSettings(); calculateRealTime();
+            saveToLocal(); renderSpeechSettings(); calculateRealTime(); populateResumeDropdowns();
         }
 
         function shareApp() {
@@ -1265,7 +1283,6 @@
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
-                    // Dropdowns must exist first (which they do via populateDropdowns on DOMContentLoaded)
                     document.getElementById('rounds').value = data.rounds || 2;
                     document.getElementById('exercises').value = data.exercises || 6;
                     document.getElementById('sets').value = data.sets || 2;
@@ -1273,10 +1290,6 @@
                     document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30;
                     document.getElementById('roundRestSec').value = data.roundRestSec || 90;
                     document.getElementById('totalMin').value = data.totalMin || 30;
-                    
-                    // Trigger update for resume dropdowns based on loaded values
-                    updateResumeDropdowns();
-                    
                     if(data.startRound) document.getElementById('start-round').value = data.startRound;
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
@@ -1284,8 +1297,6 @@
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
                 } catch(e) { console.log("Error loading settings", e); }
-            } else {
-                updateResumeDropdowns();
             }
         }
         
@@ -1297,11 +1308,21 @@
             if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
         }
 
-        // AdjustValue only used for what? Ah, nothing now! Everything is dropdown or time input.
-        // We can remove it unless we kept something. No, all dropdowns. 
-        // Keeping it just in case logic needs it, but effectively unused in UI.
         function adjustValue(id, delta) {
-             // ... legacy code not needed for dropdowns
+            // Only used for Start Resume inputs now, which are still input[number]
+            const el = document.getElementById(id); let val = parseInt(el.value) || 0; val += delta; if (val < 1) val = 1; 
+            if(id === 'start-round') { const max = parseInt(document.getElementById('rounds').value); if(val > max) val = max; }
+            if(id === 'start-ex') { const max = parseInt(document.getElementById('exercises').value); if(val > max) val = max; }
+            if(id === 'start-set') { const max = parseInt(document.getElementById('sets').value); if(val > max) val = max; }
+            el.value = val; validateResumeInputs(); calculateRealTime(); saveToLocal();
+        }
+
+        function validateResumeInputs() {
+            const maxR = parseInt(document.getElementById('rounds').value) || 1;
+            const maxE = parseInt(document.getElementById('exercises').value) || 1;
+            const maxS = parseInt(document.getElementById('sets').value) || 1;
+            const rEl = document.getElementById('start-round'); const eEl = document.getElementById('start-ex'); const sEl = document.getElementById('start-set');
+            if(parseInt(rEl.value) > maxR) rEl.value = maxR; if(parseInt(eEl.value) > maxE) eEl.value = maxE; if(parseInt(sEl.value) > maxS) sEl.value = maxS;
         }
 
         function setMode(newMode) {
@@ -1529,10 +1550,7 @@
         }
         
         function setQuickDuration(min) {
-            // Need to set dropdown value
-            const sel = document.getElementById('totalMin');
-            sel.value = min;
-            // If option doesn't exist, we skip or add it. But our list is quite complete.
+            document.getElementById('totalMin').value = min;
             calculateRealTime();
             saveToLocal();
         }
