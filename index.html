@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.6</title>
+    <title>Friday-night-hawk-s Timer v8.7</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -290,13 +290,6 @@
         }
         .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
         
-        /* STRICT PAUSED STATE */
-        .btn-control.paused { 
-            background-color: white !important; 
-            color: black !important; 
-            border-color: white !important;
-        }
-        
         .btn-stop { color: #FF453A; /* Red icon for stop */ }
 
         .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
@@ -499,7 +492,12 @@
 
         /* --- MODALS --- */
         #pause-modal, #calc-modal, #speech-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        /* INCREASED WIDTH AND MAX-WIDTH FOR SPEECH/CALC MODALS */
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
+        
+        /* Specific style for speech modal to fill width */
+        #speech-edit-modal .modal-content { width: 98%; max-width: 98%; }
+
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
         
@@ -509,11 +507,11 @@
         /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
             width: 100%; 
-            height: 200px; /* Big height */
+            min-height: 300px; /* VEEL GROTER */
             background: #222; border: 1px solid #555; color: white;
             font-size: 16px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
             font-family: inherit;
-            box-sizing: border-box; /* Ensures padding doesn't overflow */
+            box-sizing: border-box; 
         }
 
         .hidden { display: none !important; }
@@ -545,7 +543,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.6</span>
+                FNH Timer <span class="version-tag">v8.7</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -762,14 +760,24 @@
             <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
             <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalc()">
             
-            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white; margin-bottom:10px;" onclick="applyCalc('duration')">
-                ⏱️ Tijd rekken
-                <div class="option-desc" id="desc-calc-duration">...</div>
+            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white;" onclick="applyCalc('duration')">
+                ⏱️ Tijd aanpassen
+                <span class="btn-subtext" id="desc-calc-duration">...</span>
             </button>
             
             <button class="modal-btn" id="btn-calc-rest" style="background: #FF9F0A; color: black;" onclick="applyCalc('rest')">
-                💤 Rust aanpassen
-                <div class="option-desc" id="desc-calc-rest">...</div>
+                💤 Rust (Set) aanpassen
+                <span class="btn-subtext" id="desc-calc-rest">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-calc-switch" style="background: #BF5AF2; color: white;" onclick="applyCalc('exerciseRest')">
+                🔀 Rust (Wissel) aanpassen
+                <span class="btn-subtext" id="desc-calc-switch">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-calc-round" style="background: #30D158; color: black;" onclick="applyCalc('roundRest')">
+                ☕ Rust (Ronde) aanpassen
+                <span class="btn-subtext" id="desc-calc-round">...</span>
             </button>
             
             <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeCalcModal()">Annuleren</div>
@@ -777,7 +785,7 @@
     </div>
     
     <div id="speech-edit-modal">
-        <div class="modal-content" style="max-width: 90%;">
+        <div class="modal-content">
             <h3 style="margin-top:0;">Spraak aanpassen</h3>
             <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Gebruik | voor variatie</div>
             <textarea id="speech-edit-area"></textarea>
@@ -1220,7 +1228,13 @@
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
         
         function previewCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; const diffPerSet = targetW - currentW;
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; 
+            
+            // NOTE: We are calculating how to accommodate the New Work Time.
+            // If Target > Current, we need MORE time. To keep End Time fixed, we must REDUCE rests.
+            // If Target < Current, we have LESS work. We can INCREASE rests.
+            const diffPerSet = targetW - currentW; // Positive if we increased work
+            
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             let countSets = 0;
@@ -1229,33 +1243,112 @@
                 if (isFuture) countSets++;
             }}}
             
-            const totalDiffSec = diffPerSet * countSets; const totalDiffMin = Math.round(totalDiffSec / 60); let sign = totalDiffMin >= 0 ? "+" : "";
+            // Total Time Impact
+            const totalDiffSec = diffPerSet * countSets; 
+            const totalDiffMin = Math.round(totalDiffSec / 60); 
+            let sign = totalDiffMin >= 0 ? "+" : "";
+            
             const currentEnd = document.getElementById('endTimeValue').value; const [h,m] = currentEnd.split(':'); const d = new Date(); d.setHours(h,m,0,0);
             d.setMinutes(d.getMinutes() + totalDiffMin);
             const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
             document.getElementById('desc-calc-duration').innerText = endText;
             
-            const currentRest = parseInt(document.getElementById('restSec').value); const newRest = currentRest - diffPerSet; const btnRest = document.getElementById('btn-calc-rest');
-            if (newRest < 5) { btnRest.style.opacity = 0.5; btnRest.disabled = true; document.getElementById('desc-calc-rest').innerText = `Niet mogelijk (Rust wordt ${newRest}s)`; } 
-            else { btnRest.style.opacity = 1; btnRest.disabled = false; document.getElementById('desc-calc-rest').innerText = `Rust: ${currentRest}s -> ${newRest}s`; }
+            // Update Rest Buttons
+            updateRestCalcButton('rest', 'btn-calc-rest', 'desc-calc-rest', totalDiffSec);
+            updateRestCalcButton('exerciseRest', 'btn-calc-switch', 'desc-calc-switch', totalDiffSec);
+            updateRestCalcButton('roundRest', 'btn-calc-round', 'desc-calc-round', totalDiffSec);
         }
         
-        function applyCalc(type) {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; const diffPerSet = targetW - currentW;
-            if (type === 'rest') {
-                const currentRest = parseInt(document.getElementById('restSec').value); const newVal = currentRest - diffPerSet; const sel = document.getElementById('restSec');
-                let exists = false; for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
-                if(!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s"; sel.appendChild(opt); sel.value = newVal; } else { sel.value = newVal; }
-                calculateRealTime(); saveToLocal();
+        function updateRestCalcButton(type, btnId, textId, totalWorkDiff) {
+            // Logic: Total Time is fixed.
+            // If Work increases by TotalWorkDiff (positive), Rest must DECREASE by TotalWorkDiff.
+            // If Work decreases (negative), Rest must INCREASE.
+            // Formula: NewTotalRest = CurrentTotalRest - TotalWorkDiff
+            
+            const btn = document.getElementById(btnId);
+            const steps = countFutureRestSteps(type);
+            
+            if (steps > 0) {
+                let currentVal = 0;
+                if(type === 'rest') currentVal = parseInt(document.getElementById('restSec').value);
+                if(type === 'exerciseRest') currentVal = parseInt(document.getElementById('exerciseRestSec').value);
+                if(type === 'roundRest') currentVal = parseInt(document.getElementById('roundRestSec').value);
+                
+                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
+                const newVal = currentVal - reductionPerStep;
+                
+                if (newVal >= 5) {
+                    btn.disabled = false; btn.style.opacity = 1;
+                    document.getElementById(textId).innerText = `${currentVal}s -> ${newVal}s`;
+                } else {
+                    btn.disabled = true; btn.style.opacity = 0.5;
+                    document.getElementById(textId).innerText = `Niet mogelijk (${newVal}s < 5s)`;
+                }
             } else {
-                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-                const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-                let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
-                const totalAddSec = diffPerSet * countSets; const addMin = Math.ceil(totalAddSec / 60);
+                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
+            }
+        }
+        
+        function countFutureRestSteps(type) {
+            // Count how many rest intervals of 'type' are remaining
+            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            
+            let count = 0;
+            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                
+                if (isFuture) {
+                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); 
+                    const isLastSetOfRound = (e===ex && s===sts); 
+                    const isLastSetOfExercise = (s===sts);
+                    
+                    if (!isLastSetOfWorkout) {
+                        if (isLastSetOfRound) { if(type === 'roundRest') count++; }
+                        else if (isLastSetOfExercise) { if(type === 'exerciseRest') count++; }
+                        else { if(type === 'rest') count++; }
+                    }
+                }
+            }}}
+            return count;
+        }
+        
+        function applyCalc(targetType) {
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; 
+            const currentW = workTimeSec; 
+            const diffPerSet = targetW - currentW;
+            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            
+            let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
+            
+            const totalWorkDiff = diffPerSet * countSets;
+
+            if (targetType === 'duration') {
+                const totalAddSec = totalWorkDiff; 
+                const addMin = Math.ceil(totalAddSec / 60);
                 const el = document.getElementById('endTimeValue'); const [h,m] = el.value.split(':'); const d = new Date(); d.setHours(h,m,0,0);
                 d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-                syncTime('endtime'); calculateRealTime(); saveToLocal();
+                syncTime('endtime'); 
+            } else {
+                // Adjusting a Rest
+                const steps = countFutureRestSteps(targetType);
+                let elementId = '';
+                if(targetType === 'rest') elementId = 'restSec';
+                if(targetType === 'exerciseRest') elementId = 'exerciseRestSec';
+                if(targetType === 'roundRest') elementId = 'roundRestSec';
+                
+                const currentRest = parseInt(document.getElementById(elementId).value);
+                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
+                const newVal = currentRest - reductionPerStep;
+                
+                const sel = document.getElementById(elementId);
+                let exists = false; for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
+                if(!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s"; sel.appendChild(opt); }
+                sel.value = newVal;
             }
+            
+            calculateRealTime(); saveToLocal();
             closeCalcModal();
         }
 
@@ -1514,7 +1607,9 @@
                 isPaused = true;
                 pauseStartTime = Date.now();
                 btn.innerText = "▶️"; // Show Play icon to resume
-                btn.classList.add('paused');
+                
+                // NO CSS CLASS 'paused' that changes background to white!
+                // We keep it dark/transparent.
                 
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
@@ -1597,7 +1692,7 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "⏸"; 
             isPaused = false;
             
             document.body.classList.remove('mode-pause');
@@ -1606,15 +1701,8 @@
             if (choice === 'push') {
                 targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
                 updateEndTimeDisplay();
-                // Move step end time forward by pause duration so the countdown continues correctly
                 stepEndTime += (currentPauseDuration * 1000); 
             } else {
-                // We are catching up, so targetEndTime stays same, but we reduce durations
-                // First, fix current step timer. The pause didn't happen in "simulation time", so stepEndTime simply extends by pause duration
-                // BUT we want to finish at original time.
-                // We reduce durations.
-                
-                // First shift stepEndTime to account for the pause delay, effectively resuming where we left off
                 stepEndTime += (currentPauseDuration * 1000); 
                 
                 // Now Reduce
@@ -1638,7 +1726,6 @@
                 }
                 
                 if(currentStepReduced) {
-                    // If we reduced current step, pull back stepEndTime
                     stepEndTime -= (deduction * 1000);
                     document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
                 }
