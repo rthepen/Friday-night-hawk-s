@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.8</title>
+    <title>Friday-night-hawk-s Timer v7.9</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -310,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.8</span>
+                FNH Timer <span class="version-tag">v7.9</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -454,6 +454,7 @@
                 <option value="simple">Simpel (Alleen info)</option>
                 <option value="sergeant">Drill Sergeant 🪖</option>
                 <option value="humor">Humor & Bitterballen 🤣</option>
+                <option value="custom" disabled hidden>Geïmporteerd / Aangepast</option>
             </select>
         </div>
         <div style="font-size:11px; color:#888; margin-bottom:10px; margin-top:-10px;">
@@ -519,7 +520,7 @@
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.8: 5s removed) ---
+        // --- COACH PRESETS DEFINITIONS (v7.8) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
@@ -607,10 +608,10 @@
             }
         };
 
-        // Initialize with standard settings (deep copy to avoid ref issues)
+        // Initialize
         let speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
 
-        // UI Config - REMOVED work_5s
+        // UI Config
         const uiConfig = [
             { header: "Voorbereiding" },
             { id: "prep_intro", label: "Introductie tekst", type: "text" },
@@ -620,6 +621,7 @@
             { id: "work_halfway", label: "Melding halverwege", type: "text" },
             { id: "work_30s", label: "Nog 30 seconden", type: "text" },
             { id: "work_10s", label: "Nog 10 seconden", type: "text" },
+            { id: "work_5s", label: "Nog 5 seconden", type: "text" },
             { header: "Tijdens Rust (Set)" },
             { id: "rest_set_start", label: "Rust commando", type: "text" },
             { id: "rest_set_tips", label: "Willekeurige tips (ademhaling/drinken)", type: "bool" },
@@ -639,7 +641,6 @@
             { id: "finish", label: "Einde training", type: "text" }
         ];
 
-        // ... (Remaining variables and logic same as v7.7 but updated trigger calls below)
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
         let currentIndex = 0;
@@ -678,9 +679,7 @@
         });
         
         function handleVisibilityChange() {
-            if (document.visibilityState === 'visible' && !isPaused && timerInterval) {
-                // Interval logic handles catch up automatically
-            }
+            if (document.visibilityState === 'visible' && !isPaused && timerInterval) { }
         }
 
         // --- NEW: APPLY PRESET FUNCTION ---
@@ -796,6 +795,12 @@
             const params = new URLSearchParams();
             params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
             params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
+            
+            // Add custom speech settings to url
+            for (const [key, value] of Object.entries(speechSettings)) {
+                if(value.text) { params.set(key, value.text); }
+            }
+
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
             if (navigator.share) { navigator.share({ title: 'FNH Training Settings', url: shareUrl }).catch(console.error); } 
@@ -812,6 +817,25 @@
                 document.getElementById('exerciseRestSec').value = params.get('re');
                 document.getElementById('roundRestSec').value = params.get('rr');
                 document.getElementById('totalMin').value = params.get('tm');
+                
+                // Custom speech logic
+                let speechUpdated = false;
+                for (const key in speechSettings) {
+                    if (params.has(key)) {
+                        speechSettings[key].text = params.get(key);
+                        speechUpdated = true;
+                    }
+                }
+                if(speechUpdated) {
+                    // Set dropdown to custom
+                    const dropdown = document.getElementById('coach-preset');
+                    if(dropdown) {
+                        dropdown.value = 'custom';
+                        dropdown.querySelector('option[value="custom"]').removeAttribute('hidden');
+                        dropdown.querySelector('option[value="custom"]').removeAttribute('disabled');
+                    }
+                }
+
                 saveToLocal();
             }
         }
