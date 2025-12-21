@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.7</title>
+    <title>Friday-night-hawk-s Timer v7.8</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -310,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.7</span>
+                FNH Timer <span class="version-tag">v7.8</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -517,18 +517,17 @@
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
-        let speechPlaylists = {}; // Stores shuffled playlist per key: { phrases: [], index: 0, originalText: "..." }
+        let speechPlaylists = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (v7.7 EXTENDED) ---
+        // --- COACH PRESETS DEFINITIONS (v7.8: 5s removed) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" }, 
                 work_start: { enabled: true, text: "Start met werken | Go, aan de slag | En... actie | Kom op, beginnen | Tijd om te knallen" },
-                work_halfway: { enabled: true, text: "Halverwege! | Je bent op de helft | Hou dit vast | De helft zit erop" }, 
+                work_halfway: { enabled: true, text: "Halverwege!" }, 
                 work_30s: { enabled: false, text: "Nog 30 seconden" },
                 work_10s: { enabled: true, text: "Nog 10 seconden | Laatste 10 | Bijna klaar | Aftellen loopt" },
-                work_5s: { enabled: false, text: "Nog 5 seconden" },
                 rest_set_start: { enabled: true, text: "Rust | Even ontspannen | Stop maar | Pak je rust | Ontspan" },
                 rest_set_tips: { enabled: true, text: "" }, 
                 rest_switch_start: { enabled: true, text: "Wissel van oefening | Door naar de volgende | Wisselen maar | Volgende station" },
@@ -550,7 +549,6 @@
                 work_halfway: { enabled: true, text: "Helft." },
                 work_30s: { enabled: false, text: "30." },
                 work_10s: { enabled: true, text: "10." },
-                work_5s: { enabled: false, text: "" },
                 rest_set_start: { enabled: true, text: "Rust. | Stop." },
                 rest_set_tips: { enabled: false, text: "" }, 
                 rest_switch_start: { enabled: true, text: "Wissel." },
@@ -572,7 +570,6 @@
                 work_halfway: { enabled: true, text: "Niet verslappen! | Doorgaan! | Ik wil zweet zien! | Is dat alles wat je hebt? | Kom op, sneller! | Niet janken, doorwerken!" },
                 work_30s: { enabled: true, text: "Nog 30 seconden, tempo! | Versnel!" },
                 work_10s: { enabled: true, text: "Laatste 10, alles geven! | Niet stoppen nu! | Doorgaan tot het gaatje! | Pijn is tijdelijk!" },
-                work_5s: { enabled: true, text: "5, 4, 3, 2, 1" },
                 rest_set_start: { enabled: true, text: "Herstel! En sta rechtop! | Stop! Blijf in beweging! | Rust! Niet gaan liggen! | Staande houden!" },
                 rest_set_tips: { enabled: false, text: "" },
                 rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende! | Opschieten, doorlopen! | Volgende oefening, nu! | Geen tijd te verliezen, wissel!" },
@@ -594,7 +591,6 @@
                 work_halfway: { enabled: true, text: "Nog even, de bar is al bijna open! | Denk aan de bitterballen! | Zweten is huilen van het vet! | Kom op, je kan het (denk ik)! | Kijk naar de buren, die zweten ook." },
                 work_30s: { enabled: false, text: "" },
                 work_10s: { enabled: true, text: "Nog 10 seconden afzien! | Bijna klaar, hou vol! | Nog even doorbijten! | De verlossing is nabij!" },
-                work_5s: { enabled: false, text: "" },
                 rest_set_start: { enabled: true, text: "Even hijgen als een postpaard. | En.. relax. | Zo, dat viel mee toch? | Even bijkomen." },
                 rest_set_tips: { enabled: true, text: "" },
                 rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen! | Hup hup, naar de volgende martelgang. | Doorwisselen, niet stiekem rusten. | Op naar het volgende pretpark." },
@@ -614,6 +610,7 @@
         // Initialize with standard settings (deep copy to avoid ref issues)
         let speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
 
+        // UI Config - REMOVED work_5s
         const uiConfig = [
             { header: "Voorbereiding" },
             { id: "prep_intro", label: "Introductie tekst", type: "text" },
@@ -623,7 +620,6 @@
             { id: "work_halfway", label: "Melding halverwege", type: "text" },
             { id: "work_30s", label: "Nog 30 seconden", type: "text" },
             { id: "work_10s", label: "Nog 10 seconden", type: "text" },
-            { id: "work_5s", label: "Nog 5 seconden", type: "text" },
             { header: "Tijdens Rust (Set)" },
             { id: "rest_set_start", label: "Rust commando", type: "text" },
             { id: "rest_set_tips", label: "Willekeurige tips (ademhaling/drinken)", type: "bool" },
@@ -643,6 +639,7 @@
             { id: "finish", label: "Einde training", type: "text" }
         ];
 
+        // ... (Remaining variables and logic same as v7.7 but updated trigger calls below)
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
         let currentIndex = 0;
@@ -691,7 +688,6 @@
             const preset = coachPresets[presetName];
             if (preset) {
                 speechSettings = JSON.parse(JSON.stringify(preset));
-                // Clear existing playlists so new text is re-shuffled
                 speechPlaylists = {};
                 saveToLocal();
                 renderSpeechSettings();
@@ -766,10 +762,9 @@
             document.getElementById('endTimeValue').value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
             setMode('endtime'); setAudioMode('speech');
             
-            // Reset to Standard Preset
             document.getElementById('coach-preset').value = 'standard';
             speechSettings = JSON.parse(JSON.stringify(coachPresets.standard));
-            speechPlaylists = {}; // Reset randomization
+            speechPlaylists = {}; 
 
             saveToLocal(); renderSpeechSettings(); calculateRealTime();
         }
@@ -995,7 +990,6 @@
             });
         }
 
-        // --- AUDIO TRIGGER ENGINE (UPDATED v7.7: Shuffle & Loop) ---
         function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; } 
             if (!window.speechSynthesis) return;
@@ -1006,14 +1000,11 @@
 
             let textToSpeak = fallbackText;
             
-            // LOGIC FOR SHUFFLE PLAYLIST
             if (setting.text && setting.text.trim() !== "") {
                 const rawText = setting.text;
                 
-                // Initialize or Re-init if text changed
                 if (!speechPlaylists[key] || speechPlaylists[key].originalText !== rawText) {
                     let phrases = rawText.split('|').map(s => s.trim()).filter(s => s !== "");
-                    // Shuffle Array (Fisher-Yates)
                     for (let i = phrases.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
                         [phrases[i], phrases[j]] = [phrases[j], phrases[i]];
@@ -1025,13 +1016,12 @@
                     };
                 }
 
-                // Pick next from playlist
                 let pl = speechPlaylists[key];
                 if (pl.phrases.length > 0) {
                     textToSpeak = pl.phrases[pl.index];
                     pl.index++;
                     if (pl.index >= pl.phrases.length) {
-                        pl.index = 0; // Loop back to start of shuffled list
+                        pl.index = 0; 
                     }
                 }
             }
@@ -1068,10 +1058,8 @@
             renderActiveList();
             currentIndex = 0;
             
-            // Reset Playlists on fresh start to re-shuffle
             speechPlaylists = {}; 
 
-            // Set first step end time relative to NOW
             stepEndTime = Date.now() + (schedule[0].time * 1000);
             runStep();
         }
@@ -1118,7 +1106,6 @@
             else if (step.type==='prep') { statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; triggerAudio('prep_intro', "Welkom"); }
             else { finish(); return; }
 
-            // Initialize End Time for this step
             stepEndTime = Date.now() + (step.time * 1000); 
             document.getElementById('countdown').innerText = step.time;
 
