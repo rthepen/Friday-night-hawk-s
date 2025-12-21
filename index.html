@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.4</title>
+    <title>Friday-night-hawk-s Timer v8.5</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -139,9 +139,9 @@
         .half-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 12px; /* Iets meer ruimte */
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .select-group { display: flex; flex-direction: column; min-width: 0; }
@@ -160,6 +160,13 @@
             background-repeat: no-repeat;
             background-position: right .5em top 50%;
             background-size: .65em auto;
+        }
+        
+        /* Highlighted inputs for Time/Duration */
+        .highlight-input {
+            border: 1px solid #555 !important;
+            background: #222 !important;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
         .input-group { display: flex; flex-direction: column; min-width: 0; }
@@ -222,12 +229,18 @@
         /* Custom Text Input (Read only trigger) */
         .text-input-trigger { 
             width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
-            padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
-            white-space: normal; 
+            padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; margin-top: 5px;
+            /* BIGGER AND FULL WIDTH */
+            white-space: pre-wrap; 
             overflow: visible;
-            min-height: 44px;
+            min-height: 80px; /* VEEL GROTER */
             line-height: 1.4;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
         .text-input-trigger:active { background: #3a3a3c; }
 
@@ -278,6 +291,7 @@
             transition: all 0.2s;
         }
         .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
+        .btn-control.paused { background: white !important; color: black !important; }
         
         .btn-stop { color: #FF453A; /* Red icon for stop */ }
 
@@ -335,7 +349,7 @@
         }
 
         .gym-phase-title {
-            font-size: 8vw; 
+            font-size: 8vw; /* Normal size for long text */
             font-weight: 900;
             text-transform: uppercase;
             margin-bottom: 5px;
@@ -344,6 +358,11 @@
             position: relative;
             z-index: 1; 
             pointer-events: none;
+            transition: font-size 0.3s;
+        }
+
+        .gym-phase-title.huge-text {
+            font-size: 16vw; /* DOUBLE SIZE for Werken/Rust */
         }
 
         .gym-big-time {
@@ -426,6 +445,7 @@
             .stat-label { font-size: 14px; }
             .stat-value { font-size: 36px; }
             .gym-phase-title { font-size: 40px; }
+            .gym-phase-title.huge-text { font-size: 80px; }
             .gym-big-time { font-size: 180px; }
         }
 
@@ -517,7 +537,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.4</span>
+                FNH Timer <span class="version-tag">v8.5</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -530,12 +550,12 @@
         
         <div class="half-row">
              <div class="select-group">
-                <label>Totale tijd (min)</label>
-                <select id="totalMin" class="compact-select" onchange="syncTime('duration'); saveToLocal();"></select>
+                <label>Klaar om (HH:MM) ✏️</label>
+                <input type="time" id="endTimeValue" class="highlight-input" onchange="syncTime('endtime'); saveToLocal();">
             </div>
-            <div class="select-group">
-                <label>Klaar om (HH:MM)</label>
-                <input type="time" id="endTimeValue" onchange="syncTime('endtime'); saveToLocal();">
+             <div class="select-group">
+                <label>Totale tijd (min) ✏️</label>
+                <select id="totalMin" class="compact-select highlight-input" onchange="syncTime('duration'); saveToLocal();"></select>
             </div>
         </div>
 
@@ -1609,6 +1629,13 @@
             // Text Updates
             titleEl.innerText = step.label;
             
+            // **HUGE TEXT LOGIC**
+            // Reset classes
+            titleEl.className = 'gym-phase-title';
+            if (step.label === 'WERKEN' || step.label === 'RUST') {
+                titleEl.classList.add('huge-text');
+            }
+            
             let nextText = "Hierna: Klaar";
             if(nextStep) {
                  nextText = "Hierna: " + nextStep.label;
@@ -1783,23 +1810,22 @@
             if (!isPaused) {
                 isPaused = true;
                 btn.innerText = "▶️"; // Show Play icon to resume
-                btn.style.backgroundColor = "white";
-                btn.style.color = "black";
+                btn.classList.add('paused'); // Use class instead of direct style
                 
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
-                // Since we consolidated logic, always show modal or default to push?
-                // For simplicity/consistency with end-time focus, show modal
                  document.getElementById('pause-modal').style.display = 'flex';
             }
         }
 
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
-            document.getElementById('btn-pause').innerText = "⏸"; // Show Pause icon to pause again
-            document.getElementById('btn-pause').style.backgroundColor = "rgba(255,255,255,0.9)";
+            const btn = document.getElementById('btn-pause');
+            btn.innerText = "⏸"; 
+            btn.classList.remove('paused'); // Remove class
+            
             isPaused = false;
             
             document.body.classList.remove('mode-pause');
@@ -1812,6 +1838,13 @@
             triggerAudio('manual_override', "We gaan weer door");
             if (choice === 'recalc') recalculateForFixedEnd();
             document.getElementById('gym-phase-title').innerText = step.label;
+            
+            // Re-apply huge text class if needed
+             const titleEl = document.getElementById('gym-phase-title');
+             titleEl.className = 'gym-phase-title';
+             if (step.label === 'WERKEN' || step.label === 'RUST') {
+                titleEl.classList.add('huge-text');
+            }
         }
 
         function updateEndTimeDisplay() { 
@@ -1834,6 +1867,7 @@
         function finish() {
             document.body.className = 'mode-finish';
             document.getElementById('gym-phase-title').innerText = "KLAAR!";
+             document.getElementById('gym-phase-title').classList.remove('huge-text'); // Remove huge text for finish
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('gym-stats-container').style.display='none';
             document.getElementById('btn-pause').style.display='none';
