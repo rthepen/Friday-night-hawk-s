@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.5</title>
+    <title>Friday-night-hawk-s Timer v7.6</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -310,7 +310,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.5</span>
+                FNH Timer <span class="version-tag">v7.6</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -456,6 +456,9 @@
                 <option value="humor">Humor & Bitterballen 🤣</option>
             </select>
         </div>
+        <div style="font-size:11px; color:#888; margin-bottom:10px; margin-top:-10px;">
+            Tip: Je kunt meerdere zinnen scheiden met een <b>|</b> teken. De app kiest dan elke keer de volgende zin.
+        </div>
 
         <div id="speech-settings-panel" class="speech-options">
             </div>
@@ -514,23 +517,24 @@
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
+        let speechCounters = {}; // Keeps track of rotation per key
         
-        // --- COACH PRESETS DEFINITIONS ---
+        // --- COACH PRESETS DEFINITIONS (UPDATED v7.6) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" }, 
-                work_start: { enabled: true, text: "Start met werken" },
-                work_halfway: { enabled: true, text: "Halverwege!" }, 
+                work_start: { enabled: true, text: "Start met werken | Go, aan de slag | En... actie" },
+                work_halfway: { enabled: true, text: "Halverwege! | Je bent op de helft | Hou dit vast" }, 
                 work_30s: { enabled: false, text: "Nog 30 seconden" },
-                work_10s: { enabled: true, text: "Nog 10 seconden" },
+                work_10s: { enabled: true, text: "Nog 10 seconden | Laatste 10 | Bijna klaar" },
                 work_5s: { enabled: false, text: "Nog 5 seconden" },
-                rest_set_start: { enabled: true, text: "Rust" },
+                rest_set_start: { enabled: true, text: "Rust | Even ontspannen | Stop maar" },
                 rest_set_tips: { enabled: true, text: "" }, 
-                rest_switch_start: { enabled: true, text: "Wissel van oefening" },
+                rest_switch_start: { enabled: true, text: "Wissel van oefening | Door naar de volgende | Wisselen maar" },
                 rest_switch_info: { enabled: true, text: "" }, 
                 rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
-                rest_round_start: { enabled: true, text: "Grote pauze" },
+                rest_round_start: { enabled: true, text: "Grote pauze | Even bijkomen | Ronde voorbij" },
                 rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, 
                 rest_round_info: { enabled: true, text: "" }, 
                 mile_start: { enabled: true, text: "Goede start, ga zo door" },
@@ -540,19 +544,19 @@
                 finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
             },
             simple: {
-                prep_intro: { enabled: true, text: "Training gaat beginnen." },
+                prep_intro: { enabled: true, text: "Training start." },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Start." },
+                work_start: { enabled: true, text: "Start. | Go. | Begin." },
                 work_halfway: { enabled: true, text: "Helft." },
                 work_30s: { enabled: false, text: "30." },
                 work_10s: { enabled: true, text: "10." },
                 work_5s: { enabled: false, text: "" },
-                rest_set_start: { enabled: true, text: "Rust." },
-                rest_set_tips: { enabled: false, text: "" }, // No tips
+                rest_set_start: { enabled: true, text: "Rust. | Stop." },
+                rest_set_tips: { enabled: false, text: "" }, 
                 rest_switch_start: { enabled: true, text: "Wissel." },
                 rest_switch_info: { enabled: true, text: "" },
                 rest_switch_10s: { enabled: true, text: "Nog 10." },
-                rest_round_start: { enabled: true, text: "Ronde pauze." },
+                rest_round_start: { enabled: true, text: "Ronde rust." },
                 rest_round_15s: { enabled: true, text: "Klaarstaan." },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: false, text: "" },
@@ -562,20 +566,20 @@
                 finish: { enabled: true, text: "Klaar." }
             },
             sergeant: {
-                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag!" },
+                prep_intro: { enabled: true, text: "Aantreden! Ik wil zweet zien vandaag! | Klaarstaan! We gaan beginnen!" },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Bewegen! Nu!" },
-                work_halfway: { enabled: true, text: "Niet verslappen! Doorgaan!" },
+                work_start: { enabled: true, text: "Bewegen! Nu! | Geen smoesjes, werken! | Pijn is fijn, start! | Tempo maken! Go! | Aan het werk!" },
+                work_halfway: { enabled: true, text: "Niet verslappen! | Doorgaan! | Ik wil zweet zien! | Is dat alles wat je hebt? | Kom op, sneller!" },
                 work_30s: { enabled: true, text: "Nog 30 seconden, tempo!" },
-                work_10s: { enabled: true, text: "Laatste 10, alles geven!" },
+                work_10s: { enabled: true, text: "Laatste 10, alles geven! | Niet stoppen nu! | Doorgaan tot het gaatje!" },
                 work_5s: { enabled: true, text: "5, 4, 3, 2, 1" },
-                rest_set_start: { enabled: true, text: "Herstel! En sta rechtop!" },
+                rest_set_start: { enabled: true, text: "Herstel! En sta rechtop! | Stop! Blijf in beweging! | Rust! Niet gaan liggen!" },
                 rest_set_tips: { enabled: false, text: "" },
-                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende!" },
+                rest_switch_start: { enabled: true, text: "Wissel! Marcheer naar de volgende! | Opschieten, doorlopen! | Volgende oefening, nu!" },
                 rest_switch_info: { enabled: true, text: "" },
                 rest_switch_10s: { enabled: true, text: "Opschieten! Nog 10!" },
-                rest_round_start: { enabled: true, text: "Ronde rust! Drinken en bek houden!" },
-                rest_round_15s: { enabled: true, text: "Terug op je post! Nu!" },
+                rest_round_start: { enabled: true, text: "Ronde rust! Drinken en bek houden! | Pauze! Even bijkomen en dan weer knallen!" },
+                rest_round_15s: { enabled: true, text: "Terug op je post! Nu! | Aantreden voor de volgende ronde!" },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Begin is er, maar we zijn er nog lang niet!" },
                 mile_half: { enabled: true, text: "Helft erop! Is dat alles wat je hebt?" },
@@ -584,20 +588,20 @@
                 finish: { enabled: true, text: "Missie volbracht. Inrukken!" }
             },
             humor: {
-                prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen!" },
+                prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen! | Zijn we er klaar voor? De bar is nog dicht!" },
                 prep_countdown: { enabled: true, text: "" },
-                work_start: { enabled: true, text: "Hup, actie in de taxi!" },
-                work_halfway: { enabled: true, text: "Nog even, de bar is al bijna open!" },
+                work_start: { enabled: true, text: "Hup, actie in de taxi! | Bewegen met dat lijf! | Hop hop, gas erop! | Niet kletsen, maar zweten! | En... gaan met die banaan!" },
+                work_halfway: { enabled: true, text: "Nog even, de bar is al bijna open! | Denk aan de bitterballen! | Zweten is huilen van het vet! | Kom op, je kan het (denk ik)!" },
                 work_30s: { enabled: false, text: "" },
-                work_10s: { enabled: true, text: "Nog 10 seconden afzien!" },
+                work_10s: { enabled: true, text: "Nog 10 seconden afzien! | Bijna klaar, hou vol! | Nog even doorbijten!" },
                 work_5s: { enabled: false, text: "" },
-                rest_set_start: { enabled: true, text: "Even hijgen als een postpaard." },
+                rest_set_start: { enabled: true, text: "Even hijgen als een postpaard. | En.. relax. | Zo, dat viel mee toch?" },
                 rest_set_tips: { enabled: true, text: "" },
-                rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen!" },
+                rest_switch_start: { enabled: true, text: "Wissel! Niet smokkelen! | Hup hup, naar de volgende martelgang. | Doorwisselen, niet stiekem rusten." },
                 rest_switch_info: { enabled: true, text: "" },
-                rest_switch_10s: { enabled: true, text: "Hup hup, naar de volgende martelgang." },
-                rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen." },
-                rest_round_15s: { enabled: true, text: "Kom op, buik in en borst vooruit." },
+                rest_switch_10s: { enabled: true, text: "Nog 10 tellen, opschieten!" },
+                rest_round_start: { enabled: true, text: "Grote pauze! Tijd voor sterke verhalen. | Neem een slokje, je hebt het nodig." },
+                rest_round_15s: { enabled: true, text: "Kom op, buik in en borst vooruit. | We gaan weer bijna beginnen!" },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Lekker bezig pik!" },
                 mile_half: { enabled: true, text: "We zijn op de helft, de bitterballen komen dichterbij!" },
@@ -984,15 +988,32 @@
             });
         }
 
+        // --- AUDIO TRIGGER ENGINE (UPDATED v7.6) ---
         function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; } 
             if (!window.speechSynthesis) return;
             if(key === 'manual_override') { const utterance = new SpeechSynthesisUtterance(fallbackText); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance); return; }
+            
             let setting = speechSettings[key]; if (!setting && key === 'tick') setting = speechSettings.prep_countdown; 
             if (!setting || !setting.enabled) return;
-            let textToSpeak = setting.text; if (textToSpeak.trim() === "") textToSpeak = fallbackText; 
+
+            // --- SPLIT LOGIC ---
+            let textToSpeak = fallbackText;
+            if (setting.text && setting.text.trim() !== "") {
+                const phrases = setting.text.split('|');
+                if (!speechCounters[key]) speechCounters[key] = 0;
+                // Get current phrase
+                textToSpeak = phrases[speechCounters[key] % phrases.length].trim();
+                // Increment for next time
+                speechCounters[key]++;
+            }
+
             if (extraInfo) textToSpeak += ". " + extraInfo;
-            window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance);
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'nl-NL';
+            window.speechSynthesis.speak(utterance);
         }
 
         function playBeep(f,t){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.frequency.value=f;o.type='sine'; const n=audioCtx.currentTime; if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);} else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);} else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);} }
