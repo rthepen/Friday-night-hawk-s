@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v6.9</title>
+    <title>Friday-night-hawk-s Timer v7.0</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -177,7 +177,7 @@
         }
         .toggle-btn.active { background: #333; color: #fff; }
 
-        /* --- COLLAPSIBLES (Settings & Resume) --- */
+        /* --- SPEECH SETTINGS --- */
         .speech-options, .resume-options {
             background: #1c1c1e;
             border-radius: 8px;
@@ -186,72 +186,54 @@
             border: 1px solid #333;
             text-align: left;
         }
+        .resume-options { border-color: #555; margin-top: 15px; margin-bottom: 30px; } 
 
-        /* Resume options specific styling */
-        .resume-options { 
-            border-color: #555; 
-            margin-top: 15px; 
-            margin-bottom: 30px; /* Extra space below */
-        } 
-        
-        .collapsible-header {
-            background: #2c2c2e;
-            padding: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 6px;
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .category-header {
+            margin-top: 20px; margin-bottom: 10px;
+            font-size: 12px; font-weight: 900; color: #30D158; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #333; padding-bottom: 5px;
         }
-        .collapsible-header.resume-header { background: #2c2c2e; color: #aaa; margin-top:0; }
-        
-        .collapsible-header:hover { background: #3a3a3c; }
-        .collapsible-content {
-            padding: 5px 10px;
-            background: #151516;
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            margin-bottom: 5px;
-        }
-        .collapsible-content.hidden { display: none; }
-        
-        .master-toggle {
-            background: #48484a; border: none; color: #ccc; font-size: 10px;
-            padding: 2px 6px; border-radius: 4px; margin-right: 10px; cursor: pointer;
-        }
-        .master-toggle:active { background: #666; }
-
-        .arrow { font-size: 10px; transition: transform 0.2s; }
-        .open .arrow { transform: rotate(180deg); }
+        .category-header:first-child { margin-top: 0; }
 
         .switch-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid #2a2a2a;
+            padding: 6px 0;
         }
-        .switch-row:last-child { border-bottom: none; }
-        .switch-label { font-size: 14px; color: #fff; }
+        .switch-label { font-size: 14px; color: #fff; flex: 1; }
         
-        .switch { position: relative; display: inline-block; width: 46px; height: 28px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 24px; flex-shrink: 0;}
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
             background-color: #333; transition: .4s; border-radius: 30px;
         }
         .slider:before {
-            position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px;
+            position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px;
             background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: #30D158; }
-        input:checked + .slider:before { transform: translateX(18px); }
+        input:checked + .slider:before { transform: translateX(16px); }
 
         /* Custom Text Input */
-        .text-input-row { padding: 0 0 10px 0; border-bottom: 1px solid #2a2a2a; }
-        .text-input { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; font-size: 14px; margin-top: 5px; }
+        .text-input { 
+            width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
+            padding: 8px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
+        }
+        .text-input::placeholder { color: #555; }
+
+        /* --- COLLAPSIBLE (Resume only) --- */
+        .collapsible-header {
+            background: #2c2c2e; padding: 10px; font-size: 12px; font-weight: bold;
+            color: #fff; text-transform: uppercase; cursor: pointer; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .collapsible-header:hover { background: #3a3a3c; }
+        .collapsible-content { padding: 10px; background: #151516; border-radius: 6px; margin-top: 5px; }
+        .collapsible-content.hidden { display: none; }
+        .arrow { font-size: 10px; transition: transform 0.2s; }
+        .open .arrow { transform: rotate(180deg); }
+
 
         /* --- BUTTONS --- */
         button.action-btn {
@@ -320,7 +302,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v6.9</span>
+                FNH Timer <span class="version-tag">v7.0</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -449,7 +431,7 @@
             </div>
         </div>
 
-        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN (SPRAAK)</div>
         
         <div class="toggle-container">
             <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
@@ -457,66 +439,7 @@
         </div>
 
         <div id="speech-settings-panel" class="speech-options">
-            <div class="switch-row">
-                <span class="switch-label"><strong>Commando's</strong> (Start/Rust/Wissel)</span>
-                <label class="switch"><input type="checkbox" id="sp-commands" checked><span class="slider"></span></label>
             </div>
-            
-            <div class="switch-row">
-                <span class="switch-label">Intro tekst bij start</span>
-                <label class="switch"><input type="checkbox" id="sp-promo-start" checked><span class="slider"></span></label>
-            </div>
-            <div class="text-input-row" id="intro-input-wrapper">
-                <input type="text" id="sp-intro-text" class="text-input" placeholder="Typ hier je intro tekst..." value="Welkom hawks bij leukste training van de week!">
-            </div>
-
-            <div class="switch-row">
-                <span class="switch-label"><strong>Aftellen</strong> (3, 2, 1)</span>
-                <label class="switch"><input type="checkbox" id="sp-countdown" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span class="switch-label">Volgende info (Set x van y...)</span>
-                <label class="switch"><input type="checkbox" id="sp-nextinfo" checked><span class="slider"></span></label>
-            </div>
-            
-            <div class="collapsible-header open" onclick="toggleSection('sec-times')">
-                <div>TIJDMELDINGEN (WERKEN)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-times')">[Alles]</button><span class="arrow">▼</span></div>
-            </div>
-            <div id="sec-times" class="collapsible-content">
-                <div class="switch-row"><span class="switch-label">"Halverwege!" (bij >30s)</span><label class="switch"><input type="checkbox" id="sp-halfway" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 1 minuut"</span><label class="switch"><input type="checkbox" id="sp-time60"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 30 seconden"</span><label class="switch"><input type="checkbox" id="sp-time30"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 20 seconden"</span><label class="switch"><input type="checkbox" id="sp-twentysec"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 15 seconden"</span><label class="switch"><input type="checkbox" id="sp-fifteensec"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 10 seconden"</span><label class="switch"><input type="checkbox" id="sp-tensec" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">"Nog 5 seconden"</span><label class="switch"><input type="checkbox" id="sp-time5"><span class="slider"></span></label></div>
-            </div>
-
-            <div class="collapsible-header open" onclick="toggleSection('sec-milestones')">
-                <div>MIJLPALEN (TOTAAL)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-milestones')">[Alles]</button><span class="arrow">▼</span></div>
-            </div>
-            <div id="sec-milestones" class="collapsible-content">
-                <div class="switch-row"><span class="switch-label">25% ("Goede start")</span><label class="switch"><input type="checkbox" id="sp-mile-start" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">50% ("Helft van training")</span><label class="switch"><input type="checkbox" id="sp-mile-half" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">75% ("Eindsprint")</span><label class="switch"><input type="checkbox" id="sp-mile-endpush" checked><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">Laatste ronde</span><label class="switch"><input type="checkbox" id="sp-mile-last" checked><span class="slider"></span></label></div>
-            </div>
-
-            <div class="collapsible-header open" onclick="toggleSection('sec-tips')">
-                <div>TIPS (TIJDENS RUST)</div>
-                <div><button class="master-toggle" onclick="toggleAll(event, 'sec-tips')">[Alles]</button><span class="arrow">▼</span></div>
-            </div>
-            <div id="sec-tips" class="collapsible-content">
-                 <div class="switch-row"><span class="switch-label">Noem totaal aantal oefeningen (Rust)</span><label class="switch"><input type="checkbox" id="sp-tip-excount" checked><span class="slider"></span></label></div>
-                 <div class="switch-row"><span class="switch-label">Noem "Oefening X van Y" (Wissel)</span><label class="switch"><input type="checkbox" id="sp-excount-switch" checked><span class="slider"></span></label></div>
-                 <div class="switch-row"><span class="switch-label">Drinken ("Slok water")</span><label class="switch"><input type="checkbox" id="sp-tip-drink"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">Losmaken ("Schud los")</span><label class="switch"><input type="checkbox" id="sp-tip-loose"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">Ademhaling ("Diep in/uit")</span><label class="switch"><input type="checkbox" id="sp-tip-breathe"><span class="slider"></span></label></div>
-                <div class="switch-row"><span class="switch-label">Focus ("Let op houding")</span><label class="switch"><input type="checkbox" id="sp-tip-focus"><span class="slider"></span></label></div>
-            </div>
-        </div>
 
         <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
         <div id="preview-list" class="schedule-list-wrapper">
@@ -572,15 +495,75 @@
         // --- VARIABELEN ---
         let mode = 'endtime';
         let audioMode = 'speech';
-        let speechSettings = { 
-            commands: true, countdown: true, nextInfo: true,
-            promo_start: true,
-            introText: "Welkom hawks bij leukste training van de week!", 
-            halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
-            m_start: true, m_half: true, m_end: true, m_last: true,
-            t_excount: true, t_excount_switch: true,
-            t_drink: false, t_loose: false, t_breathe: false, t_focus: false
+        
+        // NIEUWE DATASTRUCTUUR: ALLES INSTELBAAR
+        let speechSettings = {
+            // VOORBEREIDING
+            prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
+            prep_countdown: { enabled: true, text: "" }, // 3, 2, 1 is automatic
+
+            // OEFENING (WERKEN)
+            work_start: { enabled: true, text: "Start met werken" },
+            work_halfway: { enabled: true, text: "Halverwege, hou vol" },
+            work_30s: { enabled: false, text: "Nog 30 seconden" },
+            work_10s: { enabled: true, text: "Nog 10 seconden" },
+            work_5s: { enabled: false, text: "Nog 5 seconden" },
+
+            // RUST (KLEIN - SET)
+            rest_set_start: { enabled: true, text: "Rust" },
+            rest_set_tips: { enabled: true, text: "" }, // Random tips from pool, boolean only logic for now
+
+            // RUST (WISSEL - OEFENING)
+            rest_switch_start: { enabled: true, text: "Wissel van oefening" },
+            rest_switch_info: { enabled: true, text: "" }, // "Hierna oefening X"
+
+            // RUST (GROOT - RONDE)
+            rest_round_start: { enabled: true, text: "Grote pauze" },
+            rest_round_15s: { enabled: true, text: "Loop vast terug naar je oefening" }, // NIEUW
+            rest_round_info: { enabled: true, text: "" }, // "Hierna ronde X"
+
+            // MIJLPALEN
+            mile_start: { enabled: true, text: "Goede start, ga zo door" },
+            mile_half: { enabled: true, text: "Je bent op de helft van de training" },
+            mile_end: { enabled: true, text: "Laatste loodjes, eindsprint" },
+            mile_lastround: { enabled: true, text: "Laatste ronde, alles geven" },
+            finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
         };
+
+        // UI Builder Helper
+        const uiConfig = [
+            { header: "Voorbereiding" },
+            { id: "prep_intro", label: "Introductie tekst", type: "text" },
+            { id: "prep_countdown", label: "Aftellen (3, 2, 1)", type: "bool" },
+
+            { header: "Tijdens Oefening (Werken)" },
+            { id: "work_start", label: "Start commando", type: "text" },
+            { id: "work_halfway", label: "Melding halverwege", type: "text" },
+            { id: "work_30s", label: "Nog 30 seconden", type: "text" },
+            { id: "work_10s", label: "Nog 10 seconden", type: "text" },
+            { id: "work_5s", label: "Nog 5 seconden", type: "text" },
+
+            { header: "Tijdens Rust (Set)" },
+            { id: "rest_set_start", label: "Rust commando", type: "text" },
+            { id: "rest_set_tips", label: "Willekeurige tips (ademhaling/drinken)", type: "bool" },
+
+            { header: "Tijdens Rust (Wissel)" },
+            { id: "rest_switch_start", label: "Wissel commando", type: "text" },
+            { id: "rest_switch_info", label: "Noem volgende oefening nummer", type: "bool" },
+
+            { header: "Tijdens Rust (Ronde)" },
+            { id: "rest_round_start", label: "Grote pauze commando", type: "text" },
+            { id: "rest_round_info", label: "Noem volgende ronde nummer", type: "bool" },
+            { id: "rest_round_15s", label: "Waarschuwing 15s voor einde (Teruglopen)", type: "text" },
+
+            { header: "Mijlpalen & Einde" },
+            { id: "mile_start", label: "25% (Goede start)", type: "text" },
+            { id: "mile_half", label: "50% (Helft)", type: "text" },
+            { id: "mile_end", label: "75% (Eindsprint)", type: "text" },
+            { id: "mile_lastround", label: "Start laatste ronde", type: "text" },
+            { id: "finish", label: "Einde training", type: "text" }
+        ];
+
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
         let currentIndex = 0;
@@ -590,17 +573,9 @@
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
 
-        const allSwitchIds = [
-            'sp-commands', 'sp-countdown', 'sp-nextinfo',
-            'sp-promo-start', 
-            'sp-halfway', 'sp-time60', 'sp-time30', 'sp-twentysec', 'sp-fifteensec', 'sp-tensec', 'sp-time5',
-            'sp-mile-start', 'sp-mile-half', 'sp-mile-endpush', 'sp-mile-last',
-            'sp-tip-excount', 'sp-excount-switch', 
-            'sp-tip-drink', 'sp-tip-loose', 'sp-tip-breathe', 'sp-tip-focus'
-        ];
-
         document.addEventListener('DOMContentLoaded', () => {
             loadFromLocal();
+            renderSpeechSettings(); // BUILD THE UI
             checkForSharedSettings();
 
             if(!document.getElementById('endTimeValue').value) {
@@ -610,14 +585,9 @@
                 document.getElementById('endTimeValue').value = timeString;
             }
 
-            document.querySelectorAll('input').forEach(i => {
-                if(i.type === 'checkbox') {
-                    i.addEventListener('change', () => { updateSettings(); saveToLocal(); });
-                } else if(i.type === 'text') {
-                    i.addEventListener('input', () => { updateSettings(); saveToLocal(); });
-                } else {
-                    i.addEventListener('input', () => { calculateRealTime(); saveToLocal(); });
-                }
+            // General listeners
+            document.querySelectorAll('input.param-input').forEach(i => {
+                i.addEventListener('input', () => { calculateRealTime(); saveToLocal(); });
             });
             
             document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
@@ -628,6 +598,65 @@
 
             calculateRealTime(); 
         });
+
+        // --- RENDER SPEECH SETTINGS DYNAMICALLY ---
+        function renderSpeechSettings() {
+            const container = document.getElementById('speech-settings-panel');
+            container.innerHTML = "";
+
+            uiConfig.forEach(item => {
+                if(item.header) {
+                    const h = document.createElement('div');
+                    h.className = "category-header";
+                    h.innerText = item.header;
+                    container.appendChild(h);
+                } else {
+                    const wrapper = document.createElement('div');
+                    
+                    // Switch Row
+                    const row = document.createElement('div');
+                    row.className = "switch-row";
+                    const label = document.createElement('span');
+                    label.className = "switch-label";
+                    label.innerText = item.label;
+                    
+                    const switchLabel = document.createElement('label');
+                    switchLabel.className = "switch";
+                    const cb = document.createElement('input');
+                    cb.type = "checkbox";
+                    cb.id = `sw_${item.id}`;
+                    cb.checked = speechSettings[item.id].enabled;
+                    cb.onchange = () => { 
+                        speechSettings[item.id].enabled = cb.checked; 
+                        saveToLocal(); 
+                    };
+                    const slider = document.createElement('span');
+                    slider.className = "slider";
+                    
+                    switchLabel.appendChild(cb);
+                    switchLabel.appendChild(slider);
+                    row.appendChild(label);
+                    row.appendChild(switchLabel);
+                    wrapper.appendChild(row);
+
+                    // Text Input (if type is text)
+                    if(item.type === 'text') {
+                        const input = document.createElement('input');
+                        input.type = "text";
+                        input.className = "text-input";
+                        input.value = speechSettings[item.id].text;
+                        input.placeholder = "Typ tekst om uit te spreken...";
+                        input.oninput = () => {
+                            speechSettings[item.id].text = input.value;
+                            saveToLocal();
+                        };
+                        wrapper.appendChild(input);
+                    }
+                    
+                    container.appendChild(wrapper);
+                }
+            });
+        }
 
         // --- RESET FUNCTIE ---
         function resetToDefaults() {
@@ -641,12 +670,9 @@
             document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; 
             
-            // Start waarden reset
             document.getElementById('start-round').value = 1;
             document.getElementById('start-ex').value = 1;
             document.getElementById('start-set').value = 1;
-
-            document.getElementById('sp-intro-text').value = "Welkom hawks bij leukste training van de week!";
 
             const d = new Date(); 
             d.setMinutes(d.getMinutes() + 30);
@@ -656,27 +682,37 @@
             setMode('endtime');
             setAudioMode('speech');
 
-            speechSettings = { 
-                commands: true, countdown: true, nextInfo: true,
-                promo_start: true,
-                introText: "Welkom hawks bij leukste training van de week!",
-                halfway: true, time60: false, time30: false, time20: false, time15: false, time10: true, time5: false,
-                m_start: true, m_half: true, m_end: true, m_last: true,
-                t_excount: true, t_excount_switch: true,
-                t_drink: false, t_loose: false, t_breathe: false, t_focus: false
+            // Reset Object
+            speechSettings = {
+                prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
+                prep_countdown: { enabled: true, text: "" },
+                work_start: { enabled: true, text: "Start met werken" },
+                work_halfway: { enabled: true, text: "Halverwege, hou vol" },
+                work_30s: { enabled: false, text: "Nog 30 seconden" },
+                work_10s: { enabled: true, text: "Nog 10 seconden" },
+                work_5s: { enabled: false, text: "Nog 5 seconden" },
+                rest_set_start: { enabled: true, text: "Rust" },
+                rest_set_tips: { enabled: true, text: "" },
+                rest_switch_start: { enabled: true, text: "Wissel van oefening" },
+                rest_switch_info: { enabled: true, text: "" },
+                rest_round_start: { enabled: true, text: "Grote pauze" },
+                rest_round_15s: { enabled: true, text: "Loop vast terug naar je oefening" },
+                rest_round_info: { enabled: true, text: "" },
+                mile_start: { enabled: true, text: "Goede start, ga zo door" },
+                mile_half: { enabled: true, text: "Je bent op de helft van de training" },
+                mile_end: { enabled: true, text: "Laatste loodjes, eindsprint" },
+                mile_lastround: { enabled: true, text: "Laatste ronde, alles geven" },
+                finish: { enabled: true, text: "Gefeliciteerd, training voltooid" }
             };
-            
-            allSwitchIds.forEach(id => {
-                const key = mapIdToKey(id);
-                if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
-            });
 
             saveToLocal();
+            renderSpeechSettings(); // Re-render inputs
             calculateRealTime();
         }
 
         // --- SHARE / SAVE LOGIC ---
         function shareSettings() {
+            // Simplified share for now (only structure params)
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
             const sets = document.getElementById('sets').value;
@@ -684,7 +720,6 @@
             const exerciseRestSec = document.getElementById('exerciseRestSec').value;
             const roundRestSec = document.getElementById('roundRestSec').value;
             const totalMin = document.getElementById('totalMin').value;
-            const endTimeVal = document.getElementById('endTimeValue').value;
             
             const params = new URLSearchParams();
             params.set('r', rounds);
@@ -694,22 +729,15 @@
             params.set('re', exerciseRestSec);
             params.set('rr', roundRestSec);
             params.set('tm', totalMin);
-            params.set('m', mode);
-            params.set('et', endTimeVal);
             
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
-
-            let summary = `🦅 *Friday Night Hawks* @ Van Rheenen Sport\n`;
-            summary += `Iedere vrijdagavond om 19:45 knallen: Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊\n`;
-            summary += `We sluiten af met bitterballen & gezelligheid! 🍖🥳\n`;
-            summary += `Iedereen is welkom (door leden, voor leden).\n\n`;
-            summary += `👇 *Hier het opgeslagen schema:*\n`;
-
+            
+            // ... (Copy logic same as before)
             if (navigator.share) {
-                navigator.share({ title: 'FNH Training Schema', text: summary, url: shareUrl }).catch(console.error);
+                navigator.share({ title: 'FNH Training', url: shareUrl }).catch(console.error);
             } else {
-                navigator.clipboard.writeText(summary + shareUrl).then(() => { alert("Link met info gekopieerd naar klembord!"); });
+                navigator.clipboard.writeText(shareUrl).then(() => { alert("Link gekopieerd!"); });
             }
         }
 
@@ -723,8 +751,6 @@
                 document.getElementById('exerciseRestSec').value = params.get('re');
                 document.getElementById('roundRestSec').value = params.get('rr');
                 document.getElementById('totalMin').value = params.get('tm');
-                if(params.has('m')) setMode(params.get('m'));
-                if(params.has('et')) document.getElementById('endTimeValue').value = params.get('et');
                 saveToLocal();
             }
         }
@@ -740,17 +766,16 @@
                 totalMin: document.getElementById('totalMin').value,
                 mode: mode,
                 audioMode: audioMode,
-                speechSettings: speechSettings,
-                // Save resume pos just in case
+                speechSettings: speechSettings, // SAVES THE FULL OBJECT
                 startRound: document.getElementById('start-round').value,
                 startEx: document.getElementById('start-ex').value,
                 startSet: document.getElementById('start-set').value
             };
-            localStorage.setItem('fnh_settings_v5', JSON.stringify(data));
+            localStorage.setItem('fnh_settings_v7', JSON.stringify(data));
         }
 
         function loadFromLocal() {
-            const saved = localStorage.getItem('fnh_settings_v5');
+            const saved = localStorage.getItem('fnh_settings_v7');
             if(saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -768,59 +793,25 @@
 
                     if(data.mode) setMode(data.mode);
                     if(data.audioMode) setAudioMode(data.audioMode);
+                    
+                    // Merge saved settings with current structure (in case new keys added)
                     if(data.speechSettings) {
-                        speechSettings = data.speechSettings;
-                        allSwitchIds.forEach(id => {
-                            const key = mapIdToKey(id);
-                            if(document.getElementById(id)) document.getElementById(id).checked = speechSettings[key];
-                        });
-                        if(speechSettings.introText) {
-                            document.getElementById('sp-intro-text').value = speechSettings.introText;
+                        for (const key in speechSettings) {
+                            if (data.speechSettings[key]) {
+                                speechSettings[key] = data.speechSettings[key];
+                            }
                         }
                     }
                 } catch(e) { console.log("Error loading settings", e); }
             }
         }
         
-        function mapIdToKey(id) {
-            const map = {
-                'sp-commands': 'commands', 'sp-countdown': 'countdown', 'sp-nextinfo': 'nextInfo',
-                'sp-promo-start': 'promo_start', 
-                'sp-halfway': 'halfway', 'sp-time60': 'time60', 'sp-time30': 'time30', 'sp-twentysec': 'time20', 
-                'sp-fifteensec': 'time15', 'sp-tensec': 'time10', 'sp-time5': 'time5',
-                'sp-mile-start': 'm_start', 'sp-mile-half': 'm_half', 'sp-mile-endpush': 'm_end', 'sp-mile-last': 'm_last',
-                'sp-tip-excount': 't_excount', 'sp-excount-switch': 't_excount_switch', 
-                'sp-tip-drink': 't_drink', 'sp-tip-loose': 't_loose', 'sp-tip-breathe': 't_breathe', 'sp-tip-focus': 't_focus'
-            };
-            return map[id];
-        }
-
         // --- UTILS ---
         function toggleSection(id) {
             const el = document.getElementById(id);
             const header = el.previousElementSibling; 
             if(el.classList.contains('hidden')) { el.classList.remove('hidden'); header.classList.add('open'); }
             else { el.classList.add('hidden'); header.classList.remove('open'); }
-        }
-
-        function toggleAll(event, sectionId) {
-            event.stopPropagation();
-            const section = document.getElementById(sectionId);
-            const checkboxes = section.querySelectorAll('input[type="checkbox"]');
-            let anyUnchecked = false;
-            checkboxes.forEach(cb => { if(!cb.checked) anyUnchecked = true; });
-            checkboxes.forEach(cb => { cb.checked = anyUnchecked; });
-            updateSettings();
-            saveToLocal();
-        }
-
-        function updateSettings() {
-            allSwitchIds.forEach(id => {
-                const key = mapIdToKey(id);
-                if(document.getElementById(id)) speechSettings[key] = document.getElementById(id).checked;
-            });
-            const introVal = document.getElementById('sp-intro-text').value;
-            speechSettings.introText = introVal;
         }
 
         function setAudioMode(newMode) {
@@ -836,8 +827,8 @@
             let val = parseInt(el.value) || 0;
             val += delta;
             if (val < 1) val = 1; 
-
-            // --- NIEUWE LOGICA: LIMIETEN VOOR STARTPUNT ---
+            
+            // Limit checks
             if(id === 'start-round') {
                 const max = parseInt(document.getElementById('rounds').value);
                 if(val > max) val = max;
@@ -850,13 +841,9 @@
                 const max = parseInt(document.getElementById('sets').value);
                 if(val > max) val = max;
             }
-            // ------------------------------------------------
 
             el.value = val;
-            
-            // Controleer na elke wijziging of de resume velden nog kloppen
             validateResumeInputs();
-
             calculateRealTime();
             saveToLocal();
         }
@@ -865,11 +852,9 @@
             const maxR = parseInt(document.getElementById('rounds').value) || 1;
             const maxE = parseInt(document.getElementById('exercises').value) || 1;
             const maxS = parseInt(document.getElementById('sets').value) || 1;
-
             const rEl = document.getElementById('start-round');
             const eEl = document.getElementById('start-ex');
             const sEl = document.getElementById('start-set');
-
             if(parseInt(rEl.value) > maxR) rEl.value = maxR;
             if(parseInt(eEl.value) > maxE) eEl.value = maxE;
             if(parseInt(sEl.value) > maxS) sEl.value = maxS;
@@ -889,7 +874,7 @@
             calculateRealTime();
         }
 
-        // --- CALCULATION LOGIC ---
+        // --- CALCULATION & SCHEDULING (Identiek aan v6.9) ---
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
@@ -904,15 +889,12 @@
 
             if (ex === 0 || sts === 0 || rounds === 0) return;
 
-            // Step 1: Count REMAINING work sets and fixed rest
             let remainingWorkSets = 0;
             let remainingFixedRestTime = 0;
 
-            // Logic: Iterate total structure, skip if before start point
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
                     for (let s = 1; s <= sts; s++) {
-                        // Check if this set is in the future or equal to start
                         let isFuture = false;
                         if (r > startRound) isFuture = true;
                         else if (r === startRound && e > startEx) isFuture = true;
@@ -920,8 +902,6 @@
 
                         if (isFuture) {
                             remainingWorkSets++;
-                            
-                            // Check for rests AFTER this set
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts);
                             const isLastSetOfRound = (e===ex && s===sts);
                             const isLastSetOfExercise = (s===sts);
@@ -935,9 +915,7 @@
                     }
                 }
             }
-
-            // Always add prep time for resume
-            remainingFixedRestTime += 10;
+            remainingFixedRestTime += 10; // prep
 
             let availableSec = 0;
             if (mode === 'duration') {
@@ -961,7 +939,7 @@
                 resEl.innerText = "--"; errEl.style.display = "block";
                 btnEl.style.opacity = 0.5; btnEl.disabled = true;
                 workTimeSec = 0;
-                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk (check startpunt of tijd)</div>";
+                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
             } else {
                 workTimeSec = Math.floor(workSecTotal / remainingWorkSets);
                 resEl.innerText = workTimeSec + "s"; errEl.style.display = "none";
@@ -971,7 +949,6 @@
                 exerciseRestSec = exRst;
                 roundRestSec = roundRst;
                 
-                // Pass true to enable "resume" filtering in generation
                 generateScheduleData(true);
                 renderPreviewList();
             }
@@ -997,7 +974,6 @@
                     for (let s = 1; s <= sts; s++) {
                         currentSetGlobal++;
                         
-                        // RESUME FILTER
                         let include = true;
                         if (applyResumeFilter) {
                              if (r < startRound) include = false;
@@ -1030,10 +1006,10 @@
                     }
                 }
             }
-            if(schedule.length > 1) { // Only if valid steps added
+            if(schedule.length > 1) { 
                 schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0 });
             } else {
-                schedule = []; // Reset if nothing fits
+                schedule = [];
             }
         }
 
@@ -1046,7 +1022,6 @@
                 if (item.type==='finish') return;
                 let timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
-
                 const div = document.createElement('div');
                 div.className = `schedule-item`;
                 
@@ -1078,7 +1053,6 @@
                 const div = document.createElement('div');
                 div.className = `schedule-item ${idx===currentIndex?'active':''}`;
                 div.id = `step-${idx}`;
-                
                 if(item.type==='rest-long') div.style.borderLeft = "4px solid #0A84FF";
                 else if(item.type==='rest-exercise') div.style.borderLeft = "4px solid #BF5AF2";
 
@@ -1094,83 +1068,43 @@
             });
         }
 
-        function triggerAudio(type, text) {
+        // --- AUDIO TRIGGER ENGINE (UPDATED) ---
+        function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') {
-                if (type === 'start') playBeep(800, 'start');
-                else if (type === 'end') playBeep(400, 'end');
-                else if (type === 'tick') playBeep(600, 'tick');
-                else if (type === 'win') playBeep(1000, 'win');
-            } else {
-                if (!window.speechSynthesis) return;
-                
-                let shouldSpeak = false;
+                if (key.includes('work')) playBeep(800, 'start');
+                else if (key.includes('rest')) playBeep(400, 'end');
+                else if (key === 'tick') playBeep(600, 'tick');
+                else if (key === 'finish') playBeep(1000, 'win');
+                return;
+            } 
+            
+            if (!window.speechSynthesis) return;
 
-                if (type === 'command' && speechSettings.commands) shouldSpeak = true;
-                if (type === 'tick' && speechSettings.countdown) shouldSpeak = true;
-                
-                if (type === 'halfway' && speechSettings.halfway) shouldSpeak = true;
-                if (type === 'time60' && speechSettings.time60) shouldSpeak = true;
-                if (type === 'time30' && speechSettings.time30) shouldSpeak = true;
-                if (type === 'time20' && speechSettings.time20) shouldSpeak = true;
-                if (type === 'time15' && speechSettings.time15) shouldSpeak = true;
-                if (type === 'time10' && speechSettings.time10) shouldSpeak = true;
-                if (type === 'time5' && speechSettings.time5) shouldSpeak = true;
-
-                if (type === 'milestone' && speechSettings.m_end) shouldSpeak = true; 
-                if (type === 'info' && speechSettings.nextInfo) shouldSpeak = true;
-                
-                if (type === 'promo_start' && speechSettings.promo_start) {
-                    text = speechSettings.introText || "Welkom hawks bij leukste training van de week!";
-                    shouldSpeak = true;
-                }
-
-                if (type === 'milestone_combo') {
-                    let fullSentence = "";
-                    let allowMilestone = false;
-                    
-                    if(text.milestone_id === 'start' && speechSettings.m_start) allowMilestone = true;
-                    if(text.milestone_id === 'half' && speechSettings.m_half) allowMilestone = true;
-                    if(text.milestone_id === 'end' && speechSettings.m_end) allowMilestone = true;
-                    if(text.milestone_id === 'last' && speechSettings.m_last) allowMilestone = true;
-                    
-                    if(allowMilestone) fullSentence += text.text + ". ";
-                    if(speechSettings.commands) fullSentence += text.command + ". ";
-                     
-                    if(fullSentence.trim() !== "") {
-                        text = fullSentence;
-                        shouldSpeak = true;
-                    }
-                }
-
-                if (type === 'rest_combo') {
-                    let fullSentence = "";
-                    if(speechSettings.commands) fullSentence += text.basic + ". ";
-                    if(speechSettings.nextInfo && text.info) fullSentence += text.info + ". ";
-                    
-                    let possibleTips = [];
-                    if(speechSettings.t_drink) possibleTips.push("Neem een slok water");
-                    if(speechSettings.t_loose) possibleTips.push("Schud je spieren los");
-                    if(speechSettings.t_breathe) possibleTips.push("Let op je ademhaling. Diep in en uit");
-                    if(speechSettings.t_focus) possibleTips.push("Blijf gefocust");
-
-                    if(possibleTips.length > 0) {
-                        const randomTip = possibleTips[Math.floor(Math.random() * possibleTips.length)];
-                        fullSentence += randomTip + ". ";
-                    }
-                    
-                    if(fullSentence.trim() !== "") {
-                        text = fullSentence;
-                        shouldSpeak = true;
-                    }
-                }
-
-                if (shouldSpeak) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'nl-NL';
-                    window.speechSynthesis.speak(utterance);
-                }
+            // Handle pure text overrides
+            if(key === 'manual_override') {
+                 const utterance = new SpeechSynthesisUtterance(fallbackText);
+                 utterance.lang = 'nl-NL';
+                 window.speechSynthesis.speak(utterance);
+                 return;
             }
+
+            // Lookup settings
+            let setting = speechSettings[key];
+            if (!setting && key === 'tick') setting = speechSettings.prep_countdown; // reuse countdown
+
+            // If not found or disabled, return
+            if (!setting || !setting.enabled) return;
+
+            let textToSpeak = setting.text;
+            if (textToSpeak.trim() === "") textToSpeak = fallbackText; // Use fallback if custom empty
+
+            // Append extra info (like "Round 2 of 3") if allowed by specific settings
+            if (extraInfo) textToSpeak += ". " + extraInfo;
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'nl-NL';
+            window.speechSynthesis.speak(utterance);
         }
 
         function playBeep(f,t){
@@ -1186,15 +1120,12 @@
 
         function startWorkout() {
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
-            
             if(audioMode === 'beep') {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-            } else {
-                if(window.speechSynthesis) window.speechSynthesis.cancel(); 
-            }
+            } else { if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 
-            generateScheduleData(true); // TRUE = apply resume filter
+            generateScheduleData(true);
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('timer-screen').style.display = 'flex';
 
@@ -1220,6 +1151,7 @@
             const step = schedule[currentIndex];
             const nextStep = schedule[currentIndex + 1];
             const totalRounds = parseInt(document.getElementById('rounds').value);
+            const totalEx = document.getElementById('exercises').value;
 
             document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
             const activeItem = document.getElementById(`step-${currentIndex}`);
@@ -1229,68 +1161,42 @@
 
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
-                
-                let m_id = null;
-                let m_txt = "";
-                
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) { m_id = 'start'; m_txt = "Goede start, ga zo door"; }
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) { m_id = 'half'; m_txt = "Je bent op de helft van de training"; }
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) { m_id = 'end'; m_txt = "Laatste loodjes, eindsprint"; }
-                if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) { m_id = 'last'; m_txt = "Laatste ronde, alles geven"; }
-                
-                triggerAudio('milestone_combo', { milestone_id: m_id, text: m_txt, command: "Start met werken" });
-                if(audioMode==='beep') triggerAudio('start');
+                // Milestones
+                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
+                else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
+                else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
+                else if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
+                else triggerAudio('work_start', "Start");
             }
             else if (step.type==='rest') { 
                 statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
-                if(audioMode==='beep') triggerAudio('end');
-                else {
-                    let infoTxt = "";
-                    if (nextStep && nextStep.type === 'work') {
-                        const setsLeft = totalWorkSetsGlobal - nextStep.info.globalSet; 
-                        
-                        const totalEx = document.getElementById('exercises').value;
-                        let exCountMsg = "";
-                        if (speechSettings.t_excount) exCountMsg = ` van de ${totalEx}`;
-                        
-                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}. Nog ${setsLeft} sets totaal`;
-                    }
-                    triggerAudio('rest_combo', { basic: "Rust", info: infoTxt });
+                let info = "";
+                // Tips logic
+                if (speechSettings.rest_set_tips.enabled) {
+                   const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"];
+                   info = tips[Math.floor(Math.random()*tips.length)];
                 }
+                triggerAudio('rest_set_start', "Rust", info);
             }
             else if (step.type==='rest-exercise') {
                 statusEl.innerText="WISSEL OEFENING"; statusEl.style.color="#BF5AF2";
-                if(audioMode==='beep') triggerAudio('end');
-                else {
-                    let infoTxt = "";
-                    if (nextStep && nextStep.type === 'work') {
-                        const totalEx = document.getElementById('exercises').value;
-                        let exCountMsg = "";
-                        if (speechSettings.t_excount_switch) exCountMsg = ` van de ${totalEx}`;
-                        
-                        infoTxt = `Hierna oefening ${nextStep.info.exercise}${exCountMsg}`;
-                    }
-                    triggerAudio('rest_combo', { basic: "Wissel van oefening", info: infoTxt });
+                let info = "";
+                if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info) {
+                    info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`;
                 }
+                triggerAudio('rest_switch_start', "Wissel", info);
             }
             else if (step.type==='rest-long') { 
                 statusEl.innerText="RONDE PAUZE"; statusEl.style.color="#0A84FF"; 
-                if(audioMode==='beep') triggerAudio('end');
-                else {
-                    let infoTxt = "";
-                    if (nextStep && nextStep.type === 'work') {
-                        infoTxt = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`;
-                    }
-                    triggerAudio('rest_combo', { basic: "Grote pauze", info: infoTxt });
+                let info = "";
+                if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) {
+                    info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`;
                 }
+                triggerAudio('rest_round_start', "Grote pauze", info);
             }
             else if (step.type==='prep') { 
                 statusEl.innerText="STARTEN"; statusEl.style.color="#0A84FF"; 
-                if(speechSettings.promo_start) {
-                    triggerAudio('promo_start', "ignored_will_use_custom_text");
-                } else {
-                    triggerAudio('info', "Maak je klaar voor de eerste set");
-                }
+                triggerAudio('prep_intro', "Welkom");
             }
             else { finish(); return; }
 
@@ -1303,7 +1209,6 @@
                     document.getElementById('countdown').innerText = step.time;
                     updateProgressBar();
                     
-                    // TOTAL TIME LEFT UPDATE
                     const now = new Date();
                     const diff = targetEndTimeDate - now;
                     if(diff > 0) {
@@ -1315,19 +1220,24 @@
                         document.getElementById('total-time-left').innerText = "0:00:00";
                     }
 
+                    // --- TIME TRIGGERS ---
+                    const init = step.initialTime;
+
                     if (step.type === 'work') {
-                        const init = step.initialTime;
-                        
-                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('halfway', "Halverwege");
-                        
-                        if (step.time === 60 && init > 70) triggerAudio('time60', "Nog 1 minuut");
-                        if (step.time === 30 && init > 40) triggerAudio('time30', "Nog 30 seconden");
-                        if (step.time === 20 && init > 30) triggerAudio('time20', "Nog 20 seconden");
-                        if (step.time === 15 && init > 25) triggerAudio('time15', "Nog 15 seconden");
-                        if (step.time === 10 && init > 15) triggerAudio('time10', "Nog 10 seconden");
-                        if (step.time === 5 && init > 10) triggerAudio('time5', "Nog 5 seconden");
+                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('work_halfway', "Halverwege");
+                        if (step.time === 30 && init > 40) triggerAudio('work_30s', "30 seconden");
+                        if (step.time === 10 && init > 15) triggerAudio('work_10s', "10 seconden");
+                        if (step.time === 5 && init > 10) triggerAudio('work_5s', "5 seconden");
+                    }
+                    
+                    // --- NEW 15s WARNING FOR ROUND REST ---
+                    if (step.type === 'rest-long') {
+                         if (step.time === 15 && init > 20) {
+                             triggerAudio('rest_round_15s', "Loop terug");
+                         }
                     }
 
+                    // COUNTDOWN
                     if (step.time <= 0) {
                         clearInterval(timerInterval);
                         currentIndex++;
@@ -1355,7 +1265,7 @@
                 btn.innerText = "HERVAT"; btn.style.backgroundColor = "#30D158";
                 document.getElementById('current-status').innerText = "GEPAUZEERD";
                 document.getElementById('current-status').style.color = "white";
-                triggerAudio('command', "Gepauzeerd");
+                triggerAudio('manual_override', "Gepauzeerd");
             } else {
                 if (mode === 'endtime') document.getElementById('pause-modal').style.display = 'flex';
                 else resolvePause('push');
@@ -1367,7 +1277,7 @@
             document.getElementById('btn-pause').innerText = "PAUZE";
             document.getElementById('btn-pause').style.backgroundColor = "#FF9F0A";
             isPaused = false;
-            triggerAudio('command', "We gaan weer door");
+            triggerAudio('manual_override', "We gaan weer door");
             if (choice === 'recalc') recalculateForFixedEnd();
             else updateTargetTimeFromNow();
             renderActiveList();
@@ -1418,7 +1328,6 @@
             const elapsed = now - workoutStartTime;
             let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100;
             document.getElementById('total-progress').style.width = pct + "%";
-            // UPDATE TEXT
             document.getElementById('progress-text').innerText = Math.floor(pct) + "%";
         }
         
@@ -1428,7 +1337,7 @@
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('btn-pause').style.display='none';
             document.getElementById('total-time-left').innerText = "0:00:00";
-            triggerAudio('milestone', "Gefeliciteerd, training voltooid");
+            triggerAudio('finish', "Training klaar");
         }
         
         function resetApp() { clearInterval(timerInterval); location.reload(); }
