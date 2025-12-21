@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.0</title>
+    <title>Friday-night-hawk-s Timer v7.1</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -302,7 +302,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.0</span>
+                FNH Timer <span class="version-tag">v7.1</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -496,31 +496,32 @@
         let mode = 'endtime';
         let audioMode = 'speech';
         
-        // NIEUWE DATASTRUCTUUR: ALLES INSTELBAAR
+        // NIEUWE DATASTRUCTUUR: ALLES INSTELBAAR (v7.1)
         let speechSettings = {
             // VOORBEREIDING
             prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
-            prep_countdown: { enabled: true, text: "" }, // 3, 2, 1 is automatic
+            prep_countdown: { enabled: true, text: "" }, 
 
             // OEFENING (WERKEN)
             work_start: { enabled: true, text: "Start met werken" },
-            work_halfway: { enabled: true, text: "Halverwege, hou vol" },
+            work_halfway: { enabled: true, text: "Halverwege!" }, // AANGEPAST
             work_30s: { enabled: false, text: "Nog 30 seconden" },
             work_10s: { enabled: true, text: "Nog 10 seconden" },
             work_5s: { enabled: false, text: "Nog 5 seconden" },
 
             // RUST (KLEIN - SET)
             rest_set_start: { enabled: true, text: "Rust" },
-            rest_set_tips: { enabled: true, text: "" }, // Random tips from pool, boolean only logic for now
+            rest_set_tips: { enabled: true, text: "" }, 
 
             // RUST (WISSEL - OEFENING)
             rest_switch_start: { enabled: true, text: "Wissel van oefening" },
-            rest_switch_info: { enabled: true, text: "" }, // "Hierna oefening X"
+            rest_switch_info: { enabled: true, text: "" }, 
+            rest_switch_10s: { enabled: true, text: "Nog 10 seconden" }, // NIEUW
 
             // RUST (GROOT - RONDE)
             rest_round_start: { enabled: true, text: "Grote pauze" },
-            rest_round_15s: { enabled: true, text: "Loop vast terug naar je oefening" }, // NIEUW
-            rest_round_info: { enabled: true, text: "" }, // "Hierna ronde X"
+            rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" }, // AANGEPAST
+            rest_round_info: { enabled: true, text: "" }, 
 
             // MIJLPALEN
             mile_start: { enabled: true, text: "Goede start, ga zo door" },
@@ -550,11 +551,12 @@
             { header: "Tijdens Rust (Wissel)" },
             { id: "rest_switch_start", label: "Wissel commando", type: "text" },
             { id: "rest_switch_info", label: "Noem volgende oefening nummer", type: "bool" },
+            { id: "rest_switch_10s", label: "Waarschuwing 10s voor einde", type: "text" },
 
             { header: "Tijdens Rust (Ronde)" },
             { id: "rest_round_start", label: "Grote pauze commando", type: "text" },
             { id: "rest_round_info", label: "Noem volgende ronde nummer", type: "bool" },
-            { id: "rest_round_15s", label: "Waarschuwing 15s voor einde (Teruglopen)", type: "text" },
+            { id: "rest_round_15s", label: "Waarschuwing 15s voor einde", type: "text" },
 
             { header: "Mijlpalen & Einde" },
             { id: "mile_start", label: "25% (Goede start)", type: "text" },
@@ -625,10 +627,12 @@
                     const cb = document.createElement('input');
                     cb.type = "checkbox";
                     cb.id = `sw_${item.id}`;
-                    cb.checked = speechSettings[item.id].enabled;
+                    cb.checked = speechSettings[item.id] ? speechSettings[item.id].enabled : false;
                     cb.onchange = () => { 
-                        speechSettings[item.id].enabled = cb.checked; 
-                        saveToLocal(); 
+                        if(speechSettings[item.id]) {
+                            speechSettings[item.id].enabled = cb.checked; 
+                            saveToLocal(); 
+                        }
                     };
                     const slider = document.createElement('span');
                     slider.className = "slider";
@@ -644,11 +648,13 @@
                         const input = document.createElement('input');
                         input.type = "text";
                         input.className = "text-input";
-                        input.value = speechSettings[item.id].text;
+                        input.value = speechSettings[item.id] ? speechSettings[item.id].text : "";
                         input.placeholder = "Typ tekst om uit te spreken...";
                         input.oninput = () => {
-                            speechSettings[item.id].text = input.value;
-                            saveToLocal();
+                            if(speechSettings[item.id]) {
+                                speechSettings[item.id].text = input.value;
+                                saveToLocal();
+                            }
                         };
                         wrapper.appendChild(input);
                     }
@@ -682,12 +688,12 @@
             setMode('endtime');
             setAudioMode('speech');
 
-            // Reset Object
+            // Reset Object v7.1
             speechSettings = {
                 prep_intro: { enabled: true, text: "Welkom hawks bij leukste training van de week!" },
                 prep_countdown: { enabled: true, text: "" },
                 work_start: { enabled: true, text: "Start met werken" },
-                work_halfway: { enabled: true, text: "Halverwege, hou vol" },
+                work_halfway: { enabled: true, text: "Halverwege!" },
                 work_30s: { enabled: false, text: "Nog 30 seconden" },
                 work_10s: { enabled: true, text: "Nog 10 seconden" },
                 work_5s: { enabled: false, text: "Nog 5 seconden" },
@@ -695,8 +701,9 @@
                 rest_set_tips: { enabled: true, text: "" },
                 rest_switch_start: { enabled: true, text: "Wissel van oefening" },
                 rest_switch_info: { enabled: true, text: "" },
+                rest_switch_10s: { enabled: true, text: "Nog 10 seconden" },
                 rest_round_start: { enabled: true, text: "Grote pauze" },
-                rest_round_15s: { enabled: true, text: "Loop vast terug naar je oefening" },
+                rest_round_15s: { enabled: true, text: "Nog 15 seconden, ga naar je oefening" },
                 rest_round_info: { enabled: true, text: "" },
                 mile_start: { enabled: true, text: "Goede start, ga zo door" },
                 mile_half: { enabled: true, text: "Je bent op de helft van de training" },
@@ -706,13 +713,12 @@
             };
 
             saveToLocal();
-            renderSpeechSettings(); // Re-render inputs
+            renderSpeechSettings(); 
             calculateRealTime();
         }
 
         // --- SHARE / SAVE LOGIC ---
         function shareSettings() {
-            // Simplified share for now (only structure params)
             const rounds = document.getElementById('rounds').value;
             const exercises = document.getElementById('exercises').value;
             const sets = document.getElementById('sets').value;
@@ -733,7 +739,6 @@
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = baseUrl + '?' + params.toString();
             
-            // ... (Copy logic same as before)
             if (navigator.share) {
                 navigator.share({ title: 'FNH Training', url: shareUrl }).catch(console.error);
             } else {
@@ -766,7 +771,7 @@
                 totalMin: document.getElementById('totalMin').value,
                 mode: mode,
                 audioMode: audioMode,
-                speechSettings: speechSettings, // SAVES THE FULL OBJECT
+                speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value,
                 startEx: document.getElementById('start-ex').value,
                 startSet: document.getElementById('start-set').value
@@ -794,7 +799,6 @@
                     if(data.mode) setMode(data.mode);
                     if(data.audioMode) setAudioMode(data.audioMode);
                     
-                    // Merge saved settings with current structure (in case new keys added)
                     if(data.speechSettings) {
                         for (const key in speechSettings) {
                             if (data.speechSettings[key]) {
@@ -874,7 +878,7 @@
             calculateRealTime();
         }
 
-        // --- CALCULATION & SCHEDULING (Identiek aan v6.9) ---
+        // --- CALCULATION & SCHEDULING ---
         function calculateRealTime() {
             const rounds = parseInt(document.getElementById('rounds').value) || 1;
             const ex = parseInt(document.getElementById('exercises').value) || 0;
@@ -1068,7 +1072,7 @@
             });
         }
 
-        // --- AUDIO TRIGGER ENGINE (UPDATED) ---
+        // --- AUDIO TRIGGER ENGINE ---
         function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') {
                 if (key.includes('work')) playBeep(800, 'start');
@@ -1080,7 +1084,6 @@
             
             if (!window.speechSynthesis) return;
 
-            // Handle pure text overrides
             if(key === 'manual_override') {
                  const utterance = new SpeechSynthesisUtterance(fallbackText);
                  utterance.lang = 'nl-NL';
@@ -1088,17 +1091,14 @@
                  return;
             }
 
-            // Lookup settings
             let setting = speechSettings[key];
-            if (!setting && key === 'tick') setting = speechSettings.prep_countdown; // reuse countdown
+            if (!setting && key === 'tick') setting = speechSettings.prep_countdown; 
 
-            // If not found or disabled, return
             if (!setting || !setting.enabled) return;
 
             let textToSpeak = setting.text;
-            if (textToSpeak.trim() === "") textToSpeak = fallbackText; // Use fallback if custom empty
+            if (textToSpeak.trim() === "") textToSpeak = fallbackText; 
 
-            // Append extra info (like "Round 2 of 3") if allowed by specific settings
             if (extraInfo) textToSpeak += ". " + extraInfo;
 
             window.speechSynthesis.cancel();
@@ -1161,7 +1161,6 @@
 
             if (step.type==='work') { 
                 statusEl.innerText="WERKEN"; statusEl.style.color="#30D158"; 
-                // Milestones
                 if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
                 else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
                 else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
@@ -1171,7 +1170,6 @@
             else if (step.type==='rest') { 
                 statusEl.innerText="RUST"; statusEl.style.color="#FF9F0A"; 
                 let info = "";
-                // Tips logic
                 if (speechSettings.rest_set_tips.enabled) {
                    const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"];
                    info = tips[Math.floor(Math.random()*tips.length)];
@@ -1230,14 +1228,19 @@
                         if (step.time === 5 && init > 10) triggerAudio('work_5s', "5 seconden");
                     }
                     
-                    // --- NEW 15s WARNING FOR ROUND REST ---
                     if (step.type === 'rest-long') {
                          if (step.time === 15 && init > 20) {
                              triggerAudio('rest_round_15s', "Loop terug");
                          }
                     }
+                    
+                    // NIEUW: Trigger voor WISSEL rust (10 seconden)
+                    if (step.type === 'rest-exercise') {
+                         if (step.time === 10 && init > 15) {
+                             triggerAudio('rest_switch_10s', "Nog 10 seconden");
+                         }
+                    }
 
-                    // COUNTDOWN
                     if (step.time <= 0) {
                         clearInterval(timerInterval);
                         currentIndex++;
