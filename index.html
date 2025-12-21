@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v7.27 (Jump & Recalc)</title>
+    <title>Friday-night-hawk-s Timer v7.28 (Reverse Calc)</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -257,6 +257,12 @@
         /* --- INFO BOX --- */
         .info-bar {
             background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; flex-shrink: 0; margin-top: 5px;
+            position: relative;
+        }
+        .btn-force-edit {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: #333; border: 1px solid #555; color: white; 
+            font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer;
         }
 
         /* --- LISTS --- */
@@ -438,9 +444,12 @@
         body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODAL --- */
-        #pause-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
+        #pause-modal, #calc-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white;}
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        
+        .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
+        .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
 
         .hidden { display: none !important; }
         
@@ -471,7 +480,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v7.27</span>
+                FNH Timer <span class="version-tag">v7.28</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -560,6 +569,7 @@
         <div class="info-bar">
             <div style="font-size:12px; color:#888;">WERKTIJD PER SET</div>
             <div style="font-size:30px; font-weight:bold; color:#30D158;" id="live-calc-result">--</div>
+            <button class="btn-force-edit" onclick="openCalcModal()">✏️ Pas aan</button>
             <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
         </div>
         
@@ -702,6 +712,25 @@
             <p style="color:#aaa;">Wat wil je doen?</p>
             <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="resolvePause('recalc')">⏱️ Inhalen (korter werken)</button>
             <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">🐢 Eindtijd verzetten</button>
+        </div>
+    </div>
+    
+    <div id="calc-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
+            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalc()">
+            
+            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white; margin-bottom:10px;" onclick="applyCalc('duration')">
+                ⏱️ Tijd rekken
+                <div class="option-desc" id="desc-calc-duration">...</div>
+            </button>
+            
+            <button class="modal-btn" id="btn-calc-rest" style="background: #FF9F0A; color: black;" onclick="applyCalc('rest')">
+                💤 Rust aanpassen
+                <div class="option-desc" id="desc-calc-rest">...</div>
+            </button>
+            
+            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeCalcModal()">Annuleren</div>
         </div>
     </div>
     
@@ -1166,6 +1195,100 @@
                 restTimeSec = rst; exerciseRestSec = exRst; roundRestSec = roundRst;
                 generateScheduleData(true); renderPreviewList();
             }
+        }
+        
+        // --- NEW REVERSE CALC LOGIC ---
+        function openCalcModal() {
+            document.getElementById('calc-modal').style.display = 'flex';
+            document.getElementById('target-work-sec').value = workTimeSec;
+            previewCalc();
+        }
+        function closeCalcModal() {
+            document.getElementById('calc-modal').style.display = 'none';
+        }
+        
+        function previewCalc() {
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+            const currentW = workTimeSec;
+            const diffPerSet = targetW - currentW;
+            
+            // Get total remaining work sets
+            // Re-run minimal logic from calculateRealTime to get counts
+            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            
+            let countSets = 0;
+            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                if (isFuture) countSets++;
+            }}}
+            
+            // Option 1: Adjust Duration
+            const totalDiffSec = diffPerSet * countSets;
+            const totalDiffMin = Math.round(totalDiffSec / 60);
+            const currentDur = parseInt(document.getElementById('totalMin').value) || 30;
+            const newDur = currentDur + Math.ceil(totalDiffSec/60);
+            
+            let sign = totalDiffMin >= 0 ? "+" : "";
+            let endText = "";
+            if (mode === 'endtime') {
+                const currentEnd = document.getElementById('endTimeValue').value;
+                const [h,m] = currentEnd.split(':');
+                const d = new Date(); d.setHours(h,m,0,0);
+                d.setMinutes(d.getMinutes() + totalDiffMin);
+                endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
+            } else {
+                endText = `Totale tijd: ${currentDur}m -> ${newDur}m`;
+            }
+            document.getElementById('desc-calc-duration').innerText = endText;
+            
+            // Option 2: Adjust Rest
+            const currentRest = parseInt(document.getElementById('restSec').value);
+            const newRest = currentRest - diffPerSet;
+            
+            const btnRest = document.getElementById('btn-calc-rest');
+            if (newRest < 5) {
+                btnRest.style.opacity = 0.5; btnRest.disabled = true;
+                document.getElementById('desc-calc-rest').innerText = `Niet mogelijk (Rust wordt ${newRest}s)`;
+            } else {
+                btnRest.style.opacity = 1; btnRest.disabled = false;
+                document.getElementById('desc-calc-rest').innerText = `Rust: ${currentRest}s -> ${newRest}s`;
+            }
+        }
+        
+        function applyCalc(type) {
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+            const currentW = workTimeSec;
+            const diffPerSet = targetW - currentW;
+            
+            if (type === 'rest') {
+                const currentRest = parseInt(document.getElementById('restSec').value);
+                adjustValue('restSec', -diffPerSet); // Minus because if work goes up, rest goes down
+            } else {
+                // Adjust duration/endtime
+                // We need to find how many minutes to add to totalMin
+                // Re-run count
+                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+                const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+                let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
+                
+                const totalAddSec = diffPerSet * countSets;
+                const addMin = Math.ceil(totalAddSec / 60);
+                
+                if (mode === 'duration') {
+                    adjustValue('totalMin', addMin);
+                } else {
+                    // Update end time value
+                    const el = document.getElementById('endTimeValue');
+                    const [h,m] = el.value.split(':');
+                    const d = new Date(); d.setHours(h,m,0,0);
+                    d.setMinutes(d.getMinutes() + addMin);
+                    el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+                    calculateRealTime();
+                    saveToLocal();
+                }
+            }
+            closeCalcModal();
         }
 
         function generateScheduleData(applyResumeFilter) {
