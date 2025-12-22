@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.17</title>
+    <title>Friday-night-hawk-s Timer v8.18</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -508,7 +508,7 @@
         body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODALS --- */
-        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal, #bonus-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
         
         /* SPEECH MODAL FIX */
@@ -521,13 +521,51 @@
         .schedule-table th { background: #333; color: #fff; padding: 8px; text-align: left; position: sticky; top: 0; }
         .schedule-table td { padding: 8px; border-bottom: 1px solid #222; color: #ccc; }
         .schedule-table tr.row-work td { color: #fff; font-weight: bold; }
-        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; cursor: pointer; } /* Make clickable rows clear */
+        .schedule-table tr.row-work input { background: #222; border: 1px solid #444; color: #30D158; width: 100%; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 14px;}
+        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; }
 
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
         
+        /* Checkbox Row Style for Calc Modal */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #2a2a2c;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .checkbox-row label {
+            font-size: 14px;
+            color: white;
+            font-weight: normal;
+            margin: 0;
+            flex: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #30D158;
+        }
+        .calc-result-badge {
+            font-size: 12px;
+            font-weight: bold;
+            color: #30D158;
+            background: rgba(48, 209, 88, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .calc-result-badge.negative {
+            color: #FF453A;
+            background: rgba(255, 69, 58, 0.2);
+        }
+        
         .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
-        .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
         
         /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
@@ -557,7 +595,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.17</span>
+                FNH Timer <span class="version-tag">v8.18</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -796,29 +834,55 @@
     </div>
     
     <div id="calc-modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:400px;">
             <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
-            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalc()">
+            <div style="color:#aaa; font-size:12px; margin-bottom:10px;">Vul je doel in en vink aan wat er mag veranderen.</div>
             
-            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white;" onclick="applyCalc('duration')">
-                ⏱️ Tijd aanpassen
-                <span class="btn-subtext" id="desc-calc-duration">...</span>
-            </button>
+            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalcDistribution()">
             
-            <button class="modal-btn" id="btn-calc-rest" style="background: #FF9F0A; color: black;" onclick="applyCalc('rest')">
-                💤 Rust (Set) aanpassen
-                <span class="btn-subtext" id="desc-calc-rest">...</span>
-            </button>
+            <div style="max-height: 250px; overflow-y:auto; margin-bottom:15px;">
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-duration" onchange="previewCalcDistribution()">
+                    <label for="cb-duration">Totale Tijd (Eindtijd)</label>
+                    <span id="res-duration" class="calc-result-badge" style="display:none;"></span>
+                </div>
+                
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-rest" onchange="previewCalcDistribution()">
+                    <label for="cb-rest">Rust tussen sets</label>
+                    <span id="res-rest" class="calc-result-badge" style="display:none;"></span>
+                </div>
 
-            <button class="modal-btn" id="btn-calc-switch" style="background: #BF5AF2; color: white;" onclick="applyCalc('exerciseRest')">
-                🔀 Rust (Wissel) aanpassen
-                <span class="btn-subtext" id="desc-calc-switch">...</span>
-            </button>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-switch" onchange="previewCalcDistribution()">
+                    <label for="cb-switch">Rust tijdens wissel</label>
+                    <span id="res-switch" class="calc-result-badge" style="display:none;"></span>
+                </div>
 
-            <button class="modal-btn" id="btn-calc-round" style="background: #30D158; color: black;" onclick="applyCalc('roundRest')">
-                ☕ Rust (Ronde) aanpassen
-                <span class="btn-subtext" id="desc-calc-round">...</span>
-            </button>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-round" onchange="previewCalcDistribution()">
+                    <label for="cb-round">Rust tussen rondes</label>
+                    <span id="res-round" class="calc-result-badge" style="display:none;"></span>
+                </div>
+                
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-bonus1" onchange="previewCalcDistribution()">
+                    <label for="cb-bonus1">Bonus 1 Tijd</label>
+                    <span id="res-bonus1" class="calc-result-badge" style="display:none;"></span>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="cb-bonus2" onchange="previewCalcDistribution()">
+                    <label for="cb-bonus2">Bonus 2 Tijd</label>
+                    <span id="res-bonus2" class="calc-result-badge" style="display:none;"></span>
+                </div>
+                 <div class="checkbox-row">
+                    <input type="checkbox" id="cb-bonus3" onchange="previewCalcDistribution()">
+                    <label for="cb-bonus3">Bonus 3 Tijd</label>
+                    <span id="res-bonus3" class="calc-result-badge" style="display:none;"></span>
+                </div>
+            </div>
+            
+            <button id="btn-apply-calc" class="modal-btn" style="background: #30D158; color: black; text-align:center;" onclick="applyDistributedCalc()" disabled>Toepassen</button>
             
             <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeCalcModal()">Annuleren</div>
         </div>
@@ -831,28 +895,6 @@
             <textarea id="speech-edit-area"></textarea>
             <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">💾 Opslaan</button>
             <button class="modal-btn" style="background: #333; color: white; margin-top:10px;" onclick="closeSpeechEdit()">Annuleren</button>
-        </div>
-    </div>
-    
-    <div id="bonus-edit-modal">
-        <div class="modal-content" style="max-width:300px;">
-            <h3 style="margin-top:0;">Bonus Wijzigen</h3>
-            
-            <div style="text-align:left; margin-bottom:15px;">
-                <label>Naam</label>
-                <input type="text" id="bonus-edit-name-input" class="text-input" style="text-align:left; margin-bottom:10px;">
-                
-                <label>Wanneer?</label>
-                <select id="bonus-edit-freq-input" class="compact-select"></select>
-                
-                <label style="margin-top:10px;">Duur</label>
-                <select id="bonus-edit-duration-input" class="compact-select"></select>
-            </div>
-            
-            <input type="hidden" id="bonus-edit-id">
-
-            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveBonusFromModal()">💾 Opslaan</button>
-            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeBonusEditModal()">Annuleren</div>
         </div>
     </div>
     
@@ -1171,10 +1213,6 @@
             for(let i=1; i<=3; i++) {
                 fillBonusDuration(`bonus${i}-duration`);
                 fillBonusFreq(`bonus${i}-freq`);
-                
-                // For Edit Modal
-                fillBonusDuration(`bonus-edit-duration-input`);
-                fillBonusFreq(`bonus-edit-freq-input`);
             }
         }
         
@@ -1256,39 +1294,305 @@
             editingSpeechKey = null;
         }
 
-        // --- NEW BONUS EDIT MODAL LOGIC ---
-        function openBonusEditModal(bonusId) {
-             const nameVal = document.getElementById(`bonus${bonusId}-name`).value;
-             const durVal = document.getElementById(`bonus${bonusId}-duration`).value;
-             const freqVal = document.getElementById(`bonus${bonusId}-freq`).value;
-             
-             document.getElementById('bonus-edit-id').value = bonusId;
-             document.getElementById('bonus-edit-name-input').value = nameVal;
-             document.getElementById('bonus-edit-duration-input').value = durVal;
-             document.getElementById('bonus-edit-freq-input').value = freqVal;
-             
-             document.getElementById('bonus-edit-modal').style.display = 'flex';
+        // --- NEW BONUS EDIT MODAL LOGIC (Not used, editing via main screen) ---
+        // Keeping blank as user requested only main screen editing
+        
+        // --- NEW CALCULATOR LOGIC ---
+        function openCalcModal() {
+            document.getElementById('calc-modal').style.display = 'flex';
+            document.getElementById('target-work-sec').value = workTimeSec;
+            
+            // Uncheck all initially
+            const cbs = document.querySelectorAll('#calc-modal input[type="checkbox"]');
+            cbs.forEach(cb => cb.checked = false);
+            
+            // Clear result badges
+            const spans = document.querySelectorAll('.calc-result-badge');
+            spans.forEach(s => { s.innerText = ""; s.style.display = "none"; });
+            
+            document.getElementById('btn-apply-calc').disabled = true;
+            document.getElementById('btn-apply-calc').style.opacity = 0.5;
+            
+            previewCalcDistribution();
         }
         
-        function closeBonusEditModal() {
-            document.getElementById('bonus-edit-modal').style.display = 'none';
+        function closeCalcModal() {
+            document.getElementById('calc-modal').style.display = 'none';
+        }
+
+        function previewCalcDistribution() {
+            const targetW = parseInt(document.getElementById('target-work-sec').value);
+            if(isNaN(targetW) || targetW <= 0) return;
+            
+            const currentW = workTimeSec;
+            const diffPerSet = targetW - currentW;
+            
+            // Counts
+            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            
+            // We calculate based on FUTURE sets only (Resume Logic)
+            let countWorkSteps = 0;
+            let countRestSteps = 0;
+            let countSwitchSteps = 0;
+            let countRoundSteps = 0;
+            let countBonus1 = 0, countBonus2 = 0, countBonus3 = 0;
+            
+            // Re-simulate count
+            // Warmup/Start Check
+             for(let b=1; b<=3; b++) {
+                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                if(bMin > 0 && bFreq === 'warmup') {
+                    if (startRound === 1 && startEx === 1 && startSet === 1) {
+                        if(b===1) countBonus1++; if(b===2) countBonus2++; if(b===3) countBonus3++;
+                    }
+                }
+            }
+             for(let b=1; b<=3; b++) {
+                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                if(bMin > 0 && bFreq === 'end_session') {
+                     if(b===1) countBonus1++; if(b===2) countBonus2++; if(b===3) countBonus3++;
+                }
+            }
+
+            let globalExCount = 0;
+            for (let r = 1; r <= rounds; r++) { 
+                for(let b=1; b<=3; b++) {
+                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                    if(bMin > 0 && bFreq === 'start_round') {
+                         if (r >= startRound) {
+                            if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
+                                 if(b===1) countBonus1++; if(b===2) countBonus2++; if(b===3) countBonus3++;
+                            }
+                        }
+                    }
+                }
+
+                for (let e = 1; e <= ex; e++) { 
+                    globalExCount++;
+                    // Interval Bonus
+                    for(let b=1; b<=3; b++) {
+                        const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                        const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                        if (bMin > 0 && !isNaN(bFreq) && (globalExCount % parseInt(bFreq) === 0)) {
+                             let isFuture = false; 
+                             if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && sts >= startSet) isFuture = true; 
+                             if(isFuture) { if(b===1) countBonus1++; if(b===2) countBonus2++; if(b===3) countBonus3++; }
+                        }
+                    }
+                    for (let s = 1; s <= sts; s++) {
+                        let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                        if (isFuture) {
+                            countWorkSteps++;
+                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
+                            if (!isLastSetOfWorkout) {
+                                if (isLastSetOfRound) countRoundSteps++;
+                                else if (isLastSetOfExercise) countSwitchSteps++;
+                                else countRestSteps++;
+                            }
+                        }
+                    }
+                }
+                for(let b=1; b<=3; b++) {
+                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                    if(bMin > 0 && bFreq === 'end_round') {
+                        if (r >= startRound) {
+                             if (r > startRound || (r === startRound)) { 
+                                 if(b===1) countBonus1++; if(b===2) countBonus2++; if(b===3) countBonus3++;
+                             }
+                        }
+                    }
+                }
+            }
+
+            const totalTimeDebtSec = diffPerSet * countWorkSteps;
+            
+            // Check active boxes
+            const cbDur = document.getElementById('cb-duration').checked;
+            const cbRest = document.getElementById('cb-rest').checked;
+            const cbSwitch = document.getElementById('cb-switch').checked;
+            const cbRound = document.getElementById('cb-round').checked;
+            const cbB1 = document.getElementById('cb-bonus1').checked;
+            const cbB2 = document.getElementById('cb-bonus2').checked;
+            const cbB3 = document.getElementById('cb-bonus3').checked;
+            
+            let activeDistributors = 0;
+            if(cbDur) activeDistributors++;
+            if(cbRest && countRestSteps > 0) activeDistributors++;
+            if(cbSwitch && countSwitchSteps > 0) activeDistributors++;
+            if(cbRound && countRoundSteps > 0) activeDistributors++;
+            if(cbB1 && countBonus1 > 0) activeDistributors++;
+            if(cbB2 && countBonus2 > 0) activeDistributors++;
+            if(cbB3 && countBonus3 > 0) activeDistributors++;
+            
+            const btn = document.getElementById('btn-apply-calc');
+            
+            if(activeDistributors === 0) {
+                 // Clear
+                 const spans = document.querySelectorAll('.calc-result-badge');
+                 spans.forEach(s => { s.innerText = ""; s.style.display = "none"; });
+                 btn.disabled = true; btn.style.opacity = 0.5;
+                 return;
+            }
+            
+            btn.disabled = false; btn.style.opacity = 1;
+            
+            const share = totalTimeDebtSec / activeDistributors;
+            
+            // Helper to update span
+            const updateSpan = (id, label, currentVal, change, isTime) => {
+                 const span = document.getElementById(id);
+                 let newVal = currentVal;
+                 let diff = 0;
+                 
+                 // If Time Debt is POSITIVE (We need MORE time for work):
+                 // Duration: Increases (+)
+                 // Rests: Decrease (-)
+                 
+                 if (id === 'res-duration') {
+                     diff = Math.ceil(change / 60); // min
+                     // Just show the diff
+                     const sign = diff >= 0 ? "+" : "";
+                     span.innerText = `${sign}${diff} min`;
+                 } else {
+                     // Rests & Bonuses reduce if debt is positive
+                     // But wait, 'share' is the TOTAL Seconds assigned to this category.
+                     // We need to divide by COUNT to get per-instance change.
+                     
+                     // Example: Debt 100s. 2 Categories (Time, Rest). Share = 50s.
+                     // Time: +50s total.
+                     // Rest: -50s total. 
+                     
+                     const perInstance = Math.ceil(share / (isTime ? 1 : arguments[5])); // arguments[5] is count
+                     newVal = currentVal - perInstance; // Subtract because work takes space
+                     
+                     if (isTime) { // Bonus is time in min
+                          // Re-calc for bonus min
+                          const shareMin = Math.ceil(share / 60 / arguments[5]);
+                          newVal = currentVal - shareMin;
+                          span.innerText = `${currentVal}m ➝ ${newVal}m`;
+                     } else {
+                          span.innerText = `${currentVal}s ➝ ${newVal}s`;
+                     }
+                     
+                     if (newVal < 0 || (isTime && newVal < 1 && currentVal > 0)) {
+                         span.classList.add('negative');
+                         btn.disabled = true; btn.style.opacity = 0.5;
+                     } else {
+                         span.classList.remove('negative');
+                     }
+                 }
+                 span.style.display = "inline-block";
+            };
+            
+            // Apply updates
+            if(cbDur) {
+                const diffMin = Math.ceil(share / 60);
+                const span = document.getElementById('res-duration');
+                const sign = diffMin >= 0 ? "+" : "";
+                span.innerText = `${sign}${diffMin} min`;
+                span.style.display = "inline-block";
+            } else document.getElementById('res-duration').style.display="none";
+
+            if(cbRest) updateSpan('res-rest', '', parseInt(document.getElementById('restSec').value), share, false, countRestSteps);
+            else document.getElementById('res-rest').style.display="none";
+
+            if(cbSwitch) updateSpan('res-switch', '', parseInt(document.getElementById('exerciseRestSec').value), share, false, countSwitchSteps);
+            else document.getElementById('res-switch').style.display="none";
+            
+            if(cbRound) updateSpan('res-round', '', parseInt(document.getElementById('roundRestSec').value), share, false, countRoundSteps);
+            else document.getElementById('res-round').style.display="none";
+            
+            if(cbB1) updateSpan('res-bonus1', '', parseInt(document.getElementById('bonus1-duration').value), share, true, countBonus1);
+            else document.getElementById('res-bonus1').style.display="none";
+            
+            if(cbB2) updateSpan('res-bonus2', '', parseInt(document.getElementById('bonus2-duration').value), share, true, countBonus2);
+            else document.getElementById('res-bonus2').style.display="none";
+            
+            if(cbB3) updateSpan('res-bonus3', '', parseInt(document.getElementById('bonus3-duration').value), share, true, countBonus3);
+            else document.getElementById('res-bonus3').style.display="none";
         }
         
-        function saveBonusFromModal() {
-            const id = document.getElementById('bonus-edit-id').value;
-            const name = document.getElementById('bonus-edit-name-input').value;
-            const dur = document.getElementById('bonus-edit-duration-input').value;
-            const freq = document.getElementById('bonus-edit-freq-input').value;
-            
-            // Update main screen inputs
-            document.getElementById(`bonus${id}-name`).value = name;
-            document.getElementById(`bonus${id}-duration`).value = dur;
-            document.getElementById(`bonus${id}-freq`).value = freq;
-            
-            saveToLocal();
-            calculateRealTime();
-            closeBonusEditModal();
-            showScheduleModal(); // Refresh list
+        function applyDistributedCalc() {
+             // Re-calculate everything cleanly to get final values
+             // (Logic duplication is acceptable for safety here, or extract to object return)
+             // Simpler: grab values from UI? No, recalculate based on same logic.
+             
+             // ... [Logic identical to preview but setting values] ...
+             const targetW = parseInt(document.getElementById('target-work-sec').value);
+             const currentW = workTimeSec;
+             const diffPerSet = targetW - currentW;
+             
+             // Get counts again... (Copied for brevity, in real code make a helper)
+             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+             
+             let countWorkSteps=0, countRestSteps=0, countSwitchSteps=0, countRoundSteps=0, countBonus1=0, countBonus2=0, countBonus3=0;
+             // ... [Insert Count Loop Here - Same as Preview] ...
+             // (For this snippet, assuming we have the counts from the Preview run or re-run)
+             // HACK: Run previewCalcDistribution logic again but assign values.
+             
+             // Let's just trust the Preview logic updated variables? No, variables are local.
+             // We will re-run the core math.
+             
+             // --- RE-RUNNING COUNTS FOR APPLY ---
+             // (Identical loop to preview)
+             // Warmup
+             for(let b=1; b<=3; b++) { const bMin=parseInt(document.getElementById(`bonus${b}-duration`).value)||0; const bFreq=document.getElementById(`bonus${b}-freq`).value; if(bMin>0 && bFreq==='warmup') { if(startRound===1 && startEx===1 && startSet===1) { if(b===1)countBonus1++; if(b===2)countBonus2++; if(b===3)countBonus3++; } } }
+             for(let b=1; b<=3; b++) { const bMin=parseInt(document.getElementById(`bonus${b}-duration`).value)||0; const bFreq=document.getElementById(`bonus${b}-freq`).value; if(bMin>0 && bFreq==='end_session') { if(b===1)countBonus1++; if(b===2)countBonus2++; if(b===3)countBonus3++; } }
+             let globalExCount=0;
+             for(let r=1; r<=rounds; r++) {
+                 for(let b=1; b<=3; b++) { const bMin=parseInt(document.getElementById(`bonus${b}-duration`).value)||0; const bFreq=document.getElementById(`bonus${b}-freq`).value; if(bMin>0 && bFreq==='start_round' && r>=startRound) { if(r>startRound||(r===startRound&&startEx===1&&startSet===1)) { if(b===1)countBonus1++; if(b===2)countBonus2++; if(b===3)countBonus3++; } } }
+                 for(let e=1; e<=ex; e++) {
+                     globalExCount++;
+                     for(let b=1; b<=3; b++) { const bMin=parseInt(document.getElementById(`bonus${b}-duration`).value)||0; const bFreq=document.getElementById(`bonus${b}-freq`).value; if(bMin>0 && !isNaN(bFreq) && (globalExCount%parseInt(bFreq)===0)) { let isF=false; if(r>startRound)isF=true; else if(r===startRound && e>startEx)isF=true; else if(r===startRound && e===startEx && sts>=startSet)isF=true; if(isF) { if(b===1)countBonus1++; if(b===2)countBonus2++; if(b===3)countBonus3++; } } }
+                     for(let s=1; s<=sts; s++) {
+                         let isF=false; if(r>startRound)isF=true; else if(r===startRound && e>startEx)isF=true; else if(r===startRound && e===startEx && s>=startSet)isF=true;
+                         if(isF) { countWorkSteps++; const isLastW=(r===rounds&&e===ex&&s===sts); const isLastR=(e===ex&&s===sts); const isLastE=(s===sts); if(!isLastW) { if(isLastR)countRoundSteps++; else if(isLastE)countSwitchSteps++; else countRestSteps++; } }
+                     }
+                 }
+                 for(let b=1; b<=3; b++) { const bMin=parseInt(document.getElementById(`bonus${b}-duration`).value)||0; const bFreq=document.getElementById(`bonus${b}-freq`).value; if(bMin>0 && bFreq==='end_round' && r>=startRound) { if(r>startRound||r===startRound) { if(b===1)countBonus1++; if(b===2)countBonus2++; if(b===3)countBonus3++; } } }
+             }
+             
+             const totalDebt = diffPerSet * countWorkSteps;
+             
+             const cbDur = document.getElementById('cb-duration').checked;
+             const cbRest = document.getElementById('cb-rest').checked;
+             const cbSwitch = document.getElementById('cb-switch').checked;
+             const cbRound = document.getElementById('cb-round').checked;
+             const cbB1 = document.getElementById('cb-bonus1').checked;
+             const cbB2 = document.getElementById('cb-bonus2').checked;
+             const cbB3 = document.getElementById('cb-bonus3').checked;
+             
+             let active = 0;
+             if(cbDur) active++; if(cbRest && countRestSteps>0) active++; if(cbSwitch && countSwitchSteps>0) active++; if(cbRound && countRoundSteps>0) active++; 
+             if(cbB1 && countBonus1>0) active++; if(cbB2 && countBonus2>0) active++; if(cbB3 && countBonus3>0) active++;
+             
+             if(active === 0) return;
+             const share = totalDebt / active;
+             
+             // APPLY
+             if(cbDur) {
+                 const addMin = Math.ceil(share / 60);
+                 const el = document.getElementById('endTimeValue'); const [h,m] = el.value.split(':'); const d = new Date(); d.setHours(h,m,0,0);
+                 d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+                 syncTime('endtime');
+             }
+             if(cbRest) document.getElementById('restSec').value = parseInt(document.getElementById('restSec').value) - Math.ceil(share/countRestSteps);
+             if(cbSwitch) document.getElementById('exerciseRestSec').value = parseInt(document.getElementById('exerciseRestSec').value) - Math.ceil(share/countSwitchSteps);
+             if(cbRound) document.getElementById('roundRestSec').value = parseInt(document.getElementById('roundRestSec').value) - Math.ceil(share/countRoundSteps);
+             
+             if(cbB1) document.getElementById('bonus1-duration').value = parseInt(document.getElementById('bonus1-duration').value) - Math.ceil(share/60/countBonus1);
+             if(cbB2) document.getElementById('bonus2-duration').value = parseInt(document.getElementById('bonus2-duration').value) - Math.ceil(share/60/countBonus2);
+             if(cbB3) document.getElementById('bonus3-duration').value = parseInt(document.getElementById('bonus3-duration').value) - Math.ceil(share/60/countBonus3);
+             
+             saveToLocal();
+             calculateRealTime();
+             closeCalcModal();
         }
 
         // --- SCHEDULE MODAL LOGIC ---
@@ -1296,140 +1600,42 @@
             generateScheduleData(false); 
             const tableBody = document.querySelector('#full-schedule-table tbody');
             tableBody.innerHTML = "";
-            
             let currentTime = new Date();
-            
             schedule.forEach((step) => {
                 if(step.type === 'finish') return;
-                
                 const tr = document.createElement('tr');
-                if(step.type === 'work') {
-                    if(step.info.exercise === 0) tr.className = "row-bonus";
-                    else tr.className = "row-work";
-                }
-                
-                const tdTime = document.createElement('td');
-                tdTime.innerText = currentTime.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-                
+                if(step.type === 'work') { if(step.info.exercise === 0) tr.className = "row-bonus"; else tr.className = "row-work"; }
+                const tdTime = document.createElement('td'); tdTime.innerText = currentTime.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
                 const tdName = document.createElement('td');
-                
-                // Regular Work Exercise
                 if(step.type === 'work' && step.info.exercise > 0) {
-                    const input = document.createElement('input');
-                    input.type = "text";
-                    // Hierachy: Specific Set > Round Exercise > Default
-                    const keySet = `r${step.info.round}-e${step.info.exercise}-s${step.info.set}`;
-                    const keyRound = `r${step.info.round}-e${step.info.exercise}`;
-                    
-                    let val = step.label; 
-                    
-                    input.value = val;
-                    input.dataset.r = step.info.round;
-                    input.dataset.e = step.info.exercise;
-                    input.dataset.s = step.info.set;
-                    
+                    const input = document.createElement('input'); input.type = "text";
+                    let val = step.label; input.value = val; input.dataset.r = step.info.round; input.dataset.e = step.info.exercise; input.dataset.s = step.info.set;
                     input.placeholder = `Oefening ${step.info.exercise}.${step.info.set}`;
-
-                    input.onchange = function() {
-                        openEditScopeModal(this.dataset.r, this.dataset.e, this.dataset.s, this.value);
-                    };
+                    input.onchange = function() { openEditScopeModal(this.dataset.r, this.dataset.e, this.dataset.s, this.value); };
                     tdName.appendChild(input);
-                } 
-                // Bonus Exercise
-                else if (step.type === 'work' && step.info.exercise === 0 && step.info.bonusId) {
-                     tdName.innerText = step.label + " ✏️";
-                     tdName.style.cursor = "pointer";
-                     tdName.onclick = function() {
-                         openBonusEditModal(step.info.bonusId);
-                     };
-                }
-                else {
-                    tdName.innerText = step.label;
-                    if(step.info && step.info.round && step.info.exercise > 0) {
-                        tdName.innerText += ` (R${step.info.round}/E${step.info.exercise})`;
-                    }
-                }
-                
-                const tdDur = document.createElement('td');
-                tdDur.innerText = step.time;
-                
-                tr.appendChild(tdTime);
-                tr.appendChild(tdName);
-                tr.appendChild(tdDur);
-                tableBody.appendChild(tr);
-                
+                } else { tdName.innerText = step.label; if(step.info && step.info.round && step.info.exercise > 0) { tdName.innerText += ` (R${step.info.round}/E${step.info.exercise})`; } }
+                const tdDur = document.createElement('td'); tdDur.innerText = step.time;
+                tr.appendChild(tdTime); tr.appendChild(tdName); tr.appendChild(tdDur); tableBody.appendChild(tr);
                 currentTime.setSeconds(currentTime.getSeconds() + step.time);
             });
-            
             document.getElementById('schedule-modal').style.display = 'flex';
         }
-        
-        function closeScheduleModal() {
-            document.getElementById('schedule-modal').style.display = 'none';
-            calculateRealTime();
-        }
+        function closeScheduleModal() { document.getElementById('schedule-modal').style.display = 'none'; calculateRealTime(); }
         
         // --- EDIT SCOPE LOGIC ---
         function openEditScopeModal(r, e, s, newVal) {
-            document.getElementById('edit-round-idx').value = r;
-            document.getElementById('edit-ex-idx').value = e;
-            document.getElementById('edit-set-idx').value = s;
-            document.getElementById('edit-new-val').value = newVal;
-            document.getElementById('edit-target-name').innerText = newVal;
-            
-            document.getElementById('lbl-set').innerText = s;
-            document.getElementById('lbl-ex').innerText = e;
-            document.getElementById('lbl-ex-all').innerText = e;
-            document.getElementById('lbl-set-all').innerText = s;
-            document.getElementById('lbl-ex-set-all').innerText = e;
-            
+            document.getElementById('edit-round-idx').value = r; document.getElementById('edit-ex-idx').value = e; document.getElementById('edit-set-idx').value = s; document.getElementById('edit-new-val').value = newVal; document.getElementById('edit-target-name').innerText = newVal;
             document.getElementById('edit-scope-modal').style.display = 'flex';
         }
-        
-        function closeEditScopeModal() {
-            document.getElementById('edit-scope-modal').style.display = 'none';
-            showScheduleModal(); 
-        }
+        function closeEditScopeModal() { document.getElementById('edit-scope-modal').style.display = 'none'; showScheduleModal(); }
         
         function applyNameChange(scope) {
-            const r = parseInt(document.getElementById('edit-round-idx').value);
-            const e = parseInt(document.getElementById('edit-ex-idx').value);
-            const s = parseInt(document.getElementById('edit-set-idx').value);
-            const newVal = document.getElementById('edit-new-val').value;
-            const totalRounds = parseInt(document.getElementById('rounds').value);
-            
-            if (scope === 'single') {
-                const key = `r${r}-e${e}-s${s}`;
-                if(newVal.trim() === "") delete customNames[key];
-                else customNames[key] = newVal;
-            } 
-            else if (scope === 'round_ex') {
-                const key = `r${r}-e${e}`;
-                if(newVal.trim() === "") delete customNames[key];
-                else customNames[key] = newVal;
-                // Cleanup specific set overrides for this round
-                Object.keys(customNames).forEach(k => { if(k.startsWith(`r${r}-e${e}-s`)) delete customNames[k]; });
-            } 
-            else if (scope === 'all_rounds') {
-                for(let i=1; i<=totalRounds; i++) {
-                    const key = `r${i}-e${e}`;
-                    if(newVal.trim() === "") delete customNames[key];
-                    else customNames[key] = newVal;
-                    // Cleanup specific set overrides
-                    Object.keys(customNames).forEach(k => { if(k.startsWith(`r${i}-e${e}-s`)) delete customNames[k]; });
-                }
-            }
-            else if (scope === 'set_all_rounds') {
-                for(let i=1; i<=totalRounds; i++) {
-                    const key = `r${i}-e${e}-s${s}`;
-                     if(newVal.trim() === "") delete customNames[key];
-                    else customNames[key] = newVal;
-                }
-            }
-            
-            saveToLocal();
-            document.getElementById('edit-scope-modal').style.display = 'none';
-            showScheduleModal(); 
+            const r = parseInt(document.getElementById('edit-round-idx').value); const e = parseInt(document.getElementById('edit-ex-idx').value); const s = parseInt(document.getElementById('edit-set-idx').value); const newVal = document.getElementById('edit-new-val').value; const totalRounds = parseInt(document.getElementById('rounds').value);
+            if (scope === 'single') { const key = `r${r}-e${e}-s${s}`; if(newVal.trim() === "") delete customNames[key]; else customNames[key] = newVal; } 
+            else if (scope === 'round_ex') { const key = `r${r}-e${e}`; if(newVal.trim() === "") delete customNames[key]; else customNames[key] = newVal; Object.keys(customNames).forEach(k => { if(k.startsWith(`r${r}-e${e}-s`)) delete customNames[k]; }); } 
+            else if (scope === 'all_rounds') { for(let i=1; i<=totalRounds; i++) { const key = `r${i}-e${e}`; if(newVal.trim() === "") delete customNames[key]; else customNames[key] = newVal; Object.keys(customNames).forEach(k => { if(k.startsWith(`r${i}-e${e}-s`)) delete customNames[k]; }); } }
+            else if (scope === 'set_all_rounds') { for(let i=1; i<=totalRounds; i++) { const key = `r${i}-e${e}-s${s}`; if(newVal.trim() === "") delete customNames[key]; else customNames[key] = newVal; } }
+            saveToLocal(); document.getElementById('edit-scope-modal').style.display = 'none'; showScheduleModal(); 
         }
 
         function resetToDefaults() {
@@ -1437,32 +1643,15 @@
             document.getElementById('rounds').value = 2; document.getElementById('exercises').value = 6; document.getElementById('sets').value = 2; 
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
-            
-            for(let i=1; i<=3; i++) {
-                document.getElementById(`bonus${i}-name`).value = `Bonus ${i}`;
-                document.getElementById(`bonus${i}-duration`).value = 0;
-                document.getElementById(`bonus${i}-freq`).value = "start_round";
-            }
-            
-            customNames = {};
-
-            syncTime('duration'); setAudioMode('speech');
+            for(let i=1; i<=3; i++) { document.getElementById(`bonus${i}-name`).value = `Bonus ${i}`; document.getElementById(`bonus${i}-duration`).value = 0; document.getElementById(`bonus${i}-freq`).value = "start_round"; }
+            customNames = {}; syncTime('duration'); setAudioMode('speech');
             document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
             saveToLocal(); renderSpeechSettings(); calculateRealTime();
         }
 
         function shareApp() {
             const cleanUrl = window.location.origin + window.location.pathname;
-            let text = "🦅 **Friday Night Hawks Timer**\n\n";
-            text += "🏆 **Uniek:** Jij bepaalt de EINDTIJD 🏁. De app berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent!\n\n";
-            text += "De ultieme trainingspartner voor de vrijdagavond! 🚴🏋️🏊\n";
-            text += "Sluit af met bitterballen & gezelligheid! 🍖\n\n";
-            text += "✅ **Wat kan deze app?**\n";
-            text += "- 🗣️ Volledige spraakbegeleiding (NL)\n";
-            text += "- ⏱️ Slimme tijd- & rustberekening\n";
-            text += "- 🔄 'Crash Recovery': Hervat direct na uitval\n";
-            text += "- 🎨 Volledig aanpasbare commando's\n\n";
-            text += "👇 Download/Gebruik de app hier (gratis):";
+            let text = "🦅 **Friday Night Hawks Timer**\n\n"; text += "🏆 **Uniek:** Jij bepaalt de EINDTIJD 🏁. De app berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent!\n\n"; text += "De ultieme trainingspartner voor de vrijdagavond! 🚴🏋️🏊\n"; text += "Sluit af met bitterballen & gezelligheid! 🍖\n\n"; text += "✅ **Wat kan deze app?**\n"; text += "- 🗣️ Volledige spraakbegeleiding (NL)\n"; text += "- ⏱️ Slimme tijd- & rustberekening\n"; text += "- 🔄 'Crash Recovery': Hervat direct na uitval\n"; text += "- 🎨 Volledig aanpasbare commando's\n\n"; text += "👇 Download/Gebruik de app hier (gratis):";
             if (navigator.share) { navigator.share({ title: "Friday Night Hawks Timer 🦅", text: text, url: cleanUrl }).catch(console.error); } 
             else { navigator.clipboard.writeText(text + "\n" + cleanUrl).then(() => alert("Promotietekst en link gekopieerd!")); }
         }
@@ -1472,8 +1661,7 @@
             const restSec = document.getElementById('restSec').value; const exerciseRestSec = document.getElementById('exerciseRestSec').value; const roundRestSec = document.getElementById('roundRestSec').value;
             const totalMin = document.getElementById('totalMin').value;
             const params = new URLSearchParams();
-            params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
-            params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
+            params.set('r', rounds); params.set('e', exercises); params.set('s', sets); params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
             for (const [key, value] of Object.entries(speechSettings)) { if(value.text) { params.set(key, value.text); } }
             const baseUrl = window.location.origin + window.location.pathname; const shareUrl = baseUrl + '?' + params.toString();
             if (navigator.share) { navigator.share({ title: 'FNH Training Settings', url: shareUrl }).catch(console.error); } 
@@ -1481,15 +1669,9 @@
         }
 
         function checkForSharedSettings() {
-            const params = new URLSearchParams(window.location.search);
-            let dataUpdated = false;
-            if(params.has('r')) {
-                document.getElementById('rounds').value = params.get('r'); document.getElementById('exercises').value = params.get('e'); document.getElementById('sets').value = params.get('s');
-                document.getElementById('restSec').value = params.get('rs'); document.getElementById('exerciseRestSec').value = params.get('re'); document.getElementById('roundRestSec').value = params.get('rr');
-                document.getElementById('totalMin').value = params.get('tm'); dataUpdated = true;
-            }
-            let speechUpdated = false;
-            for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
+            const params = new URLSearchParams(window.location.search); let dataUpdated = false;
+            if(params.has('r')) { document.getElementById('rounds').value = params.get('r'); document.getElementById('exercises').value = params.get('e'); document.getElementById('sets').value = params.get('s'); document.getElementById('restSec').value = params.get('rs'); document.getElementById('exerciseRestSec').value = params.get('re'); document.getElementById('roundRestSec').value = params.get('rr'); document.getElementById('totalMin').value = params.get('tm'); dataUpdated = true; }
+            let speechUpdated = false; for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
             if(speechUpdated) { const dropdown = document.getElementById('coach-preset'); if(dropdown) { dropdown.value = 'custom'; dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } }
             if(dataUpdated) { syncTime('duration'); saveToLocal(); }
         }
@@ -1500,11 +1682,9 @@
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
-                // Save 3 Bonuses
                 bonus1: { name: document.getElementById('bonus1-name').value, dur: document.getElementById('bonus1-duration').value, freq: document.getElementById('bonus1-freq').value },
                 bonus2: { name: document.getElementById('bonus2-name').value, dur: document.getElementById('bonus2-duration').value, freq: document.getElementById('bonus2-freq').value },
                 bonus3: { name: document.getElementById('bonus3-name').value, dur: document.getElementById('bonus3-duration').value, freq: document.getElementById('bonus3-freq').value },
-                // Save Custom Names
                 customNames: customNames
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
@@ -1518,792 +1698,16 @@
                     document.getElementById('rounds').value = data.rounds || 2; document.getElementById('exercises').value = data.exercises || 6; document.getElementById('sets').value = data.sets || 2;
                     document.getElementById('restSec').value = data.restSec || 20; document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30; document.getElementById('roundRestSec').value = data.roundRestSec || 90;
                     document.getElementById('totalMin').value = data.totalMin || 30;
-                    if(data.startRound) document.getElementById('start-round').value = data.startRound;
-                    if(data.startEx) document.getElementById('start-ex').value = data.startEx;
-                    if(data.startSet) document.getElementById('start-set').value = data.startSet;
-                    
+                    if(data.startRound) document.getElementById('start-round').value = data.startRound; if(data.startEx) document.getElementById('start-ex').value = data.startEx; if(data.startSet) document.getElementById('start-set').value = data.startSet;
                     if(data.bonus1) { document.getElementById('bonus1-name').value = data.bonus1.name; document.getElementById('bonus1-duration').value = data.bonus1.dur; document.getElementById('bonus1-freq').value = data.bonus1.freq; }
                     if(data.bonus2) { document.getElementById('bonus2-name').value = data.bonus2.name; document.getElementById('bonus2-duration').value = data.bonus2.dur; document.getElementById('bonus2-freq').value = data.bonus2.freq; }
                     if(data.bonus3) { document.getElementById('bonus3-name').value = data.bonus3.name; document.getElementById('bonus3-duration').value = data.bonus3.dur; document.getElementById('bonus3-freq').value = data.bonus3.freq; }
-                    
                     if(data.customNames) customNames = data.customNames;
-
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
                 } catch(e) { console.log("Error loading settings", e); }
             }
         }
-        
-        function setAudioMode(newMode) {
-            audioMode = newMode;
-            document.getElementById('btn-audio-speech').className = (audioMode==='speech') ? 'toggle-btn active' : 'toggle-btn';
-            document.getElementById('btn-audio-beep').className = (audioMode==='beep') ? 'toggle-btn active' : 'toggle-btn';
-            const panel = document.getElementById('speech-settings-panel');
-            if(audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
-        }
-
-        function calculateRealTime() {
-            const rounds = parseInt(document.getElementById('rounds').value) || 1; const ex = parseInt(document.getElementById('exercises').value) || 0; const sts = parseInt(document.getElementById('sets').value) || 0;
-            const rst = parseInt(document.getElementById('restSec').value) || 0; const exRst = parseInt(document.getElementById('exerciseRestSec').value) || 0; const roundRst = parseInt(document.getElementById('roundRestSec').value) || 0;
-            const startRound = parseInt(document.getElementById('start-round').value) || 1; const startEx = parseInt(document.getElementById('start-ex').value) || 1; const startSet = parseInt(document.getElementById('start-set').value) || 1;
-
-            if (ex === 0 || sts === 0 || rounds === 0) return;
-
-            let remainingWorkSets = 0; let remainingFixedRestTime = 0;
-            
-            // BONUS LOGIC CALCULATION (Loop 3 bonuses)
-            // Warmup Check (Start of Session)
-            for(let b=1; b<=3; b++) {
-                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
-                const bFreq = document.getElementById(`bonus${b}-freq`).value;
-                if(bMin > 0 && bFreq === 'warmup') {
-                    if (startRound === 1 && startEx === 1 && startSet === 1) {
-                        remainingFixedRestTime += (bMin*60) + exRst;
-                    }
-                }
-            }
-            
-            // Toetje Check (End of Session)
-            for(let b=1; b<=3; b++) {
-                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
-                const bFreq = document.getElementById(`bonus${b}-freq`).value;
-                if(bMin > 0 && bFreq === 'end_session') {
-                    // Toetje NO REST after
-                    remainingFixedRestTime += (bMin*60);
-                }
-            }
-
-            let globalExCount = 0;
-
-            for (let r = 1; r <= rounds; r++) { 
-                
-                // Start Round Check
-                for(let b=1; b<=3; b++) {
-                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
-                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
-                    if(bMin > 0 && bFreq === 'start_round') {
-                        if (r >= startRound) {
-                            if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
-                                 remainingFixedRestTime += (bMin*60) + exRst; 
-                            }
-                        }
-                    }
-                }
-
-                for (let e = 1; e <= ex; e++) { 
-                    globalExCount++;
-                    
-                    // Interval Check
-                    for(let b=1; b<=3; b++) {
-                        const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
-                        const bFreq = document.getElementById(`bonus${b}-freq`).value;
-                        if(bMin > 0 && !isNaN(bFreq) && (globalExCount % parseInt(bFreq) === 0)) {
-                             let isFuture = false; 
-                             if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && sts >= startSet) isFuture = true; 
-                             if(isFuture) remainingFixedRestTime += (bMin*60) + exRst;
-                        }
-                    }
-
-                    for (let s = 1; s <= sts; s++) {
-                        let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                        if (isFuture) {
-                            remainingWorkSets++;
-                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                            if (!isLastSetOfWorkout) { if (isLastSetOfRound) remainingFixedRestTime += roundRst; else if (isLastSetOfExercise) remainingFixedRestTime += exRst; else remainingFixedRestTime += rst; }
-                        }
-                    }
-                }
-                
-                // End Round Check
-                for(let b=1; b<=3; b++) {
-                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
-                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
-                    if(bMin > 0 && bFreq === 'end_round') {
-                        if (r >= startRound) {
-                             if (r > startRound || (r === startRound)) { // Loose check for end of round
-                                 remainingFixedRestTime += (bMin*60) + exRst;
-                             }
-                        }
-                    }
-                }
-            }
-            remainingFixedRestTime += 10; 
-
-            let availableSec = 0;
-            const endStr = document.getElementById('endTimeValue').value; 
-            if (endStr) {
-                const now = new Date(); const [h, m] = endStr.split(':'); const target = new Date(); target.setHours(h, m, 0, 0);
-                if (target < now) target.setDate(target.getDate() + 1);
-                availableSec = Math.floor((target - now) / 1000);
-            }
-
-            const workSecTotal = availableSec - remainingFixedRestTime;
-            const btnEl = document.getElementById('btn-start-app'); const errEl = document.getElementById('live-calc-error'); const resEl = document.getElementById('live-calc-result');
-
-            if (workSecTotal <= 0 || remainingWorkSets <= 0) {
-                resEl.innerText = "--"; errEl.style.display = "block"; btnEl.style.opacity = 0.5; btnEl.disabled = true; workTimeSec = 0;
-                document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
-            } else {
-                workTimeSec = Math.floor(workSecTotal / remainingWorkSets);
-                resEl.innerText = workTimeSec + "s"; errEl.style.display = "none"; btnEl.style.opacity = 1; btnEl.disabled = false;
-                restTimeSec = rst; exerciseRestSec = exRst; roundRestSec = roundRst;
-                generateScheduleData(true); renderPreviewList();
-            }
-        }
-        
-        // --- NEW REVERSE CALC LOGIC ---
-        function openCalcModal() {
-            document.getElementById('calc-modal').style.display = 'flex';
-            document.getElementById('target-work-sec').value = workTimeSec;
-            previewCalc();
-        }
-        function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
-        
-        function previewCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; 
-            const diffPerSet = targetW - currentW; 
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            let countSets = 0;
-            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
-                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                if (isFuture) countSets++;
-            }}}
-            
-            const totalDiffSec = diffPerSet * countSets; 
-            const totalDiffMin = Math.round(totalDiffSec / 60); 
-            let sign = totalDiffMin >= 0 ? "+" : "";
-            const currentEnd = document.getElementById('endTimeValue').value; const [h,m] = currentEnd.split(':'); const d = new Date(); d.setHours(h,m,0,0);
-            d.setMinutes(d.getMinutes() + totalDiffMin);
-            const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
-            document.getElementById('desc-calc-duration').innerText = endText;
-            
-            updateRestCalcButton('rest', 'btn-calc-rest', 'desc-calc-rest', totalDiffSec);
-            updateRestCalcButton('exerciseRest', 'btn-calc-switch', 'desc-calc-switch', totalDiffSec);
-            updateRestCalcButton('roundRest', 'btn-calc-round', 'desc-calc-round', totalDiffSec);
-        }
-        
-        function updateRestCalcButton(type, btnId, textId, totalWorkDiff) {
-            const btn = document.getElementById(btnId);
-            const steps = countFutureRestSteps(type);
-            if (steps > 0) {
-                let currentVal = 0;
-                if(type === 'rest') currentVal = parseInt(document.getElementById('restSec').value);
-                if(type === 'exerciseRest') currentVal = parseInt(document.getElementById('exerciseRestSec').value);
-                if(type === 'roundRest') currentVal = parseInt(document.getElementById('roundRestSec').value);
-                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
-                const newVal = currentVal - reductionPerStep;
-                if (newVal >= 5) {
-                    btn.disabled = false; btn.style.opacity = 1;
-                    document.getElementById(textId).innerText = `${currentVal}s -> ${newVal}s`;
-                } else {
-                    btn.disabled = true; btn.style.opacity = 0.5;
-                    document.getElementById(textId).innerText = `Niet mogelijk (${newVal}s < 5s)`;
-                }
-            } else {
-                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
-            }
-        }
-        
-        function countFutureRestSteps(type) {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            let count = 0;
-            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
-                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                if (isFuture) {
-                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                    if (!isLastSetOfWorkout) {
-                        if (isLastSetOfRound) { if(type === 'roundRest') count++; }
-                        else if (isLastSetOfExercise) { if(type === 'exerciseRest') count++; }
-                        else { if(type === 'rest') count++; }
-                    }
-                }
-            }}}
-            return count;
-        }
-        
-        function applyCalc(targetType) {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; 
-            const currentW = workTimeSec; 
-            const diffPerSet = targetW - currentW;
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; }}}
-            const totalWorkDiff = diffPerSet * countSets;
-
-            if (targetType === 'duration') {
-                const totalAddSec = totalWorkDiff; 
-                const addMin = Math.ceil(totalAddSec / 60);
-                const el = document.getElementById('endTimeValue'); const [h,m] = el.value.split(':'); const d = new Date(); d.setHours(h,m,0,0);
-                d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-                syncTime('endtime'); 
-            } else {
-                const steps = countFutureRestSteps(targetType);
-                let elementId = '';
-                if(targetType === 'rest') elementId = 'restSec';
-                if(targetType === 'exerciseRest') elementId = 'exerciseRestSec';
-                if(targetType === 'roundRest') elementId = 'roundRestSec';
-                const currentRest = parseInt(document.getElementById(elementId).value);
-                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
-                const newVal = currentRest - reductionPerStep;
-                const sel = document.getElementById(elementId);
-                let exists = false; for(let i=0; i<sel.options.length; i++){ if(parseInt(sel.options[i].value) === newVal) exists=true; }
-                if(!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal+"s"; sel.appendChild(opt); }
-                sel.value = newVal;
-            }
-            calculateRealTime(); saveToLocal(); closeCalcModal();
-        }
-
-        function generateScheduleData(applyResumeFilter) {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
-
-            totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
-            schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
-
-            const getBonus = (i) => {
-                return {
-                    name: document.getElementById(`bonus${i}-name`).value || `Bonus ${i}`,
-                    min: parseInt(document.getElementById(`bonus${i}-duration`).value) || 0,
-                    freq: document.getElementById(`bonus${i}-freq`).value,
-                    id: i
-                };
-            };
-
-            // WARMUP BONUS (Check all 3)
-            for(let b=1; b<=3; b++) {
-                const bonus = getBonus(b);
-                if (bonus.min > 0 && bonus.freq === 'warmup') {
-                    if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
-                        addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
-                    }
-                }
-            }
-
-            let globalExCount = 0;
-
-            for (let r = 1; r <= rounds; r++) { 
-                
-                // START ROUND BONUS
-                for(let b=1; b<=3; b++) {
-                    const bonus = getBonus(b);
-                    if(bonus.min > 0 && bonus.freq === 'start_round') {
-                        let include = true;
-                        if (applyResumeFilter) {
-                            if (r < startRound) include = false;
-                            else if (r === startRound && (startEx > 1 || startSet > 1)) include = false;
-                        }
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
-                    }
-                }
-
-                for (let e = 1; e <= ex; e++) { 
-                    globalExCount++;
-                    
-                    for (let s = 1; s <= sts; s++) {
-                        currentSetGlobal++; let include = true;
-                        if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
-                        if(include) {
-                            // CHECK FOR CUSTOM NAME
-                            // Hierarchy: Specific Set > Round Exercise > All Round Exercise (handled by apply)
-                            let label = `Oefening ${e}.${s}`;
-                            const keySet = `r${r}-e${e}-s${s}`;
-                            const keyRound = `r${r}-e${e}`;
-                            
-                            if(customNames[keySet]) label = customNames[keySet];
-                            else if(customNames[keyRound]) label = customNames[keyRound];
-
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: label, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
-                            const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                            if (!isLastSetOfWorkout) {
-                                let restLabel = "RUST"; let infoText = "";
-                                if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
-                                else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
-                                else { infoText = "Even ontspannen"; }
-                                let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
-                                schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
-                            }
-                        }
-                    }
-                    
-                    // INTERVAL BONUS
-                    for(let b=1; b<=3; b++) {
-                        const bonus = getBonus(b);
-                        if (bonus.min > 0 && !isNaN(bonus.freq) && (globalExCount % parseInt(bonus.freq) === 0)) {
-                            let include = true;
-                            if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
-                            
-                            if(include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
-                        }
-                    }
-                }
-                
-                // END ROUND BONUS
-                for(let b=1; b<=3; b++) {
-                    const bonus = getBonus(b);
-                    if(bonus.min > 0 && bonus.freq === 'end_round') {
-                        let include = true;
-                        if (applyResumeFilter && r < startRound) include = false;
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
-                    }
-                }
-            }
-            
-            // TOETJE BONUS
-            for(let b=1; b<=3; b++) {
-                const bonus = getBonus(b);
-                if (bonus.min > 0 && bonus.freq === 'end_session') {
-                    // TOETJE has NO rest/switch after!
-                    schedule.push({ 
-                        type: 'work', 
-                        time: bonus.min*60, 
-                        initialTime: bonus.min*60, 
-                        label: bonus.name.toUpperCase(), 
-                        info: { round: 0, exercise: 0, set: 0, globalSet: 0, bonusId: bonus.id } 
-                    });
-                }
-            }
-
-            if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
-        }
-        
-        function addBonusStep(r, label, time, rest, bId) {
-            schedule.push({ 
-                type: 'work', 
-                time: time, 
-                initialTime: time, 
-                label: label, 
-                info: { round: r, exercise: 0, set: 0, globalSet: 0, bonusId: bId } // 0 indicates bonus
-            });
-            schedule.push({ 
-                type: 'rest-exercise', 
-                time: rest, 
-                initialTime: rest, 
-                label: "WISSEL", 
-                info: { round: r, exercise: 0, set: 0, text: "Klaarmaken..." } 
-            });
-        }
-
-        function renderPreviewList() {
-            const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
-            schedule.forEach((item) => {
-                if (item.type==='finish') return;
-                let timeStr = runningDate.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-                runningDate.setSeconds(runningDate.getSeconds() + item.time);
-                const div = document.createElement('div'); div.className = `schedule-item`;
-                let icon = ""; if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; } else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; } else if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else icon='🚀';
-                let desc = item.label; if(item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
-                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
-                list.appendChild(div);
-            });
-        }
-
-        function triggerAudio(key, fallbackText, extraInfo = "") {
-            if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; } 
-            if (!window.speechSynthesis) return;
-            if(key === 'manual_override') { const utterance = new SpeechSynthesisUtterance(fallbackText); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance); return; }
-            let setting = speechSettings[key]; if (!setting && key === 'tick') setting = speechSettings.prep_countdown; 
-            if (!setting || !setting.enabled) return;
-            let textToSpeak = fallbackText;
-            if (setting.text && setting.text.trim() !== "") {
-                const rawText = setting.text;
-                if (!speechPlaylists[key] || speechPlaylists[key].originalText !== rawText) {
-                    let phrases = rawText.split('|').map(s => s.trim()).filter(s => s !== "");
-                    for (let i = phrases.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [phrases[i], phrases[j]] = [phrases[j], phrases[i]]; }
-                    speechPlaylists[key] = { phrases: phrases, index: 0, originalText: rawText };
-                }
-                let pl = speechPlaylists[key]; if (pl.phrases.length > 0) { textToSpeak = pl.phrases[pl.index]; pl.index++; if (pl.index >= pl.phrases.length) pl.index = 0; }
-            }
-            if (extraInfo) textToSpeak += ". " + extraInfo;
-            window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance);
-        }
-
-        function playBeep(f,t){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.frequency.value=f;o.type='sine'; const n=audioCtx.currentTime; if(t==='tick'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.1);} else if(t==='win'){g.gain.setValueAtTime(0.1,n);o.start(n);o.stop(n+0.2);setTimeout(()=>playBeep(1200,'tick'),300);} else{g.gain.setValueAtTime(0.3,n);o.start(n);o.stop(n+0.5);} }
-
-        function startWorkout() {
-            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
-            if(audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if(window.speechSynthesis) window.speechSynthesis.cancel(); }
-
-            generateScheduleData(true);
-            populateJumpMenus();
-
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('timer-screen').style.display = 'flex';
-
-            workoutStartTime = new Date();
-            const [h, m] = document.getElementById('endTimeValue').value.split(':');
-            targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
-            if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
-
-            updateEndTimeDisplay();
-            currentIndex = 0;
-            speechPlaylists = {}; 
-            stepEndTime = Date.now() + (schedule[0].time * 1000);
-            runStep();
-        }
-        
-        function populateJumpMenus() {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sets = parseInt(document.getElementById('sets').value);
-            const rSel = document.getElementById('jump-round'); const eSel = document.getElementById('jump-exercise'); const sSel = document.getElementById('jump-set');
-            rSel.innerHTML = ""; eSel.innerHTML = ""; sSel.innerHTML = "";
-            for(let i=1; i<=rounds; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt); }
-            for(let i=1; i<=ex; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt); }
-            for(let i=1; i<=sets; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt); }
-        }
-        
-        function handleJump() {
-            const r = parseInt(document.getElementById('jump-round').value); const e = parseInt(document.getElementById('jump-exercise').value); const s = parseInt(document.getElementById('jump-set').value);
-            const newIndex = schedule.findIndex(step => { return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s; });
-            if(newIndex > -1) {
-                currentIndex = newIndex;
-                triggerAudio('manual_override', "Springen naar ronde " + r);
-                stepEndTime = Date.now(); 
-                runStep();
-                recalculateForFixedEnd();
-            }
-        }
-
-        function runStep() {
-            if (currentIndex >= schedule.length) return;
-            const step = schedule[currentIndex];
-            const nextStep = schedule[currentIndex + 1];
-            const totalRounds = parseInt(document.getElementById('rounds').value);
-            const totalEx = document.getElementById('exercises').value;
-
-            const body = document.body; body.className = ''; 
-            const titleEl = document.getElementById('gym-phase-title'); const nextEl = document.getElementById('gym-next-info');
-            
-            if(step.info && step.info.maxRounds) {
-                document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
-                // Only show exercise/set if not 0 (extra phase)
-                if(step.info.exercise > 0) {
-                    document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
-                    document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
-                    document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
-                } else {
-                    document.getElementById('val-exercise').innerText = "-";
-                    document.getElementById('val-set').innerText = "-";
-                }
-                document.getElementById('gym-stats-container').style.opacity = 1;
-            } else { document.getElementById('gym-stats-container').style.opacity = 0.5; }
-
-            titleEl.innerText = step.label;
-            titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { 
-                // Make huge text for main work phases (including custom extra name)
-                titleEl.classList.add('huge-text'); 
-            }
-            
-            let nextText = "Hierna: Klaar";
-            if(nextStep) { nextText = "Hierna: " + nextStep.label; if(nextStep.type === 'work' && nextStep.info && nextStep.info.exercise > 0) nextText += ` (Oef ${nextStep.info.exercise})`; }
-            nextEl.innerText = nextText;
-
-            if (step.type==='work') { 
-                body.classList.add('mode-work');
-                // Standard work audio triggers
-                if (step.info.exercise > 0) {
-                    if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
-                    else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
-                    else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                    else if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
-                    else triggerAudio('work_start', "Start");
-                } else {
-                    // Custom Extra Start Audio
-                    triggerAudio('work_start', `Start ${step.label}`);
-                }
-            }
-            else if (step.type==='rest') { 
-                body.classList.add('mode-rest');
-                let info = ""; if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random()*tips.length)]; }
-                triggerAudio('rest_set_start', "Rust", info);
-            }
-            else if (step.type==='rest-exercise') {
-                body.classList.add('mode-switch');
-                let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
-                triggerAudio('rest_switch_start', "Wissel", info);
-            }
-            else if (step.type==='rest-long') { 
-                body.classList.add('mode-long');
-                let info = ""; if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
-                triggerAudio('rest_round_start', "Grote pauze", info);
-            }
-            else if (step.type==='prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
-            else { finish(); return; }
-
-            stepEndTime = Date.now() + (step.time * 1000); 
-            document.getElementById('countdown').innerText = step.time;
-
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!isPaused) {
-                    const now = Date.now();
-                    const remainingMs = stepEndTime - now;
-                    let remainingSec = Math.ceil(remainingMs / 1000);
-                    
-                    if (remainingSec < 0) {
-                        while (remainingSec < 0) {
-                            currentIndex++; if(currentIndex >= schedule.length) { finish(); return; }
-                            const skippedStep = schedule[currentIndex];
-                            stepEndTime += (skippedStep.time * 1000); 
-                            remainingSec = Math.ceil((stepEndTime - Date.now()) / 1000);
-                        }
-                        runStep(); return;
-                    }
-
-                    step.time = remainingSec;
-                    document.getElementById('countdown').innerText = step.time;
-                    updateProgressBar();
-                    
-                    const totalDiff = targetEndTimeDate - now;
-                    if(totalDiff > 0) {
-                        const m = Math.floor(totalDiff / 60000); const s = Math.floor((totalDiff % 60000) / 1000);
-                        document.getElementById('val-remaining').innerText = `${m}m ${s}s`;
-                    } else { document.getElementById('val-remaining').innerText = "0m 0s"; }
-
-                    const init = step.initialTime;
-                    if (step.type === 'work') {
-                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('work_halfway', "Halverwege");
-                        if (step.time === 30 && init > 40) triggerAudio('work_30s', "30 seconden");
-                        if (step.time === 10 && init > 15) triggerAudio('work_10s', "10 seconden");
-                        if (step.time === 5 && init > 10) triggerAudio('work_5s', "5 seconden");
-                    }
-                    if (step.type === 'rest-long' && step.time === 15 && init > 20) triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
-                    if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
-
-                    if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
-                    else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
-                } else {
-                    // Do nothing while paused
-                }
-            }, 1000);
-        }
-
-        function triggerEndTimeEdit() {
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const input = document.getElementById('hidden-endtime-input'); input.value = timeStr;
-            if ('showPicker' in HTMLInputElement.prototype) { try { input.showPicker(); } catch(e) { input.click(); } } else { input.click(); }
-        }
-
-        function handleNewEndTime(newVal) {
-            if(!newVal) return;
-            const [h, m] = newVal.split(':'); const newDate = new Date(); newDate.setHours(h, m, 0, 0);
-            const now = new Date();
-            if (newDate < now) { if (newDate.getTime() < now.getTime() - 12*3600*1000) { newDate.setDate(newDate.getDate() + 1); } }
-
-            targetEndTimeDate = newDate;
-            updateEndTimeDisplay(); recalculateForFixedEnd();
-            triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
-        }
-
-        function recalculateForFixedEnd() {
-            const now = new Date();
-            const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            let workStepsLeft = 0; let fixedRest = 0;
-            for(let i=currentIndex; i<schedule.length; i++){
-                if (schedule[i].type==='finish') continue;
-                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
-                else if (schedule[i].type==='work') {
-                    if (schedule[i].info && schedule[i].info.exercise > 0) {
-                        workStepsLeft++;
-                    } else {
-                        fixedRest += schedule[i].time; 
-                    }
-                }
-                else if (schedule[i].type==='prep') workStepsLeft++; 
-            }
-            
-            if (workStepsLeft > 0) {
-                const availableForWork = secsRemaining - fixedRest;
-                let newWork = Math.floor(availableForWork / workStepsLeft);
-                if (newWork < 5) newWork = 5; 
-                
-                const currentIsWork = (schedule[currentIndex].type === 'work' && schedule[currentIndex].info.exercise > 0);
-                const oldWorkVal = schedule[currentIndex].initialTime; 
-
-                for(let i=currentIndex; i<schedule.length; i++){
-                    if (schedule[i].type==='work' && schedule[i].info.exercise > 0) { 
-                        schedule[i].time = newWork; schedule[i].initialTime = newWork; 
-                    }
-                }
-                if(currentIsWork) {
-                    const diff = newWork - oldWorkVal;
-                    stepEndTime += (diff * 1000);
-                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
-                }
-            }
-        }
-
-        function handlePauseClick() {
-            const btn = document.getElementById('btn-pause');
-            if (!isPaused) {
-                isPaused = true;
-                pauseStartTime = Date.now();
-                btn.innerText = "▶️"; 
-                document.body.classList.add('mode-pause'); 
-                document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
-                triggerAudio('manual_override', "Gepauzeerd");
-            } else {
-                 previewPauseOptions(); 
-                 document.getElementById('pause-modal').style.display = 'flex';
-            }
-        }
-
-        function previewPauseOptions() {
-            const now = Date.now();
-            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); 
-            document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
-            
-            const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
-            const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const newEndStr = newEndDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            const extraMin = Math.ceil(currentPauseDuration / 60);
-            document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
-            
-            const workSteps = countRemainingSteps('work');
-            const btnWork = document.getElementById('btn-catch-work');
-            if (workSteps > 0) {
-                const deduction = Math.ceil(currentPauseDuration / workSteps);
-                const currentWork = getFirstStepTime('work');
-                const newWork = currentWork - deduction;
-                if (newWork >= 5) {
-                    btnWork.disabled = false; btnWork.style.opacity = 1;
-                    document.getElementById('btn-text-work').innerText = `Werk: ${currentWork}s -> ${newWork}s`;
-                } else {
-                    btnWork.disabled = true; btnWork.style.opacity = 0.5;
-                    document.getElementById('btn-text-work').innerText = `Niet mogelijk (Werk wordt < 5s)`;
-                }
-            } else {
-                 btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
-            }
-            
-            updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
-            updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
-            updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
-        }
-        
-        function updateCatchUpButton(type, btnId, textId, label) {
-            const steps = countRemainingSteps(type);
-            const btn = document.getElementById(btnId);
-            if (steps > 0) {
-                const deduction = Math.ceil(currentPauseDuration / steps);
-                const currentVal = getFirstStepTime(type);
-                const newVal = currentVal - deduction;
-                if (newVal >= 5) {
-                    btn.disabled = false; btn.style.opacity = 1;
-                    document.getElementById(textId).innerText = `${label}: ${currentVal}s -> ${newVal}s`;
-                } else {
-                    btn.disabled = true; btn.style.opacity = 0.5;
-                    document.getElementById(textId).innerText = `Niet mogelijk (${label} < 5s)`;
-                }
-            } else {
-                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
-            }
-        }
-        
-        function countRemainingSteps(type) {
-            let count = 0;
-            for(let i=currentIndex; i<schedule.length; i++) { 
-                if (schedule[i].type === type) {
-                    if (type === 'work') {
-                        if (schedule[i].info && schedule[i].info.exercise > 0) count++;
-                    } else {
-                        count++;
-                    }
-                } 
-            }
-            return count;
-        }
-        
-        function getFirstStepTime(type) {
-            for(let i=currentIndex; i<schedule.length; i++) { if (schedule[i].type === type) return schedule[i].time; }
-            return 0;
-        }
-
-        function resolvePause(choice) {
-            document.getElementById('pause-modal').style.display = 'none';
-            const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; 
-            isPaused = false;
-            document.body.classList.remove('mode-pause');
-            
-            if (choice === 'push') {
-                targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
-                updateEndTimeDisplay();
-                stepEndTime += (currentPauseDuration * 1000); 
-            } else {
-                stepEndTime += (currentPauseDuration * 1000); 
-                
-                let typeToReduce = '';
-                if(choice === 'work') typeToReduce = 'work';
-                else if(choice === 'rest') typeToReduce = 'rest';
-                else if(choice === 'switch') typeToReduce = 'rest-exercise';
-                else if(choice === 'round') typeToReduce = 'rest-long';
-                
-                const steps = countRemainingSteps(typeToReduce);
-                const deduction = Math.ceil(currentPauseDuration / steps);
-                
-                let currentStepReduced = false;
-                for(let i=currentIndex; i<schedule.length; i++) { 
-                    if (schedule[i].type === typeToReduce) {
-                        if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
-
-                        schedule[i].time = Math.max(5, schedule[i].time - deduction);
-                        schedule[i].initialTime = schedule[i].time;
-                        if(i === currentIndex) currentStepReduced = true;
-                    }
-                }
-                
-                if(currentStepReduced) {
-                    stepEndTime -= (deduction * 1000);
-                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now())/1000);
-                }
-            }
-            
-            const step = schedule[currentIndex];
-            if (step.type==='work') document.body.classList.add('mode-work');
-            else if (step.type==='rest') document.body.classList.add('mode-rest');
-            else if (step.type==='rest-exercise') document.body.classList.add('mode-switch');
-            else if (step.type==='rest-long') document.body.classList.add('mode-long');
-
-            triggerAudio('manual_override', "We gaan weer door");
-            document.getElementById('gym-phase-title').innerText = step.label;
-            
-             const titleEl = document.getElementById('gym-phase-title');
-             titleEl.className = 'gym-phase-title';
-             if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
-        }
-
-        function updateEndTimeDisplay() { 
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-            document.getElementById('val-endtime').innerText = timeStr;
-            document.getElementById('live-endtime-input').value = timeStr;
-        }
-        
-        function updateProgressBar() {
-            const now = new Date(); const totalMs = targetEndTimeDate - workoutStartTime; 
-            if (totalMs <= 0) return;
-            const elapsed = now - workoutStartTime;
-            let pct = (elapsed / totalMs) * 100; if (pct>100) pct=100; if(pct<0) pct=0;
-            document.getElementById('total-progress').style.width = pct + "%";
-            document.getElementById('progress-text-center').innerText = Math.floor(pct) + "%";
-        }
-        
-        function finish() {
-            document.body.className = 'mode-finish';
-            document.getElementById('gym-phase-title').innerText = "KLAAR!";
-            document.getElementById('gym-phase-title').classList.remove('huge-text');
-            document.getElementById('countdown').innerText = "🎉";
-            document.getElementById('gym-stats-container').style.display='none';
-            document.getElementById('btn-pause').style.display='none';
-            clearInterval(timerInterval);
-            triggerAudio('finish', "Training klaar");
-        }
-        
-        function resetApp() { clearInterval(timerInterval); location.reload(); }
-        
-        function confirmStop() { if(confirm("Weet je zeker dat je de training wilt stoppen?")) { resetApp(); } }
     </script>
 </body>
 </html>
