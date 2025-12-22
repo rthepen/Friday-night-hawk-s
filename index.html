@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.12</title>
+    <title>Friday-night-hawk-s Timer v8.13</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -141,7 +141,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .select-group { display: flex; flex-direction: column; min-width: 0; }
@@ -543,6 +543,11 @@
             margin: 0;
             appearance: none; -webkit-appearance: none; /* remove default arrow */
         }
+        
+        .bonus-section-wrapper {
+            border: 1px solid #333; padding: 10px; border-radius: 8px; margin-bottom: 15px;
+            background: #111; text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -555,7 +560,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.12</span>
+                FNH Timer <span class="version-tag">v8.13</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -592,25 +597,41 @@
             </div>
         </div>
         
-        <div style="margin-bottom:10px;">
-            <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600;">Start elke ronde met een vaste extra workout (bijv. Spinning, Tabata of Buikspieren).</div>
-            
-            <div class="half-row" style="margin-bottom:5px;">
-                <div class="select-group">
-                    <label>Bonus Oefening</label>
-                    <select id="bonus-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();">
-                        </select>
+        <div class="extra-options">
+            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-extra')">
+                <div>Extra Oefeningen (Bonus)</div>
+                <span class="arrow">▼</span>
+            </div>
+            <div id="sec-extra" class="collapsible-content">
+                <div style="font-size:12px; color:#aaa; margin-bottom:12px;">Stel hier 3 bonus workouts in (bijv. Spinning, Tabata, Buikspieren).</div>
+                
+                <div class="bonus-section-wrapper">
+                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 1</label>
+                    <input type="text" id="bonus1-name" value="Bonus 1" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
+                    <div class="half-row" style="margin-bottom:0;">
+                        <select id="bonus1-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                        <select id="bonus1-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                    </div>
                 </div>
-                <div class="select-group">
-                    <label>Wanneer?</label>
-                    <select id="bonus-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();">
-                        <option value="start_round" selected>Begin elke ronde</option>
-                        <option value="warmup">Alleen begin (Warming-up)</option>
-                        <option value="end_round">Eind elke ronde</option>
-                        <option value="end_session">Einde van de les (Toetje)</option>
-                        <option disabled>── INTERVALLEN ──</option>
-                        </select>
+
+                <div class="bonus-section-wrapper">
+                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 2</label>
+                    <input type="text" id="bonus2-name" value="Bonus 2" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
+                    <div class="half-row" style="margin-bottom:0;">
+                        <select id="bonus2-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                        <select id="bonus2-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                    </div>
                 </div>
+
+                <div class="bonus-section-wrapper" style="margin-bottom:0;">
+                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 3</label>
+                    <input type="text" id="bonus3-name" value="Bonus 3" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
+                    <div class="half-row" style="margin-bottom:0;">
+                        <select id="bonus3-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                        <select id="bonus3-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -906,7 +927,7 @@
                 prep_intro: { enabled: true, text: "Hé atleten, we doen dit voor de bitterballen! | Zijn we er klaar voor? De snackbar is nog dicht! | Vergeet je handdoek niet, voor het zweet of de tranen. | Welkom bij de vrijwillige marteling! | Wie heeft dit bedacht? Oh ja, ik. | Sporten is gezond, zeggen ze... bewijs het maar! | Zijn de frikandellen al bruin? Nee? Dan trainen we nog even! | Klaar voor de start? Ik eigenlijk ook niet. | Laten we doen alsof we dit leuk vinden! | Welkom bij de Bitterballen Bootcamp!" },
                 prep_countdown: { enabled: true, text: "" },
                 work_start: { enabled: true, text: "Start! Hup, actie in de taxi! | Start! Bewegen met dat lijf! | Start! Hop hop, gas erop! | Start! Niet kletsen, maar zweten! | Start! En... gaan met die banaan! | Start! Doe alsof er gratis bitterballen zijn! | Start! Rennen voor je leven! | Start! Hup, van die bank af! | Start! Doe eens gek, beweeg! | Start! Tijd om die calorieën te verbranden (voor straks)!" },
-                work_halfway: { enabled: true, text: "Halverwege! De frituur staat al bijna aan! | Halverwege! Denk aan de bitterballen! | Halverwege! Zweten is huilen van het vet! | Halverwege! Kom op, je kan het (denk ik)! | Halverwege! Kijk naar de buren, die zweten ook | Halverwege! Wissel van kant, of blijf scheef. | Halverwege! Nog even en we mogen naar huis! | Halverwege! Denk aan die koude sportdrank! | Halverwege! Ik ruik al friet! | Halverwege! Niet flauwvallen nu!" },
+                work_halfway: { enabled: true, text: "Halverwege! De frituur staat al bijna aan! | Halverwege! Denk aan de bitterballen! | Halverwege! Zweten is huilen van het vet! | Halverwege! Kom op, je kan het (denk ik)! | Halverwege! Kijk naar de buren, die zweten ook! | Halverwege! Wissel van kant, of blijf scheef. | Halverwege! Nog even en we mogen naar huis! | Halverwege! Denk aan die koude sportdrank! | Halverwege! Ik ruik al friet! | Halverwege! Niet flauwvallen nu!" },
                 work_30s: { enabled: false, text: "Nog 30 seconden, hou die frikandel voor ogen! | 30 seconden, dat is niks! | Nog 30, even doorbijten (niet in je tong)! | 30 seconden, bijna tijd voor pauze! | Nog 30, kom op tijgers! | 30 seconden, ga door! | Nog 30, denk aan het weekend! | 30 seconden, sneller dan het licht! | Nog 30, je zweet staat je goed! | 30 tellen, hup!" },
                 work_10s: { enabled: true, text: "Nog 10 seconden! Afzien! | Nog 10 seconden! Bijna klaar, hou vol! | Nog 10 seconden! Nog even doorbijten! | Nog 10 seconden! Denk aan die AA-drink! | Nog 10 seconden! Niet smokkelen! | Nog 10, eindsprintje naar de bar! | Nog 10, bijna verlost! | Nog 10, kom op kanjers! | Nog 10, alles eruit! | Nog 10 seconden lijden!" },
                 rest_set_start: { enabled: true, text: "Rust! Hijgen als een postpaard | Rust! En.. relax | Rust! Zo, dat viel mee toch? | Rust! Even bijkomen | Rust! Pfoe, warm hè? | Rust! Tijd om te klagen! | Rust! Even checken of je hart nog klopt. | Rust! Droom maar van snacks. | Rust! Niet in slaap vallen! | Rust! Adem in, adem uit (belangrijk)!" },
@@ -1060,18 +1081,36 @@
             };
             fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
             
-            // Fill Bonus Duration Dropdown
-            const fillBonus = (id) => {
+            // Helper for Bonus Dropdowns
+            const fillBonusDuration = (id) => {
                 const sel = document.getElementById(id); sel.innerHTML = "";
                 const opt0 = document.createElement('option'); opt0.value=0; opt0.text="0 min (Uit)"; sel.appendChild(opt0);
                 for(let i=1; i<=15; i++) { const opt = document.createElement('option'); opt.value=i; opt.text=i+" min"; sel.appendChild(opt); }
             };
-            fillBonus('bonus-duration');
             
-            // Fill Bonus Freq (1-12 part)
-            const selFreq = document.getElementById('bonus-freq');
-            for(let i=1; i<=12; i++) {
-                const opt = document.createElement('option'); opt.value = i; opt.text = `Om de ${i} oefeningen`; selFreq.appendChild(opt);
+            const fillBonusFreq = (id) => {
+                const sel = document.getElementById(id); sel.innerHTML = "";
+                
+                const addOpt = (val, txt) => {
+                    const opt = document.createElement('option'); opt.value = val; opt.text = txt; sel.appendChild(opt);
+                };
+                
+                addOpt('start_round', 'Begin elke ronde');
+                addOpt('warmup', 'Alleen begin (Warming-up)');
+                addOpt('end_round', 'Eind elke ronde');
+                addOpt('end_session', 'Einde van de les (Toetje)');
+                
+                const grp = document.createElement('optgroup'); grp.label = "── INTERVALLEN ──"; sel.appendChild(grp);
+                
+                for(let i=1; i<=12; i++) {
+                    const opt = document.createElement('option'); opt.value = i; opt.text = `Om de ${i} oefeningen`; sel.appendChild(opt);
+                }
+            };
+
+            // Loop for 3 bonuses
+            for(let i=1; i<=3; i++) {
+                fillBonusDuration(`bonus${i}-duration`);
+                fillBonusFreq(`bonus${i}-freq`);
             }
         }
         
@@ -1159,8 +1198,12 @@
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
             
-            document.getElementById('bonus-duration').value = 0; 
-            document.getElementById('bonus-freq').value = "start_round";
+            // Reset 3 Bonuses
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`bonus${i}-name`).value = `Bonus ${i}`;
+                document.getElementById(`bonus${i}-duration`).value = 0;
+                document.getElementById(`bonus${i}-freq`).value = "start_round";
+            }
 
             syncTime('duration'); setAudioMode('speech');
             document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
@@ -1216,9 +1259,10 @@
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
-                // Bonus option (simplified)
-                bonusDuration: document.getElementById('bonus-duration').value,
-                bonusFreq: document.getElementById('bonus-freq').value
+                // Save 3 Bonuses
+                bonus1: { name: document.getElementById('bonus1-name').value, dur: document.getElementById('bonus1-duration').value, freq: document.getElementById('bonus1-freq').value },
+                bonus2: { name: document.getElementById('bonus2-name').value, dur: document.getElementById('bonus2-duration').value, freq: document.getElementById('bonus2-freq').value },
+                bonus3: { name: document.getElementById('bonus3-name').value, dur: document.getElementById('bonus3-duration').value, freq: document.getElementById('bonus3-freq').value }
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
@@ -1235,8 +1279,10 @@
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
                     
-                    if(data.bonusDuration) document.getElementById('bonus-duration').value = data.bonusDuration;
-                    if(data.bonusFreq) document.getElementById('bonus-freq').value = data.bonusFreq;
+                    // Load 3 Bonuses
+                    if(data.bonus1) { document.getElementById('bonus1-name').value = data.bonus1.name; document.getElementById('bonus1-duration').value = data.bonus1.dur; document.getElementById('bonus1-freq').value = data.bonus1.freq; }
+                    if(data.bonus2) { document.getElementById('bonus2-name').value = data.bonus2.name; document.getElementById('bonus2-duration').value = data.bonus2.dur; document.getElementById('bonus2-freq').value = data.bonus2.freq; }
+                    if(data.bonus3) { document.getElementById('bonus3-name').value = data.bonus3.name; document.getElementById('bonus3-duration').value = data.bonus3.dur; document.getElementById('bonus3-freq').value = data.bonus3.freq; }
 
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
@@ -1261,34 +1307,42 @@
 
             let remainingWorkSets = 0; let remainingFixedRestTime = 0;
             
-            // BONUS LOGIC CALCULATION
-            const bonusMin = parseInt(document.getElementById('bonus-duration').value) || 0;
-            const bonusSec = bonusMin * 60;
-            const bonusFreq = document.getElementById('bonus-freq').value;
-
-            // Warmup Bonus
-            if (bonusMin > 0 && bonusFreq === 'warmup') {
-                // Occurs once at start. Only add if start point is very beginning
-                if (startRound === 1 && startEx === 1 && startSet === 1) {
-                    remainingFixedRestTime += bonusSec + exRst;
+            // BONUS LOGIC CALCULATION (Loop 3 bonuses)
+            // We iterate through structure and check conditions for all 3 bonuses
+            
+            // Warmup Check (Start of Session)
+            for(let b=1; b<=3; b++) {
+                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                if(bMin > 0 && bFreq === 'warmup') {
+                    if (startRound === 1 && startEx === 1 && startSet === 1) {
+                        remainingFixedRestTime += (bMin*60) + exRst;
+                    }
                 }
             }
             
-            // Toetje Bonus
-            if (bonusMin > 0 && bonusFreq === 'end_session') {
-                // Always occurs at end, assuming we reach the end
-                remainingFixedRestTime += bonusSec + exRst;
+            // Toetje Check (End of Session)
+            for(let b=1; b<=3; b++) {
+                const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                if(bMin > 0 && bFreq === 'end_session') {
+                    remainingFixedRestTime += (bMin*60) + exRst;
+                }
             }
 
-            let globalExCount = 0; // For interval check
+            let globalExCount = 0;
 
             for (let r = 1; r <= rounds; r++) { 
                 
-                // Start Round Bonus
-                if (bonusMin > 0 && bonusFreq === 'start_round') {
-                    if (r >= startRound) {
-                        if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
-                             remainingFixedRestTime += bonusSec + exRst; 
+                // Start Round Check
+                for(let b=1; b<=3; b++) {
+                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                    if(bMin > 0 && bFreq === 'start_round') {
+                        if (r >= startRound) {
+                            if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
+                                 remainingFixedRestTime += (bMin*60) + exRst; 
+                            }
                         }
                     }
                 }
@@ -1296,16 +1350,15 @@
                 for (let e = 1; e <= ex; e++) { 
                     globalExCount++;
                     
-                    // Interval Bonus (Every X exercises)
-                    // Happens AFTER the exercise set is done (before next exercise or round rest)
-                    if (bonusMin > 0 && !isNaN(bonusFreq) && (globalExCount % parseInt(bonusFreq) === 0)) {
-                         // Check if this point is in the future
-                         let isFuture = false; 
-                         if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && sts >= startSet) isFuture = true; // rough check
-                         
-                         if(isFuture) {
-                             remainingFixedRestTime += bonusSec + exRst;
-                         }
+                    // Interval Check
+                    for(let b=1; b<=3; b++) {
+                        const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                        const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                        if(bMin > 0 && !isNaN(bFreq) && (globalExCount % parseInt(bFreq) === 0)) {
+                             let isFuture = false; 
+                             if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && sts >= startSet) isFuture = true; 
+                             if(isFuture) remainingFixedRestTime += (bMin*60) + exRst;
+                        }
                     }
 
                     for (let s = 1; s <= sts; s++) {
@@ -1318,15 +1371,16 @@
                     }
                 }
                 
-                // End Round Bonus
-                if (bonusMin > 0 && bonusFreq === 'end_round') {
-                    // Happens after round rest usually? Or before? Let's say before round rest
-                    if (r >= startRound) {
-                         // Simple check: if we are in this round, and not at the very end of workout
-                         if (r > startRound || (r === startRound)) {
-                             // Don't add if it's the very last thing and clashes with finish? No, add it.
-                             remainingFixedRestTime += bonusSec + exRst;
-                         }
+                // End Round Check
+                for(let b=1; b<=3; b++) {
+                    const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
+                    const bFreq = document.getElementById(`bonus${b}-freq`).value;
+                    if(bMin > 0 && bFreq === 'end_round') {
+                        if (r >= startRound) {
+                             if (r > startRound || (r === startRound)) { // Loose check for end of round
+                                 remainingFixedRestTime += (bMin*60) + exRst;
+                             }
+                        }
                     }
                 }
             }
@@ -1461,20 +1515,27 @@
         function generateScheduleData(applyResumeFilter) {
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            
-            // Bonus Options
-            const bonusMin = parseInt(document.getElementById('bonus-duration').value) || 0;
-            const bonusSec = bonusMin * 60;
-            const bonusFreq = document.getElementById('bonus-freq').value;
             const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
 
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
             schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
-            // WARMUP BONUS
-            if (bonusMin > 0 && bonusFreq === 'warmup') {
-                if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
-                    addBonusStep(0, "BONUS: WARMING-UP", bonusSec, exerciseRestSec);
+            // Helper to get Bonus Settings
+            const getBonus = (i) => {
+                return {
+                    name: document.getElementById(`bonus${i}-name`).value || `Bonus ${i}`,
+                    min: parseInt(document.getElementById(`bonus${i}-duration`).value) || 0,
+                    freq: document.getElementById(`bonus${i}-freq`).value
+                };
+            };
+
+            // WARMUP BONUS (Check all 3)
+            for(let b=1; b<=3; b++) {
+                const bonus = getBonus(b);
+                if (bonus.min > 0 && bonus.freq === 'warmup') {
+                    if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
+                        addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                    }
                 }
             }
 
@@ -1483,10 +1544,16 @@
             for (let r = 1; r <= rounds; r++) { 
                 
                 // START ROUND BONUS
-                if(bonusMin > 0 && bonusFreq === 'start_round') {
-                    let include = true;
-                    if(applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && (startEx > 1 || startSet > 1)) include = false; }
-                    if (include) addBonusStep(r, "BONUS: RONDE START", bonusSec, exerciseRestSec);
+                for(let b=1; b<=3; b++) {
+                    const bonus = getBonus(b);
+                    if(bonus.min > 0 && bonus.freq === 'start_round') {
+                        let include = true;
+                        if (applyResumeFilter) {
+                            if (r < startRound) include = false;
+                            else if (r === startRound && (startEx > 1 || startSet > 1)) include = false;
+                        }
+                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                    }
                 }
 
                 for (let e = 1; e <= ex; e++) { 
@@ -1509,31 +1576,35 @@
                         }
                     }
                     
-                    // EVERY X EXERCISES BONUS
-                    if (bonusMin > 0 && !isNaN(bonusFreq) && (globalExCount % parseInt(bonusFreq) === 0)) {
-                        // Logic for Resume: Only include if we are 'at' this point in the timeline.
-                        // Simple approximation: If we included the last set of this exercise, include bonus
-                        let include = true;
-                        if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
-                        
-                        if(include) addBonusStep(r, "BONUS: INTERVAL", bonusSec, exerciseRestSec);
+                    // INTERVAL BONUS
+                    for(let b=1; b<=3; b++) {
+                        const bonus = getBonus(b);
+                        if (bonus.min > 0 && !isNaN(bonus.freq) && (globalExCount % parseInt(bonus.freq) === 0)) {
+                            let include = true;
+                            if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
+                            
+                            if(include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                        }
                     }
                 }
                 
                 // END ROUND BONUS
-                if(bonusMin > 0 && bonusFreq === 'end_round') {
-                    let include = true;
-                    // Logic: If we finished the round, we get the bonus. 
-                    // Resume logic handles skipping past rounds.
-                    if (applyResumeFilter && r < startRound) include = false;
-                    
-                    if (include) addBonusStep(r, "BONUS: RONDE EINDE", bonusSec, exerciseRestSec);
+                for(let b=1; b<=3; b++) {
+                    const bonus = getBonus(b);
+                    if(bonus.min > 0 && bonus.freq === 'end_round') {
+                        let include = true;
+                        if (applyResumeFilter && r < startRound) include = false;
+                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                    }
                 }
             }
             
             // TOETJE BONUS
-            if (bonusMin > 0 && bonusFreq === 'end_session') {
-                addBonusStep(0, "BONUS: TOETJE", bonusSec, exerciseRestSec);
+            for(let b=1; b<=3; b++) {
+                const bonus = getBonus(b);
+                if (bonus.min > 0 && bonus.freq === 'end_session') {
+                    addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                }
             }
 
             if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
@@ -1662,7 +1733,6 @@
             titleEl.innerText = step.label;
             titleEl.className = 'gym-phase-title';
             if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { 
-                // Make huge text for main work phases (including custom extra name)
                 titleEl.classList.add('huge-text'); 
             }
             
@@ -1745,7 +1815,7 @@
                     if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
                     else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
                 } else {
-                    // Do nothing while paused, we track total paused time via timestamps now
+                    // Do nothing while paused
                 }
             }, 1000);
         }
@@ -1775,16 +1845,13 @@
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
                 else if (schedule[i].type==='work') {
-                    // Check if it's a regular exercise or extra start
-                    // We only adjust regular exercises.
-                    // Extra start is considered fixed time (like rest).
                     if (schedule[i].info && schedule[i].info.exercise > 0) {
                         workStepsLeft++;
                     } else {
-                        fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
+                        fixedRest += schedule[i].time; 
                     }
                 }
-                else if (schedule[i].type==='prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
+                else if (schedule[i].type==='prep') workStepsLeft++; 
             }
             
             if (workStepsLeft > 0) {
@@ -1813,31 +1880,27 @@
             if (!isPaused) {
                 isPaused = true;
                 pauseStartTime = Date.now();
-                btn.innerText = "▶️"; // Show Play icon to resume
-                
+                btn.innerText = "▶️"; 
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
-                 previewPauseOptions(); // Calculate BEFORE showing modal
+                 previewPauseOptions(); 
                  document.getElementById('pause-modal').style.display = 'flex';
             }
         }
 
-        // --- NEW PAUSE RESOLUTION LOGIC ---
         function previewPauseOptions() {
             const now = Date.now();
-            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
+            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); 
             document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
             
-            // 1. Push Endtime (Always possible)
             const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
             const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const newEndStr = newEndDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const extraMin = Math.ceil(currentPauseDuration / 60);
             document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
             
-            // 2. Catch up Work
             const workSteps = countRemainingSteps('work');
             const btnWork = document.getElementById('btn-catch-work');
             if (workSteps > 0) {
@@ -1855,11 +1918,8 @@
                  btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
             }
             
-            // 3. Catch up Rest (Set)
             updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
-            // 4. Catch up Switch
             updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
-            // 5. Catch up Round
             updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
         }
         
@@ -1884,7 +1944,6 @@
         
         function countRemainingSteps(type) {
             let count = 0;
-            // Only count regular work steps, not fixed extra steps for adjustment
             for(let i=currentIndex; i<schedule.length; i++) { 
                 if (schedule[i].type === type) {
                     if (type === 'work') {
@@ -1905,12 +1964,10 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "⏸"; 
             isPaused = false;
-            
             document.body.classList.remove('mode-pause');
             
-            // Apply Logic
             if (choice === 'push') {
                 targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
                 updateEndTimeDisplay();
@@ -1918,7 +1975,6 @@
             } else {
                 stepEndTime += (currentPauseDuration * 1000); 
                 
-                // Now Reduce
                 let typeToReduce = '';
                 if(choice === 'work') typeToReduce = 'work';
                 else if(choice === 'rest') typeToReduce = 'rest';
@@ -1928,11 +1984,9 @@
                 const steps = countRemainingSteps(typeToReduce);
                 const deduction = Math.ceil(currentPauseDuration / steps);
                 
-                // Apply deduction
                 let currentStepReduced = false;
                 for(let i=currentIndex; i<schedule.length; i++) { 
                     if (schedule[i].type === typeToReduce) {
-                        // Protect Extra Work from reduction if mode is 'work'
                         if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
 
                         schedule[i].time = Math.max(5, schedule[i].time - deduction);
@@ -1947,7 +2001,6 @@
                 }
             }
             
-            // UI Restore
             const step = schedule[currentIndex];
             if (step.type==='work') document.body.classList.add('mode-work');
             else if (step.type==='rest') document.body.classList.add('mode-rest');
