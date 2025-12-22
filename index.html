@@ -883,18 +883,27 @@
     
     <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
-    <script>
+<script>
         // --- VARIABELEN ---
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         let editingSpeechKey = null; 
         let customNames = {}; 
         
-        // CONTAINERS VOOR EXTERNE DATA
+        // CONTAINERS
         let coachPresets = {};
-        let appDefaults = {}; // Hier komen de reset-waarden in
         
-        // Huidige instellingen container
+        // HARDE FALLBACK DEFAULTS (Zodat de app altijd werkt)
+        let appDefaults = { 
+            rounds: 2, exercises: 6, sets: 2, restSec: 20, exerciseRestSec: 30, roundRestSec: 90, totalMin: 30, 
+            startRound: 1, startEx: 1, startSet: 1, coachPreset: "standard",
+            bonuses: [
+                {name:"Bonus 1", duration:0, freq:"start_round"},
+                {name:"Bonus 2", duration:0, freq:"start_round"},
+                {name:"Bonus 3", duration:0, freq:"start_round"}
+            ]
+        };
+        
         let speechSettings = {};
 
         // UI Config
@@ -939,90 +948,134 @@
         let stepEndTime = 0; 
         let currentPauseDuration = 0; 
 
-        // --- FUNCTIE OM EXTERNE DATA (DEFAULTS + COACHES) TE LADEN ---
+        // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
         async function initApp() {
             const select = document.getElementById('coach-preset');
             select.innerHTML = '<option value="loading" disabled selected>Laden...</option>';
 
+            // 1. Probeer defaults.json
             try {
-                // 1. Laad defaults.json
                 const defaultsResp = await fetch('defaults.json');
                 if (defaultsResp.ok) {
-                    appDefaults = await defaultsResp.json();
-                } else {
-                    console.error("Kan defaults.json niet laden, gebruik fallback.");
-                    // Fallback als bestand mist
-                    appDefaults = { 
-                        rounds: 2, exercises: 6, sets: 2, restSec: 20, exerciseRestSec: 30, roundRestSec: 90, totalMin: 30, 
-                        startRound: 1, startEx: 1, startSet: 1, coachPreset: "standard",
-                        bonuses: [
-                            {name:"Bonus 1", duration:0, freq:"start_round"},
-                            {name:"Bonus 2", duration:0, freq:"start_round"},
-                            {name:"Bonus 3", duration:0, freq:"start_round"}
-                        ]
-                    };
+                    const loadedDefaults = await defaultsResp.json();
+                    // Merge loaded defaults with hardcoded fallback to be safe
+                    appDefaults = { ...appDefaults, ...loadedDefaults };
                 }
+            } catch (err) {
+                console.warn("Defaults.json niet geladen, gebruik fallback.", err);
+            }
 
-                // 2. Laad Coaches Manifest
+            // 2. Probeer Coaches
+            try {
                 const response = await fetch('coaches/manifest.json');
-                if (!response.ok) throw new Error("Kan manifest niet laden");
+                if (!response.ok) throw new Error("Manifest 404");
                 const files = await response.json();
 
-                // 3. Loop door de lijst en laad elke coach
                 for (const file of files) {
                     try {
                         const coachResp = await fetch(`coaches/${file}`);
-                        const coachObj = await coachResp.json();
-                        
-                        coachPresets[coachObj.id] = coachObj.data;
-
-                        if (!select.querySelector(`option[value="${coachObj.id}"]`)) {
-                            const opt = document.createElement('option');
-                            opt.value = coachObj.id;
-                            opt.text = coachObj.name;
-                            select.appendChild(opt);
+                        if(coachResp.ok) {
+                            const coachObj = await coachResp.json();
+                            coachPresets[coachObj.id] = coachObj.data;
+                            
+                            // Voeg toe aan dropdown
+                            if (!select.querySelector(`option[value="${coachObj.id}"]`)) {
+                                const opt = document.createElement('option');
+                                opt.value = coachObj.id;
+                                opt.text = coachObj.name;
+                                select.appendChild(opt);
+                            }
                         }
-                    } catch (err) {
-                        console.error(`Fout bij laden van ${file}:`, err);
+                    } catch (e) { console.error("Fout bij coach:", file, e); }
+                }
+            } catch (error) {
+                console.warn("Geen coaches gevonden, gebruik alleen lokale data.", error);
+                // Als manifest faalt, voeg in ieder geval een dummy optie toe of laat leeg
+                if(select.options.length <= 1) {
+                    const errOpt = document.createElement('option');
+                    errOpt.text = "(Geen externe coaches)";
+                    errOpt.disabled = true;
+                    select.appendChild(errOpt);
+                }
+            }
+
+            // Clean up dropdown UI
+            const loadingOpt = select.querySelector('option[value="loading"]');
+            if (loadingOpt) loadingOpt.remove();
+
+            const customOpt = document.createElement('option');
+            customOpt.value = "custom";
+            customOpt.text = "Geïmporteerd / Aangepast";
+            customOpt.disabled = true;
+            customOpt.hidden = true;
+            select.appendChild(customOpt);
+
+            // 3. PAS NU DE WAARDEN TOE (Dit gebeurt nu ALTIJD, ook bij errors)
+            finalizeInit();
+        }
+
+        function finalizeInit() {
+            const select = document.getElementById('coach-preset');
+            
+            // Selecteer standaard uit defaults, of fallback op eerste in lijst
+            let targetPreset = appDefaults.coachPreset || 'standard';
+            
+            // Als de target niet bestaat (bijv standard.json mist), pak de eerste beschikbare
+            if (!coachPresets[targetPreset] && select.options.length > 0 && select.options[0].value !== 'loading') {
+                targetPreset = select.options[0].value;
+            }
+
+            select.value = targetPreset;
+            if (coachPresets[targetPreset]) {
+                speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset]));
+            } else {
+                // Fallback: lege settings als er echt niets is
+                speechSettings = {};
+            }
+
+            loadFromLocal();
+            checkForSharedSettings();
+            renderSpeechSettings();
+            
+            // Zet inputs op basis van defaults (als ze nog niet zijn overschreven door local)
+            // Let op: loadFromLocal overschrijft dit weer als er iets is opgeslagen.
+            // Als er NIETS is opgeslagen, willen we de defaults in de UI zien:
+            if (!localStorage.getItem('fnh_settings_v8')) {
+                applyDefaultsToUI();
+            }
+            
+            // Sync tijd en calculatie
+            if(!document.getElementById('endTimeValue').value) {
+                syncTime('duration');
+            }
+            calculateRealTime();
+        }
+
+        function applyDefaultsToUI() {
+            document.getElementById('rounds').value = appDefaults.rounds;
+            document.getElementById('exercises').value = appDefaults.exercises;
+            document.getElementById('sets').value = appDefaults.sets;
+            document.getElementById('restSec').value = appDefaults.restSec;
+            document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec;
+            document.getElementById('roundRestSec').value = appDefaults.roundRestSec;
+            document.getElementById('totalMin').value = appDefaults.totalMin;
+            
+            if(appDefaults.bonuses) {
+                for(let i=0; i<3; i++) {
+                    if(appDefaults.bonuses[i]) {
+                        document.getElementById(`bonus${i+1}-name`).value = appDefaults.bonuses[i].name;
+                        document.getElementById(`bonus${i+1}-duration`).value = appDefaults.bonuses[i].duration;
+                        document.getElementById(`bonus${i+1}-freq`).value = appDefaults.bonuses[i].freq;
                     }
                 }
-
-                const loadingOpt = select.querySelector('option[value="loading"]');
-                if (loadingOpt) loadingOpt.remove();
-
-                const customOpt = document.createElement('option');
-                customOpt.value = "custom";
-                customOpt.text = "Geïmporteerd / Aangepast";
-                customOpt.disabled = true;
-                customOpt.hidden = true;
-                select.appendChild(customOpt);
-
-                // Selecteer standaard of opgeslagen
-                select.value = appDefaults.coachPreset || 'standard'; 
-                if (coachPresets[select.value]) {
-                    speechSettings = JSON.parse(JSON.stringify(coachPresets[select.value]));
-                }
-
-                // Start de rest van de app
-                loadFromLocal();
-                checkForSharedSettings();
-                renderSpeechSettings();
-
-            } catch (error) {
-                console.error("Critical error loading app data:", error);
-                select.innerHTML = '<option>Fout bij laden data</option>';
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             populateDropdowns();
             
-            // Start de app initialisatie
+            // Start async init, maar blokkeer de UI niet
             initApp();
-            
-            if(!document.getElementById('endTimeValue').value) {
-                syncTime('duration');
-            }
 
             document.querySelectorAll('input.param-input').forEach(i => {
                 i.addEventListener('input', () => { calculateRealTime(); saveToLocal(); });
@@ -1032,7 +1085,8 @@
             document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
             
             document.addEventListener("visibilitychange", handleVisibilityChange);
-
+            
+            // Initiele calculatie voor de zekerheid
             calculateRealTime(); 
         });
         
@@ -1349,33 +1403,10 @@
             showScheduleModal(); 
         }
 
-        // --- AANGEPAST VOOR DEFAULTS.JSON ---
         function resetToDefaults() {
             if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
             
-            // Gebruik waarden uit appDefaults
-            document.getElementById('rounds').value = appDefaults.rounds || 2; 
-            document.getElementById('exercises').value = appDefaults.exercises || 6; 
-            document.getElementById('sets').value = appDefaults.sets || 2; 
-            document.getElementById('restSec').value = appDefaults.restSec || 20; 
-            document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec || 30; 
-            document.getElementById('roundRestSec').value = appDefaults.roundRestSec || 90;
-            document.getElementById('totalMin').value = appDefaults.totalMin || 30; 
-            document.getElementById('start-round').value = appDefaults.startRound || 1; 
-            document.getElementById('start-ex').value = appDefaults.startEx || 1; 
-            document.getElementById('start-set').value = appDefaults.startSet || 1;
-            
-            if (appDefaults.bonuses) {
-                for(let i=0; i<3; i++) {
-                    const b = appDefaults.bonuses[i];
-                    const num = i+1;
-                    if(b) {
-                        document.getElementById(`bonus${num}-name`).value = b.name;
-                        document.getElementById(`bonus${num}-duration`).value = b.duration;
-                        document.getElementById(`bonus${num}-freq`).value = b.freq;
-                    }
-                }
-            }
+            applyDefaultsToUI();
             
             customNames = {};
 
@@ -1386,6 +1417,13 @@
             if(coachPresets[defCoach]) {
                 document.getElementById('coach-preset').value = defCoach;
                 speechSettings = JSON.parse(JSON.stringify(coachPresets[defCoach]));
+            } else {
+                 // Fallback als de default preset er niet is
+                 if(document.getElementById('coach-preset').options.length > 0) {
+                     const first = document.getElementById('coach-preset').options[0].value;
+                     document.getElementById('coach-preset').value = first;
+                     if(coachPresets[first]) speechSettings = JSON.parse(JSON.stringify(coachPresets[first]));
+                 }
             }
             
             speechPlaylists = {}; 
