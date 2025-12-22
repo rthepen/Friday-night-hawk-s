@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.16</title>
+    <title>Friday-night-hawk-s Timer v8.17</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -521,8 +521,7 @@
         .schedule-table th { background: #333; color: #fff; padding: 8px; text-align: left; position: sticky; top: 0; }
         .schedule-table td { padding: 8px; border-bottom: 1px solid #222; color: #ccc; }
         .schedule-table tr.row-work td { color: #fff; font-weight: bold; }
-        .schedule-table tr.row-work input { background: #222; border: 1px solid #444; color: #30D158; width: 100%; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 14px;}
-        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; cursor: pointer; } /* Bonus rows now pointer */
+        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; cursor: pointer; } /* Make clickable rows clear */
 
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
@@ -558,7 +557,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.16</span>
+                FNH Timer <span class="version-tag">v8.17</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -598,7 +597,7 @@
         <div style="margin-bottom:15px; margin-top:5px;">
             <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600; text-transform:uppercase;">EXTRA OEFENINGEN (BONUS)</div>
              <div style="font-size:11px; color:#aaa; margin-bottom:10px; text-align:left;">
-                Bijv: Warming-up (eenmalig start), Spinning (begin elke ronde) of Toetje/Finisher (einde les). Een Toetje heeft geen wissel/rust na afloop.
+                Bijv: Warming-up (eenmalig start), Spinning (begin elke ronde) of Toetje/Finisher (einde les).
             </div>
             
             <div class="bonus-row">
@@ -918,7 +917,7 @@
         
         let customNames = {}; 
         
-        // --- COACH PRESETS (Already Updated) ---
+        // --- COACH PRESETS ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom Hawks! Tijd om te trainen. | Goedemorgen Hawks, laten we beginnen! | Klaar voor de start? We gaan ervoor! | Welkom bij de training, zet hem op vandaag! | Iedereen klaar? Focus aan, verstand op nul! | Tijd voor actie, Hawks! | Laat zien wat je kan vandaag! | Welkom strijders, vandaag gaan we knallen! | Goed dat je er bent, maak er een top training van! | Laten we beginnen met een glimlach (en zweet)!" },
@@ -1339,6 +1338,7 @@
                 // Bonus Exercise
                 else if (step.type === 'work' && step.info.exercise === 0 && step.info.bonusId) {
                      tdName.innerText = step.label + " ✏️";
+                     tdName.style.cursor = "pointer";
                      tdName.onclick = function() {
                          openBonusEditModal(step.info.bonusId);
                      };
