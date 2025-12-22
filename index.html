@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.14</title>
+    <title>Friday-night-hawk-s Timer v8.15</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -135,7 +135,6 @@
             margin-bottom: 10px;
         }
         
-        /* Bonus Row: Name (bigger) | Time | Freq */
         .bonus-row {
             display: grid;
             grid-template-columns: 2fr 1fr 1.5fr;
@@ -307,12 +306,7 @@
             transition: all 0.2s;
         }
         .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
-        
-        /* STRICT PAUSED STATE - NO WHITE BG */
-        .btn-control.paused { 
-            border-color: rgba(255,255,255,0.5) !important;
-        }
-        
+        .btn-control.paused { border-color: rgba(255,255,255,0.5) !important; }
         .btn-stop { color: #FF453A; /* Red icon for stop */ }
 
         .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
@@ -536,10 +530,10 @@
         .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
         .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
         
-        /* SPEECH EDIT TEXTAREA - MAXIMIZED */
+        /* SPEECH EDIT TEXTAREA */
         #speech-edit-area {
             width: 100%; 
-            min-height: 350px; /* Huge height */
+            min-height: 350px;
             background: #222; border: 1px solid #555; color: white;
             font-size: 16px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
             font-family: inherit;
@@ -550,18 +544,7 @@
         
         /* TRANSPARENT INPUT STYLES */
         .transparent-input {
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            height: 100%; 
-            opacity: 0; 
-            z-index: 20; 
-            cursor: pointer;
-            border: none;
-            padding: 0;
-            margin: 0;
-            appearance: none; -webkit-appearance: none; /* remove default arrow */
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; z-index: 20; cursor: pointer; border: none; padding: 0; margin: 0; appearance: none;
         }
     </style>
 </head>
@@ -575,7 +558,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.14</span>
+                FNH Timer <span class="version-tag">v8.15</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -856,39 +839,39 @@
                 <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
             </div>
             <div style="font-size:12px; color:#888; margin-bottom:5px;">Klik op een naam om deze te wijzigen.</div>
-            
             <div class="schedule-table-container">
                 <table class="schedule-table" id="full-schedule-table">
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">Tijd</th>
-                            <th>Oefening / Fase</th>
-                            <th style="width:40px;">Sec</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th style="width:50px;">Tijd</th><th>Oefening / Fase</th><th style="width:40px;">Sec</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
-            
             <button class="modal-btn" style="background: #333; color: white; margin-top:15px;" onclick="closeScheduleModal()">Sluiten</button>
         </div>
     </div>
 
     <div id="edit-scope-modal">
-        <div class="modal-content" style="max-width:300px;">
+        <div class="modal-content" style="max-width:320px;">
             <h3 style="margin-top:0;">Naam wijzigen</h3>
-            <p style="color:#aaa; font-size:14px;">Wil je "<span id="edit-target-name" style="color:white;">...</span>" aanpassen voor:</p>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Nieuwe naam: <span id="edit-target-name" style="color:white; font-weight:bold;">...</span>. <br>Waar wil je dit toepassen?</p>
             
             <input type="hidden" id="edit-round-idx">
             <input type="hidden" id="edit-ex-idx">
+            <input type="hidden" id="edit-set-idx">
             <input type="hidden" id="edit-new-val">
             
             <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="applyNameChange('single')">
-                1️⃣ Alleen deze ronde
+                1️⃣ Alleen dit blokje
+                <span class="btn-subtext" style="font-size:10px;">(Alleen set <span id="lbl-set"></span> van deze ronde)</span>
             </button>
             
-            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all')">
-                🔄 Alle rondes
+            <button class="modal-btn" style="background: #BF5AF2; color: white;" onclick="applyNameChange('round_ex')">
+                🔂 Hele oefening (Deze Ronde)
+                <span class="btn-subtext" style="font-size:10px;">(Alle sets van oefening <span id="lbl-ex"></span> in deze ronde)</span>
+            </button>
+            
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all_rounds')">
+                🌎 Hele oefening (Alle Rondes)
+                <span class="btn-subtext" style="font-size:10px;">(Oefening <span id="lbl-ex-all"></span> in elke ronde aanpassen)</span>
             </button>
             
             <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeEditScopeModal()">Annuleren</div>
@@ -903,10 +886,10 @@
         let speechPlaylists = {}; 
         let editingSpeechKey = null; 
         
-        // NEW: Store custom names for exercises. Key format: "r{round}-e{exercise}"
+        // Custom Names Store: "r{round}-e{exercise}" OR "r{round}-e{exercise}-s{set}"
         let customNames = {}; 
         
-        // --- COACH PRESETS DEFINITIONS (Already Updated) ---
+        // --- COACH PRESETS (Already Updated) ---
         const coachPresets = {
             standard: {
                 prep_intro: { enabled: true, text: "Welkom Hawks! Tijd om te trainen. | Goedemorgen Hawks, laten we beginnen! | Klaar voor de start? We gaan ervoor! | Welkom bij de training, zet hem op vandaag! | Iedereen klaar? Focus aan, verstand op nul! | Tijd voor actie, Hawks! | Laat zien wat je kan vandaag! | Welkom strijders, vandaag gaan we knallen! | Goed dat je er bent, maak er een top training van! | Laten we beginnen met een glimlach (en zweet)!" },
@@ -1267,16 +1250,33 @@
                 if(step.type === 'work' && step.info.exercise > 0) {
                     const input = document.createElement('input');
                     input.type = "text";
-                    // Check if custom name exists
-                    const key = `r${step.info.round}-e${step.info.exercise}`;
-                    input.value = customNames[key] ? customNames[key] : step.label; // Label is usually "WERKEN" or custom name
+                    // Hierachy: Specific Set > Round Exercise > Default
+                    const keySet = `r${step.info.round}-e${step.info.exercise}-s${step.info.set}`;
+                    const keyRound = `r${step.info.round}-e${step.info.exercise}`;
+                    const keyAll = `rALL-e${step.info.exercise}`; // Not really stored this way, but conceptually
+                    
+                    // Logic to find value
+                    // We only store precise keys or round-based keys.
+                    // To show "Burpees" if all rounds are Burpees, we just check the current round key.
+                    // If user set "All Rounds", we actually wrote to all rX-eY keys.
+                    
+                    let val = step.label; 
+                    // If step.label is default "Oefening X.Y", maybe show placeholder or value?
+                    // Actually generateScheduleData already sets the label based on customNames!
+                    // So step.label IS the correct value to show.
+                    
+                    input.value = val;
                     
                     // Add identification data
                     input.dataset.r = step.info.round;
                     input.dataset.e = step.info.exercise;
+                    input.dataset.s = step.info.set;
                     
+                    // Pass current label to placeholder just in case
+                    input.placeholder = `Oefening ${step.info.exercise}.${step.info.set}`;
+
                     input.onchange = function() {
-                        openEditScopeModal(this.dataset.r, this.dataset.e, this.value);
+                        openEditScopeModal(this.dataset.r, this.dataset.e, this.dataset.s, this.value);
                     };
                     tdName.appendChild(input);
                 } else {
@@ -1302,46 +1302,73 @@
         
         function closeScheduleModal() {
             document.getElementById('schedule-modal').style.display = 'none';
-            // Recalculate real time to update main preview list with new names
             calculateRealTime();
         }
         
         // --- EDIT SCOPE LOGIC ---
-        function openEditScopeModal(r, e, newVal) {
+        function openEditScopeModal(r, e, s, newVal) {
             document.getElementById('edit-round-idx').value = r;
             document.getElementById('edit-ex-idx').value = e;
+            document.getElementById('edit-set-idx').value = s;
             document.getElementById('edit-new-val').value = newVal;
             document.getElementById('edit-target-name').innerText = newVal;
+            
+            // Update labels in buttons
+            document.getElementById('lbl-set').innerText = s;
+            document.getElementById('lbl-ex').innerText = e;
+            document.getElementById('lbl-ex-all').innerText = e;
+            
             document.getElementById('edit-scope-modal').style.display = 'flex';
         }
         
         function closeEditScopeModal() {
             document.getElementById('edit-scope-modal').style.display = 'none';
-            // Re-render table to revert change if cancelled (or just keep it visual? Better re-render to be safe)
             showScheduleModal(); 
         }
         
         function applyNameChange(scope) {
             const r = parseInt(document.getElementById('edit-round-idx').value);
             const e = parseInt(document.getElementById('edit-ex-idx').value);
+            const s = parseInt(document.getElementById('edit-set-idx').value);
             const newVal = document.getElementById('edit-new-val').value;
             const totalRounds = parseInt(document.getElementById('rounds').value);
             
+            // Logic:
+            // 1. Single Set: Store specific key `rX-eY-sZ`
+            // 2. Round Ex: Store key `rX-eY`. Clear specific set keys for this round/ex to avoid conflicts? Yes.
+            // 3. All Rounds: Store key `rX-eY` for ALL rounds. Clear specific sets everywhere for this ex.
+            
             if (scope === 'single') {
+                const key = `r${r}-e${e}-s${s}`;
+                if(newVal.trim() === "") delete customNames[key];
+                else customNames[key] = newVal;
+            } 
+            else if (scope === 'round_ex') {
                 const key = `r${r}-e${e}`;
                 if(newVal.trim() === "") delete customNames[key];
                 else customNames[key] = newVal;
-            } else if (scope === 'all') {
+                
+                // Cleanup specific set overrides for this round
+                Object.keys(customNames).forEach(k => {
+                    if(k.startsWith(`r${r}-e${e}-s`)) delete customNames[k];
+                });
+            } 
+            else if (scope === 'all_rounds') {
                 for(let i=1; i<=totalRounds; i++) {
                     const key = `r${i}-e${e}`;
                     if(newVal.trim() === "") delete customNames[key];
                     else customNames[key] = newVal;
+                    
+                    // Cleanup specific set overrides for this round
+                    Object.keys(customNames).forEach(k => {
+                        if(k.startsWith(`r${i}-e${e}-s`)) delete customNames[k];
+                    });
                 }
             }
             
             saveToLocal();
             document.getElementById('edit-scope-modal').style.display = 'none';
-            showScheduleModal(); // Refresh table to show applied changes
+            showScheduleModal(); 
         }
 
         function resetToDefaults() {
@@ -1350,14 +1377,12 @@
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
             
-            // Reset Bonuses
             for(let i=1; i<=3; i++) {
                 document.getElementById(`bonus${i}-name`).value = `Bonus ${i}`;
                 document.getElementById(`bonus${i}-duration`).value = 0;
                 document.getElementById(`bonus${i}-freq`).value = "start_round";
             }
             
-            // Reset Custom Names
             customNames = {};
 
             syncTime('duration'); setAudioMode('speech');
@@ -1719,9 +1744,13 @@
                         if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
                         if(include) {
                             // CHECK FOR CUSTOM NAME
-                            let label = "WERKEN";
-                            const customNameKey = `r${r}-e${e}`;
-                            if(customNames[customNameKey]) label = customNames[customNameKey];
+                            // Hierarchy: Specific Set > Round Exercise > All Round Exercise (handled by apply)
+                            let label = `Oefening ${e}.${s}`;
+                            const keySet = `r${r}-e${e}-s${s}`;
+                            const keyRound = `r${r}-e${e}`;
+                            
+                            if(customNames[keySet]) label = customNames[keySet];
+                            else if(customNames[keyRound]) label = customNames[keyRound];
 
                             schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: label, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
@@ -1976,7 +2005,7 @@
                     if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
                     else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
                 } else {
-                    // Do nothing while paused, we track total paused time via timestamps now
+                    // Do nothing while paused
                 }
             }, 1000);
         }
@@ -2006,16 +2035,13 @@
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
                 else if (schedule[i].type==='work') {
-                    // Check if it's a regular exercise or extra start
-                    // We only adjust regular exercises.
-                    // Extra start is considered fixed time (like rest).
                     if (schedule[i].info && schedule[i].info.exercise > 0) {
                         workStepsLeft++;
                     } else {
-                        fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
+                        fixedRest += schedule[i].time; 
                     }
                 }
-                else if (schedule[i].type==='prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
+                else if (schedule[i].type==='prep') workStepsLeft++; 
             }
             
             if (workStepsLeft > 0) {
@@ -2044,31 +2070,27 @@
             if (!isPaused) {
                 isPaused = true;
                 pauseStartTime = Date.now();
-                btn.innerText = "▶️"; // Show Play icon to resume
-                
+                btn.innerText = "▶️"; 
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
-                 previewPauseOptions(); // Calculate BEFORE showing modal
+                 previewPauseOptions(); 
                  document.getElementById('pause-modal').style.display = 'flex';
             }
         }
 
-        // --- NEW PAUSE RESOLUTION LOGIC ---
         function previewPauseOptions() {
             const now = Date.now();
-            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
+            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); 
             document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
             
-            // 1. Push Endtime (Always possible)
             const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
             const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const newEndStr = newEndDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const extraMin = Math.ceil(currentPauseDuration / 60);
             document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
             
-            // 2. Catch up Work
             const workSteps = countRemainingSteps('work');
             const btnWork = document.getElementById('btn-catch-work');
             if (workSteps > 0) {
@@ -2086,11 +2108,8 @@
                  btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
             }
             
-            // 3. Catch up Rest (Set)
             updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
-            // 4. Catch up Switch
             updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
-            // 5. Catch up Round
             updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
         }
         
@@ -2115,7 +2134,6 @@
         
         function countRemainingSteps(type) {
             let count = 0;
-            // Only count regular work steps, not fixed extra steps for adjustment
             for(let i=currentIndex; i<schedule.length; i++) { 
                 if (schedule[i].type === type) {
                     if (type === 'work') {
@@ -2136,12 +2154,10 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "⏸"; 
             isPaused = false;
-            
             document.body.classList.remove('mode-pause');
             
-            // Apply Logic
             if (choice === 'push') {
                 targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
                 updateEndTimeDisplay();
@@ -2149,7 +2165,6 @@
             } else {
                 stepEndTime += (currentPauseDuration * 1000); 
                 
-                // Now Reduce
                 let typeToReduce = '';
                 if(choice === 'work') typeToReduce = 'work';
                 else if(choice === 'rest') typeToReduce = 'rest';
@@ -2159,11 +2174,9 @@
                 const steps = countRemainingSteps(typeToReduce);
                 const deduction = Math.ceil(currentPauseDuration / steps);
                 
-                // Apply deduction
                 let currentStepReduced = false;
                 for(let i=currentIndex; i<schedule.length; i++) { 
                     if (schedule[i].type === typeToReduce) {
-                        // Protect Extra Work from reduction if mode is 'work'
                         if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
 
                         schedule[i].time = Math.max(5, schedule[i].time - deduction);
@@ -2178,7 +2191,6 @@
                 }
             }
             
-            // UI Restore
             const step = schedule[currentIndex];
             if (step.type==='work') document.body.classList.add('mode-work');
             else if (step.type==='rest') document.body.classList.add('mode-rest');
