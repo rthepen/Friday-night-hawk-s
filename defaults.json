@@ -1,0 +1,18 @@
+{
+  "rounds": 2,
+  "exercises": 6,
+  "sets": 2,
+  "restSec": 20,
+  "exerciseRestSec": 30,
+  "roundRestSec": 90,
+  "totalMin": 30,
+  "startRound": 1,
+  "startEx": 1,
+  "startSet": 1,
+  "bonuses": [
+    { "name": "Bonus 1", "duration": 0, "freq": "start_round" },
+    { "name": "Bonus 2", "duration": 0, "freq": "start_round" },
+    { "name": "Bonus 3", "duration": 0, "freq": "start_round" }
+  ],
+  "coachPreset": "standard"
+}
