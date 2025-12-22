@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.9</title>
+    <title>Friday-night-hawk-s Timer v8.10</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -178,6 +178,14 @@
             text-align: center;
             font-family: inherit;
         }
+        
+        input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
+            background: #1c1c1e; color: white; font-size: 16px;
+            display: block;
+            -webkit-appearance: none;
+            text-align: center;
+        }
 
         /* --- TOGGLES --- */
         .toggle-container { display: flex; background: #1c1c1e; border-radius: 8px; padding: 4px; margin-bottom: 12px; flex-shrink: 0; }
@@ -188,7 +196,7 @@
         .toggle-btn.active { background: #333; color: #fff; }
 
         /* --- SPEECH SETTINGS --- */
-        .speech-options, .resume-options {
+        .speech-options, .resume-options, .extra-options {
             background: #1c1c1e;
             border-radius: 8px;
             padding: 10px;
@@ -196,7 +204,7 @@
             border: 1px solid #333;
             text-align: left;
         }
-        .resume-options { border-color: #555; margin-top: 15px; margin-bottom: 30px; } 
+        .resume-options, .extra-options { border-color: #555; margin-top: 15px; margin-bottom: 20px; } 
 
         .category-header {
             margin-top: 20px; margin-bottom: 10px;
@@ -547,7 +555,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.9</span>
+                FNH Timer <span class="version-tag">v8.10</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -596,6 +604,36 @@
             <div class="select-group">
                 <label>Rust tussen rondes</label>
                 <select id="roundRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+        </div>
+
+        <div class="extra-options">
+            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-extra')">
+                <div>Extra Start-Oefening per Ronde</div>
+                <span class="arrow">▼</span>
+            </div>
+            <div id="sec-extra" class="collapsible-content">
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Start elke ronde met een vaste oefening (bijv. Spinning).</div>
+                
+                <div class="switch-row" style="margin-bottom:10px;">
+                    <span class="switch-label">Inschakelen</span>
+                    <label class="switch">
+                        <input type="checkbox" id="extra-enabled" onchange="calculateRealTime(); saveToLocal();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="half-row">
+                    <div class="select-group">
+                        <label>Naam (bijv. Spinning)</label>
+                        <input type="text" id="extra-name" value="Spinning" oninput="saveToLocal()">
+                    </div>
+                    <div class="select-group">
+                        <label>Duur</label>
+                        <select id="extra-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();">
+                            </select>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1029,11 +1067,37 @@
                 for(let i=210; i<=300; i+=30) { const opt = document.createElement('option'); opt.value=i; opt.text=i+"s"; sel.appendChild(opt); }
             };
             fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
+            
+            // NEW: Fill Extra Duration Dropdown
+            const fillExtra = (id) => {
+                const sel = document.getElementById(id); sel.innerHTML = "";
+                // Minutes
+                for(let i=1; i<=15; i++) { 
+                    const opt = document.createElement('option'); opt.value=i; opt.text=i+" min"; 
+                    if(i===5) opt.selected = true; // Default 5 min
+                    sel.appendChild(opt); 
+                }
+            };
+            fillExtra('extra-duration');
         }
         
         function handleVisibilityChange() {
             if (document.visibilityState === 'visible' && !isPaused && timerInterval) {
                 // Interval logic handles catch up automatically
+            }
+        }
+
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            const header = el.previousElementSibling;
+            if(el.style.display === 'none' || el.classList.contains('hidden')) {
+                el.style.display = 'block';
+                el.classList.remove('hidden');
+                header.classList.add('open');
+            } else {
+                el.style.display = 'none';
+                el.classList.add('hidden');
+                header.classList.remove('open');
             }
         }
 
@@ -1100,6 +1164,11 @@
             document.getElementById('rounds').value = 2; document.getElementById('exercises').value = 6; document.getElementById('sets').value = 2; 
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
+            
+            document.getElementById('extra-enabled').checked = false;
+            document.getElementById('extra-name').value = "Spinning";
+            document.getElementById('extra-duration').value = 5;
+
             syncTime('duration'); setAudioMode('speech');
             document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
             saveToLocal(); renderSpeechSettings(); calculateRealTime();
@@ -1153,7 +1222,11 @@
                 rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value, sets: document.getElementById('sets').value,
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
-                startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value
+                startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
+                // Extra options
+                extraEnabled: document.getElementById('extra-enabled').checked,
+                extraName: document.getElementById('extra-name').value,
+                extraDuration: document.getElementById('extra-duration').value
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
@@ -1169,6 +1242,11 @@
                     if(data.startRound) document.getElementById('start-round').value = data.startRound;
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
+                    
+                    if(data.extraEnabled !== undefined) document.getElementById('extra-enabled').checked = data.extraEnabled;
+                    if(data.extraName) document.getElementById('extra-name').value = data.extraName;
+                    if(data.extraDuration) document.getElementById('extra-duration').value = data.extraDuration;
+
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
                 } catch(e) { console.log("Error loading settings", e); }
@@ -1191,14 +1269,36 @@
             if (ex === 0 || sts === 0 || rounds === 0) return;
 
             let remainingWorkSets = 0; let remainingFixedRestTime = 0;
-            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
-                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                if (isFuture) {
-                    remainingWorkSets++;
-                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                    if (!isLastSetOfWorkout) { if (isLastSetOfRound) remainingFixedRestTime += roundRst; else if (isLastSetOfExercise) remainingFixedRestTime += exRst; else remainingFixedRestTime += rst; }
+            
+            // EXTRA START LOGIC
+            const extraEnabled = document.getElementById('extra-enabled').checked;
+            const extraDurMin = parseInt(document.getElementById('extra-duration').value) || 5;
+            const extraDurSec = extraDurMin * 60;
+
+            for (let r = 1; r <= rounds; r++) { 
+                
+                // Add Fixed Time for Extra Start if enabled and in future
+                if (extraEnabled) {
+                    if (r >= startRound) {
+                        // Assuming special start happens at beginning of round. 
+                        // If we resume mid-round (e.g. exercise 3), we probably already did the special start.
+                        // Only add if r > startRound OR (r == startRound AND startEx == 1 AND startSet == 1)
+                        if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
+                             remainingFixedRestTime += extraDurSec;
+                             remainingFixedRestTime += exRst; // Add switch time after special start
+                        }
+                    }
                 }
-            }}}
+
+                for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                    let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                    if (isFuture) {
+                        remainingWorkSets++;
+                        const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
+                        if (!isLastSetOfWorkout) { if (isLastSetOfRound) remainingFixedRestTime += roundRst; else if (isLastSetOfExercise) remainingFixedRestTime += exRst; else remainingFixedRestTime += rst; }
+                    }
+                }}
+            }
             remainingFixedRestTime += 10; 
 
             let availableSec = 0;
@@ -1232,7 +1332,8 @@
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
         
         function previewCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; const diffPerSet = targetW - currentW;
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec; 
+            const diffPerSet = targetW - currentW; 
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             let countSets = 0;
@@ -1241,7 +1342,9 @@
                 if (isFuture) countSets++;
             }}}
             
-            const totalDiffSec = diffPerSet * countSets; const totalDiffMin = Math.round(totalDiffSec / 60); let sign = totalDiffMin >= 0 ? "+" : "";
+            const totalDiffSec = diffPerSet * countSets; 
+            const totalDiffMin = Math.round(totalDiffSec / 60); 
+            let sign = totalDiffMin >= 0 ? "+" : "";
             const currentEnd = document.getElementById('endTimeValue').value; const [h,m] = currentEnd.split(':'); const d = new Date(); d.setHours(h,m,0,0);
             d.setMinutes(d.getMinutes() + totalDiffMin);
             const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} (${sign}${totalDiffMin} min)`;
@@ -1327,25 +1430,64 @@
         function generateScheduleData(applyResumeFilter) {
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            
+            // Extra Options
+            const extraEnabled = document.getElementById('extra-enabled').checked;
+            const extraName = document.getElementById('extra-name').value || "Extra";
+            const extraDurMin = parseInt(document.getElementById('extra-duration').value) || 5;
+            const extraDurSec = extraDurMin * 60;
+            const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
+
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
             schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
-            for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
-                currentSetGlobal++; let include = true;
-                if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
-                if(include) {
-                    schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
-                    const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
-                    if (!isLastSetOfWorkout) {
-                        let restLabel = "RUST"; let infoText = "";
-                        if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
-                        else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
-                        else { infoText = "Even ontspannen"; }
-                        let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
-                        schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
+            for (let r = 1; r <= rounds; r++) { 
+                // INSERT EXTRA START
+                if(extraEnabled) {
+                    let includeExtra = true;
+                    // If we resume, and we start at round 2, we must include extra for round 2.
+                    // If we start at round 2, exercise 3, we skipped the extra for round 2.
+                    if (applyResumeFilter) {
+                        if (r < startRound) includeExtra = false;
+                        else if (r === startRound && (startEx > 1 || startSet > 1)) includeExtra = false;
+                    }
+                    
+                    if (includeExtra) {
+                        schedule.push({ 
+                            type: 'work', 
+                            time: extraDurSec, 
+                            initialTime: extraDurSec, 
+                            label: extraName.toUpperCase(), 
+                            info: { round: r, exercise: 0, set: 0, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: 0 } 
+                        });
+                        // Add transition rest after extra work
+                        schedule.push({ 
+                            type: 'rest-exercise', 
+                            time: exerciseRestSec, 
+                            initialTime: exerciseRestSec, 
+                            label: "WISSEL", 
+                            info: { round: r, exercise: 0, set: 0, text: "Op naar oefening 1" } 
+                        });
                     }
                 }
-            }}}
+
+                for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) {
+                    currentSetGlobal++; let include = true;
+                    if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
+                    if(include) {
+                        schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
+                        const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
+                        if (!isLastSetOfWorkout) {
+                            let restLabel = "RUST"; let infoText = "";
+                            if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
+                            else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e+1 : 1}`; }
+                            else { infoText = "Even ontspannen"; }
+                            let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
+                            schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
+                        }
+                    }
+                }}
+            }
             if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
         }
 
@@ -1357,7 +1499,7 @@
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
                 const div = document.createElement('div'); div.className = `schedule-item`;
                 let icon = ""; if(item.type==='rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon='☕'; } else if(item.type==='rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon='🔀'; } else if(item.type==='work') icon='🔥'; else if(item.type==='rest') icon='💤'; else icon='🚀';
-                let desc = item.label; if(item.info && item.info.round) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
+                let desc = item.label; if(item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
                 div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
                 list.appendChild(div);
             });
@@ -1440,27 +1582,42 @@
             
             if(step.info && step.info.maxRounds) {
                 document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
-                document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
-                document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
-                document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
+                // Only show exercise/set if not 0 (extra phase)
+                if(step.info.exercise > 0) {
+                    document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
+                    document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
+                    document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
+                } else {
+                    document.getElementById('val-exercise').innerText = "-";
+                    document.getElementById('val-set').innerText = "-";
+                }
                 document.getElementById('gym-stats-container').style.opacity = 1;
             } else { document.getElementById('gym-stats-container').style.opacity = 0.5; }
 
             titleEl.innerText = step.label;
             titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST') { titleEl.classList.add('huge-text'); }
+            if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { 
+                // Make huge text for main work phases (including custom extra name)
+                titleEl.classList.add('huge-text'); 
+            }
             
             let nextText = "Hierna: Klaar";
-            if(nextStep) { nextText = "Hierna: " + nextStep.label; if(nextStep.type === 'work' && nextStep.info) nextText += ` (Oef ${nextStep.info.exercise})`; }
+            if(nextStep) { nextText = "Hierna: " + nextStep.label; if(nextStep.type === 'work' && nextStep.info && nextStep.info.exercise > 0) nextText += ` (Oef ${nextStep.info.exercise})`; }
             nextEl.innerText = nextText;
 
             if (step.type==='work') { 
                 body.classList.add('mode-work');
-                if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
-                else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
-                else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                else if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
-                else triggerAudio('work_start', "Start");
+                // Standard work audio triggers
+                if (step.info.exercise > 0) {
+                    if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
+                    else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
+                    else if(step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
+                    else if(step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
+                    else triggerAudio('work_start', "Start");
+                } else {
+                    // Custom Extra Start Audio
+                    triggerAudio('work_start', `Start ${step.label}`);
+                }
             }
             else if (step.type==='rest') { 
                 body.classList.add('mode-rest');
@@ -1469,7 +1626,7 @@
             }
             else if (step.type==='rest-exercise') {
                 body.classList.add('mode-switch');
-                let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
+                let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
                 triggerAudio('rest_switch_start', "Wissel", info);
             }
             else if (step.type==='rest-long') { 
@@ -1552,18 +1709,31 @@
             for(let i=currentIndex; i<schedule.length; i++){
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
-                else if (schedule[i].type==='work' || schedule[i].type==='prep') workStepsLeft++;
+                else if (schedule[i].type==='work') {
+                    // Check if it's a regular exercise or extra start
+                    // We only adjust regular exercises.
+                    // Extra start is considered fixed time (like rest).
+                    if (schedule[i].info && schedule[i].info.exercise > 0) {
+                        workStepsLeft++;
+                    } else {
+                        fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
+                    }
+                }
+                else if (schedule[i].type==='prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
             }
+            
             if (workStepsLeft > 0) {
                 const availableForWork = secsRemaining - fixedRest;
                 let newWork = Math.floor(availableForWork / workStepsLeft);
                 if (newWork < 5) newWork = 5; 
                 
-                const currentIsWork = (schedule[currentIndex].type === 'work');
+                const currentIsWork = (schedule[currentIndex].type === 'work' && schedule[currentIndex].info.exercise > 0);
                 const oldWorkVal = schedule[currentIndex].initialTime; 
 
                 for(let i=currentIndex; i<schedule.length; i++){
-                    if (schedule[i].type==='work') { schedule[i].time = newWork; schedule[i].initialTime = newWork; }
+                    if (schedule[i].type==='work' && schedule[i].info.exercise > 0) { 
+                        schedule[i].time = newWork; schedule[i].initialTime = newWork; 
+                    }
                 }
                 if(currentIsWork) {
                     const diff = newWork - oldWorkVal;
@@ -1649,7 +1819,16 @@
         
         function countRemainingSteps(type) {
             let count = 0;
-            for(let i=currentIndex; i<schedule.length; i++) { if (schedule[i].type === type) count++; }
+            // Only count regular work steps, not fixed extra steps for adjustment
+            for(let i=currentIndex; i<schedule.length; i++) { 
+                if (schedule[i].type === type) {
+                    if (type === 'work') {
+                        if (schedule[i].info && schedule[i].info.exercise > 0) count++;
+                    } else {
+                        count++;
+                    }
+                } 
+            }
             return count;
         }
         
@@ -1688,6 +1867,9 @@
                 let currentStepReduced = false;
                 for(let i=currentIndex; i<schedule.length; i++) { 
                     if (schedule[i].type === typeToReduce) {
+                        // Protect Extra Work from reduction if mode is 'work'
+                        if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
+
                         schedule[i].time = Math.max(5, schedule[i].time - deduction);
                         schedule[i].initialTime = schedule[i].time;
                         if(i === currentIndex) currentStepReduced = true;
@@ -1712,7 +1894,7 @@
             
              const titleEl = document.getElementById('gym-phase-title');
              titleEl.className = 'gym-phase-title';
-             if (step.label === 'WERKEN' || step.label === 'RUST') { titleEl.classList.add('huge-text'); }
+             if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
         }
 
         function updateEndTimeDisplay() { 
