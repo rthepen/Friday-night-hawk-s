@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.13</title>
+    <title>Friday-night-hawk-s Timer v8.14</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -126,7 +126,7 @@
         .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
         .btn-share-app { background: #BF5AF2; color: white; }
 
-        /* --- NEW COMPACT GRID (3 Columns) --- */
+        /* --- GRID SYSTEMS --- */
         .compact-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -135,13 +135,22 @@
             margin-bottom: 10px;
         }
         
-        /* 2 Column Grid for Time/Duration */
+        /* Bonus Row: Name (bigger) | Time | Freq */
+        .bonus-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 8px;
+            align-items: end;
+        }
+        
         .half-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .select-group { display: flex; flex-direction: column; min-width: 0; }
@@ -153,12 +162,12 @@
         
         select.compact-select {
             width: 100%; padding: 12px 8px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 16px;
+            background: #1c1c1e; color: white; font-size: 14px;
             appearance: none; -webkit-appearance: none;
             text-align: center; text-align-last: center;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23555%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
-            background-position: right .5em top 50%;
+            background-position: right .2em top 50%;
             background-size: .65em auto;
         }
         
@@ -181,7 +190,7 @@
         
         input[type="text"] {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
-            background: #1c1c1e; color: white; font-size: 16px;
+            background: #1c1c1e; color: white; font-size: 14px;
             display: block;
             -webkit-appearance: none;
             text-align: center;
@@ -280,6 +289,7 @@
             border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
         }
         .btn-start { background-color: #30D158; color: black; }
+        .btn-view-schedule { background-color: #0A84FF; color: white; margin-bottom:10px; }
         
         /* Updated Control Buttons */
         .btn-control {
@@ -504,11 +514,21 @@
         body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODALS --- */
-        #pause-modal, #calc-modal, #speech-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
         
         /* SPEECH MODAL FIX */
         #speech-edit-modal .modal-content { width: 98%; max-width: 98%; padding: 15px; }
+        
+        /* SCHEDULE MODAL STYLES */
+        #schedule-modal .modal-content { max-width: 600px; width: 95%; text-align: left; padding: 15px; display: flex; flex-direction: column; height: 90vh; }
+        .schedule-table-container { flex: 1; overflow-y: auto; margin-top: 10px; border: 1px solid #333; border-radius: 8px; }
+        .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .schedule-table th { background: #333; color: #fff; padding: 8px; text-align: left; position: sticky; top: 0; }
+        .schedule-table td { padding: 8px; border-bottom: 1px solid #222; color: #ccc; }
+        .schedule-table tr.row-work td { color: #fff; font-weight: bold; }
+        .schedule-table tr.row-work input { background: #222; border: 1px solid #444; color: #30D158; width: 100%; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 14px;}
+        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; }
 
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
@@ -543,11 +563,6 @@
             margin: 0;
             appearance: none; -webkit-appearance: none; /* remove default arrow */
         }
-        
-        .bonus-section-wrapper {
-            border: 1px solid #333; padding: 10px; border-radius: 8px; margin-bottom: 15px;
-            background: #111; text-align: left;
-        }
     </style>
 </head>
 <body>
@@ -560,7 +575,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.13</span>
+                FNH Timer <span class="version-tag">v8.14</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -597,41 +612,25 @@
             </div>
         </div>
         
-        <div class="extra-options">
-            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-extra')">
-                <div>Extra Oefeningen (Bonus)</div>
-                <span class="arrow">▼</span>
+        <div style="margin-bottom:15px; margin-top:5px;">
+            <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600; text-transform:uppercase;">EXTRA OEFENINGEN (BONUS)</div>
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus1-name" value="Bonus 1" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus1-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus1-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
-            <div id="sec-extra" class="collapsible-content">
-                <div style="font-size:12px; color:#aaa; margin-bottom:12px;">Stel hier 3 bonus workouts in (bijv. Spinning, Tabata, Buikspieren).</div>
-                
-                <div class="bonus-section-wrapper">
-                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 1</label>
-                    <input type="text" id="bonus1-name" value="Bonus 1" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
-                    <div class="half-row" style="margin-bottom:0;">
-                        <select id="bonus1-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                        <select id="bonus1-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                    </div>
-                </div>
-
-                <div class="bonus-section-wrapper">
-                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 2</label>
-                    <input type="text" id="bonus2-name" value="Bonus 2" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
-                    <div class="half-row" style="margin-bottom:0;">
-                        <select id="bonus2-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                        <select id="bonus2-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                    </div>
-                </div>
-
-                <div class="bonus-section-wrapper" style="margin-bottom:0;">
-                    <label style="color:#30D158; margin-bottom:6px;">Bonus Oefening 3</label>
-                    <input type="text" id="bonus3-name" value="Bonus 3" class="text-input" style="text-align:left; margin-bottom:5px;" oninput="saveToLocal()">
-                    <div class="half-row" style="margin-bottom:0;">
-                        <select id="bonus3-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                        <select id="bonus3-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-                    </div>
-                </div>
-
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus2-name" value="Bonus 2" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus2-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus2-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus3-name" value="Bonus 3" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus3-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus3-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
         </div>
 
@@ -657,6 +656,7 @@
             <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
         </div>
         
+        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
         <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
         
         <div class="resume-options">
@@ -849,6 +849,52 @@
         </div>
     </div>
     
+    <div id="schedule-modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Volledig Schema</h3>
+                <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
+            </div>
+            <div style="font-size:12px; color:#888; margin-bottom:5px;">Klik op een naam om deze te wijzigen.</div>
+            
+            <div class="schedule-table-container">
+                <table class="schedule-table" id="full-schedule-table">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">Tijd</th>
+                            <th>Oefening / Fase</th>
+                            <th style="width:40px;">Sec</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <button class="modal-btn" style="background: #333; color: white; margin-top:15px;" onclick="closeScheduleModal()">Sluiten</button>
+        </div>
+    </div>
+
+    <div id="edit-scope-modal">
+        <div class="modal-content" style="max-width:300px;">
+            <h3 style="margin-top:0;">Naam wijzigen</h3>
+            <p style="color:#aaa; font-size:14px;">Wil je "<span id="edit-target-name" style="color:white;">...</span>" aanpassen voor:</p>
+            
+            <input type="hidden" id="edit-round-idx">
+            <input type="hidden" id="edit-ex-idx">
+            <input type="hidden" id="edit-new-val">
+            
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="applyNameChange('single')">
+                1️⃣ Alleen deze ronde
+            </button>
+            
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all')">
+                🔄 Alle rondes
+            </button>
+            
+            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeEditScopeModal()">Annuleren</div>
+        </div>
+    </div>
+    
     <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
     <script>
@@ -856,6 +902,9 @@
         let audioMode = 'speech';
         let speechPlaylists = {}; 
         let editingSpeechKey = null; 
+        
+        // NEW: Store custom names for exercises. Key format: "r{round}-e{exercise}"
+        let customNames = {}; 
         
         // --- COACH PRESETS DEFINITIONS (Already Updated) ---
         const coachPresets = {
@@ -983,12 +1032,12 @@
         let currentIndex = 0;
         let timerInterval;
         let isPaused = false;
-        let pauseStartTime = 0; // NEW for accurate calculation
+        let pauseStartTime = 0; 
         let workoutStartTime, targetEndTimeDate;
         let totalWorkSetsGlobal = 0; 
         let audioCtx; 
         let stepEndTime = 0; 
-        let currentPauseDuration = 0; // Stored when pause ends
+        let currentPauseDuration = 0; 
 
         document.addEventListener('DOMContentLoaded', () => {
             populateDropdowns();
@@ -1081,7 +1130,7 @@
             };
             fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
             
-            // Helper for Bonus Dropdowns
+            // Fill Bonus Duration Dropdown
             const fillBonusDuration = (id) => {
                 const sel = document.getElementById(id); sel.innerHTML = "";
                 const opt0 = document.createElement('option'); opt0.value=0; opt0.text="0 min (Uit)"; sel.appendChild(opt0);
@@ -1192,18 +1241,124 @@
             editingSpeechKey = null;
         }
 
+        // --- NEW SCHEDULE MODAL LOGIC ---
+        function showScheduleModal() {
+            generateScheduleData(false); // Regenerate full schedule to be sure
+            const tableBody = document.querySelector('#full-schedule-table tbody');
+            tableBody.innerHTML = "";
+            
+            let currentTime = new Date();
+            
+            schedule.forEach((step) => {
+                if(step.type === 'finish') return;
+                
+                const tr = document.createElement('tr');
+                if(step.type === 'work') {
+                    if(step.info.exercise === 0) tr.className = "row-bonus";
+                    else tr.className = "row-work";
+                }
+                
+                const tdTime = document.createElement('td');
+                tdTime.innerText = currentTime.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+                
+                const tdName = document.createElement('td');
+                
+                // If it is a Regular Work Exercise (not bonus, not prep), allow editing
+                if(step.type === 'work' && step.info.exercise > 0) {
+                    const input = document.createElement('input');
+                    input.type = "text";
+                    // Check if custom name exists
+                    const key = `r${step.info.round}-e${step.info.exercise}`;
+                    input.value = customNames[key] ? customNames[key] : step.label; // Label is usually "WERKEN" or custom name
+                    
+                    // Add identification data
+                    input.dataset.r = step.info.round;
+                    input.dataset.e = step.info.exercise;
+                    
+                    input.onchange = function() {
+                        openEditScopeModal(this.dataset.r, this.dataset.e, this.value);
+                    };
+                    tdName.appendChild(input);
+                } else {
+                    tdName.innerText = step.label;
+                    if(step.info && step.info.round && step.info.exercise > 0) {
+                        tdName.innerText += ` (R${step.info.round}/E${step.info.exercise})`;
+                    }
+                }
+                
+                const tdDur = document.createElement('td');
+                tdDur.innerText = step.time;
+                
+                tr.appendChild(tdTime);
+                tr.appendChild(tdName);
+                tr.appendChild(tdDur);
+                tableBody.appendChild(tr);
+                
+                currentTime.setSeconds(currentTime.getSeconds() + step.time);
+            });
+            
+            document.getElementById('schedule-modal').style.display = 'flex';
+        }
+        
+        function closeScheduleModal() {
+            document.getElementById('schedule-modal').style.display = 'none';
+            // Recalculate real time to update main preview list with new names
+            calculateRealTime();
+        }
+        
+        // --- EDIT SCOPE LOGIC ---
+        function openEditScopeModal(r, e, newVal) {
+            document.getElementById('edit-round-idx').value = r;
+            document.getElementById('edit-ex-idx').value = e;
+            document.getElementById('edit-new-val').value = newVal;
+            document.getElementById('edit-target-name').innerText = newVal;
+            document.getElementById('edit-scope-modal').style.display = 'flex';
+        }
+        
+        function closeEditScopeModal() {
+            document.getElementById('edit-scope-modal').style.display = 'none';
+            // Re-render table to revert change if cancelled (or just keep it visual? Better re-render to be safe)
+            showScheduleModal(); 
+        }
+        
+        function applyNameChange(scope) {
+            const r = parseInt(document.getElementById('edit-round-idx').value);
+            const e = parseInt(document.getElementById('edit-ex-idx').value);
+            const newVal = document.getElementById('edit-new-val').value;
+            const totalRounds = parseInt(document.getElementById('rounds').value);
+            
+            if (scope === 'single') {
+                const key = `r${r}-e${e}`;
+                if(newVal.trim() === "") delete customNames[key];
+                else customNames[key] = newVal;
+            } else if (scope === 'all') {
+                for(let i=1; i<=totalRounds; i++) {
+                    const key = `r${i}-e${e}`;
+                    if(newVal.trim() === "") delete customNames[key];
+                    else customNames[key] = newVal;
+                }
+            }
+            
+            saveToLocal();
+            document.getElementById('edit-scope-modal').style.display = 'none';
+            showScheduleModal(); // Refresh table to show applied changes
+        }
+
         function resetToDefaults() {
             if(!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
             document.getElementById('rounds').value = 2; document.getElementById('exercises').value = 6; document.getElementById('sets').value = 2; 
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
             
-            // Reset 3 Bonuses
+            // Reset Bonuses
             for(let i=1; i<=3; i++) {
                 document.getElementById(`bonus${i}-name`).value = `Bonus ${i}`;
                 document.getElementById(`bonus${i}-duration`).value = 0;
                 document.getElementById(`bonus${i}-freq`).value = "start_round";
             }
+            
+            // Reset Custom Names
+            customNames = {};
 
             syncTime('duration'); setAudioMode('speech');
             document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
@@ -1262,7 +1417,9 @@
                 // Save 3 Bonuses
                 bonus1: { name: document.getElementById('bonus1-name').value, dur: document.getElementById('bonus1-duration').value, freq: document.getElementById('bonus1-freq').value },
                 bonus2: { name: document.getElementById('bonus2-name').value, dur: document.getElementById('bonus2-duration').value, freq: document.getElementById('bonus2-freq').value },
-                bonus3: { name: document.getElementById('bonus3-name').value, dur: document.getElementById('bonus3-duration').value, freq: document.getElementById('bonus3-freq').value }
+                bonus3: { name: document.getElementById('bonus3-name').value, dur: document.getElementById('bonus3-duration').value, freq: document.getElementById('bonus3-freq').value },
+                // Save Custom Names
+                customNames: customNames
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
@@ -1279,10 +1436,11 @@
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
                     
-                    // Load 3 Bonuses
                     if(data.bonus1) { document.getElementById('bonus1-name').value = data.bonus1.name; document.getElementById('bonus1-duration').value = data.bonus1.dur; document.getElementById('bonus1-freq').value = data.bonus1.freq; }
                     if(data.bonus2) { document.getElementById('bonus2-name').value = data.bonus2.name; document.getElementById('bonus2-duration').value = data.bonus2.dur; document.getElementById('bonus2-freq').value = data.bonus2.freq; }
                     if(data.bonus3) { document.getElementById('bonus3-name').value = data.bonus3.name; document.getElementById('bonus3-duration').value = data.bonus3.dur; document.getElementById('bonus3-freq').value = data.bonus3.freq; }
+                    
+                    if(data.customNames) customNames = data.customNames;
 
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
@@ -1308,8 +1466,6 @@
             let remainingWorkSets = 0; let remainingFixedRestTime = 0;
             
             // BONUS LOGIC CALCULATION (Loop 3 bonuses)
-            // We iterate through structure and check conditions for all 3 bonuses
-            
             // Warmup Check (Start of Session)
             for(let b=1; b<=3; b++) {
                 const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
@@ -1520,7 +1676,6 @@
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
             schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
-            // Helper to get Bonus Settings
             const getBonus = (i) => {
                 return {
                     name: document.getElementById(`bonus${i}-name`).value || `Bonus ${i}`,
@@ -1563,7 +1718,12 @@
                         currentSetGlobal++; let include = true;
                         if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
                         if(include) {
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: "WERKEN", info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
+                            // CHECK FOR CUSTOM NAME
+                            let label = "WERKEN";
+                            const customNameKey = `r${r}-e${e}`;
+                            if(customNames[customNameKey]) label = customNames[customNameKey];
+
+                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: label, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
                             const isLastSetOfWorkout = (r===rounds && e===ex && s===sts); const isLastSetOfRound = (e===ex && s===sts); const isLastSetOfExercise = (s===sts);
                             if (!isLastSetOfWorkout) {
                                 let restLabel = "RUST"; let infoText = "";
@@ -1733,6 +1893,7 @@
             titleEl.innerText = step.label;
             titleEl.className = 'gym-phase-title';
             if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { 
+                // Make huge text for main work phases (including custom extra name)
                 titleEl.classList.add('huge-text'); 
             }
             
@@ -1815,7 +1976,7 @@
                     if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); } 
                     else if (step.time <= 3) { triggerAudio('tick', step.time.toString()); }
                 } else {
-                    // Do nothing while paused
+                    // Do nothing while paused, we track total paused time via timestamps now
                 }
             }, 1000);
         }
@@ -1845,13 +2006,16 @@
                 if (schedule[i].type==='finish') continue;
                 if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time; 
                 else if (schedule[i].type==='work') {
+                    // Check if it's a regular exercise or extra start
+                    // We only adjust regular exercises.
+                    // Extra start is considered fixed time (like rest).
                     if (schedule[i].info && schedule[i].info.exercise > 0) {
                         workStepsLeft++;
                     } else {
-                        fixedRest += schedule[i].time; 
+                        fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
                     }
                 }
-                else if (schedule[i].type==='prep') workStepsLeft++; 
+                else if (schedule[i].type==='prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
             }
             
             if (workStepsLeft > 0) {
@@ -1880,27 +2044,31 @@
             if (!isPaused) {
                 isPaused = true;
                 pauseStartTime = Date.now();
-                btn.innerText = "▶️"; 
+                btn.innerText = "▶️"; // Show Play icon to resume
+                
                 document.body.classList.add('mode-pause'); 
                 document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
                 triggerAudio('manual_override', "Gepauzeerd");
             } else {
-                 previewPauseOptions(); 
+                 previewPauseOptions(); // Calculate BEFORE showing modal
                  document.getElementById('pause-modal').style.display = 'flex';
             }
         }
 
+        // --- NEW PAUSE RESOLUTION LOGIC ---
         function previewPauseOptions() {
             const now = Date.now();
-            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); 
+            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
             document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
             
+            // 1. Push Endtime (Always possible)
             const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
             const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const newEndStr = newEndDate.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
             const extraMin = Math.ceil(currentPauseDuration / 60);
             document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
             
+            // 2. Catch up Work
             const workSteps = countRemainingSteps('work');
             const btnWork = document.getElementById('btn-catch-work');
             if (workSteps > 0) {
@@ -1918,8 +2086,11 @@
                  btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
             }
             
+            // 3. Catch up Rest (Set)
             updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
+            // 4. Catch up Switch
             updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
+            // 5. Catch up Round
             updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
         }
         
@@ -1944,6 +2115,7 @@
         
         function countRemainingSteps(type) {
             let count = 0;
+            // Only count regular work steps, not fixed extra steps for adjustment
             for(let i=currentIndex; i<schedule.length; i++) { 
                 if (schedule[i].type === type) {
                     if (type === 'work') {
@@ -1964,10 +2136,12 @@
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; 
+            btn.innerText = "⏸"; btn.classList.remove('paused');
             isPaused = false;
+            
             document.body.classList.remove('mode-pause');
             
+            // Apply Logic
             if (choice === 'push') {
                 targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
                 updateEndTimeDisplay();
@@ -1975,6 +2149,7 @@
             } else {
                 stepEndTime += (currentPauseDuration * 1000); 
                 
+                // Now Reduce
                 let typeToReduce = '';
                 if(choice === 'work') typeToReduce = 'work';
                 else if(choice === 'rest') typeToReduce = 'rest';
@@ -1984,9 +2159,11 @@
                 const steps = countRemainingSteps(typeToReduce);
                 const deduction = Math.ceil(currentPauseDuration / steps);
                 
+                // Apply deduction
                 let currentStepReduced = false;
                 for(let i=currentIndex; i<schedule.length; i++) { 
                     if (schedule[i].type === typeToReduce) {
+                        // Protect Extra Work from reduction if mode is 'work'
                         if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
 
                         schedule[i].time = Math.max(5, schedule[i].time - deduction);
@@ -2001,6 +2178,7 @@
                 }
             }
             
+            // UI Restore
             const step = schedule[currentIndex];
             if (step.type==='work') document.body.classList.add('mode-work');
             else if (step.type==='rest') document.body.classList.add('mode-rest');
