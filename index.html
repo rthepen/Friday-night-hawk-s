@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.10</title>
+    <title>Friday-night-hawk-s Timer v8.11</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -555,7 +555,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.10</span>
+                FNH Timer <span class="version-tag">v8.11</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -591,6 +591,15 @@
                 <select id="sets" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
             </div>
         </div>
+        
+        <div style="margin-bottom:10px;">
+            <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600;">Start elke ronde met een vaste extra workout (bijv. Spinning, Tabata of Buikspieren).</div>
+            <div class="select-group">
+                <label>Bonus Oefening</label>
+                <select id="bonus-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();">
+                    </select>
+            </div>
+        </div>
 
         <div class="compact-row">
             <div class="select-group">
@@ -604,36 +613,6 @@
             <div class="select-group">
                 <label>Rust tussen rondes</label>
                 <select id="roundRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
-            </div>
-        </div>
-
-        <div class="extra-options">
-            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-extra')">
-                <div>Extra Start-Oefening per Ronde</div>
-                <span class="arrow">▼</span>
-            </div>
-            <div id="sec-extra" class="collapsible-content">
-                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Start elke ronde met een vaste oefening (bijv. Spinning).</div>
-                
-                <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Inschakelen</span>
-                    <label class="switch">
-                        <input type="checkbox" id="extra-enabled" onchange="calculateRealTime(); saveToLocal();">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="half-row">
-                    <div class="select-group">
-                        <label>Naam (bijv. Spinning)</label>
-                        <input type="text" id="extra-name" value="Spinning" oninput="saveToLocal()">
-                    </div>
-                    <div class="select-group">
-                        <label>Duur</label>
-                        <select id="extra-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();">
-                            </select>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -1068,17 +1047,18 @@
             };
             fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
             
-            // NEW: Fill Extra Duration Dropdown
-            const fillExtra = (id) => {
+            // NEW: Fill Bonus Duration Dropdown
+            const fillBonus = (id) => {
                 const sel = document.getElementById(id); sel.innerHTML = "";
-                // Minutes
+                // 0 (Off)
+                const opt0 = document.createElement('option'); opt0.value=0; opt0.text="0 min (Uit)"; sel.appendChild(opt0);
+                // 1-15 min
                 for(let i=1; i<=15; i++) { 
                     const opt = document.createElement('option'); opt.value=i; opt.text=i+" min"; 
-                    if(i===5) opt.selected = true; // Default 5 min
                     sel.appendChild(opt); 
                 }
             };
-            fillExtra('extra-duration');
+            fillBonus('bonus-duration');
         }
         
         function handleVisibilityChange() {
@@ -1165,9 +1145,7 @@
             document.getElementById('restSec').value = 20; document.getElementById('exerciseRestSec').value = 30; document.getElementById('roundRestSec').value = 90;
             document.getElementById('totalMin').value = 30; document.getElementById('start-round').value = 1; document.getElementById('start-ex').value = 1; document.getElementById('start-set').value = 1;
             
-            document.getElementById('extra-enabled').checked = false;
-            document.getElementById('extra-name').value = "Spinning";
-            document.getElementById('extra-duration').value = 5;
+            document.getElementById('bonus-duration').value = 0; // Default Off
 
             syncTime('duration'); setAudioMode('speech');
             document.getElementById('coach-preset').value = 'standard'; speechSettings = JSON.parse(JSON.stringify(coachPresets.standard)); speechPlaylists = {}; 
@@ -1223,10 +1201,8 @@
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings, 
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
-                // Extra options
-                extraEnabled: document.getElementById('extra-enabled').checked,
-                extraName: document.getElementById('extra-name').value,
-                extraDuration: document.getElementById('extra-duration').value
+                // Bonus option (simplified)
+                bonusDuration: document.getElementById('bonus-duration').value
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
@@ -1243,9 +1219,8 @@
                     if(data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if(data.startSet) document.getElementById('start-set').value = data.startSet;
                     
-                    if(data.extraEnabled !== undefined) document.getElementById('extra-enabled').checked = data.extraEnabled;
-                    if(data.extraName) document.getElementById('extra-name').value = data.extraName;
-                    if(data.extraDuration) document.getElementById('extra-duration').value = data.extraDuration;
+                    // Bonus Load
+                    if(data.bonusDuration) document.getElementById('bonus-duration').value = data.bonusDuration;
 
                     if(data.audioMode) setAudioMode(data.audioMode);
                     if(data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
@@ -1270,22 +1245,19 @@
 
             let remainingWorkSets = 0; let remainingFixedRestTime = 0;
             
-            // EXTRA START LOGIC
-            const extraEnabled = document.getElementById('extra-enabled').checked;
-            const extraDurMin = parseInt(document.getElementById('extra-duration').value) || 5;
-            const extraDurSec = extraDurMin * 60;
+            // BONUS START LOGIC
+            const bonusMin = parseInt(document.getElementById('bonus-duration').value) || 0;
+            const bonusSec = bonusMin * 60;
 
             for (let r = 1; r <= rounds; r++) { 
                 
-                // Add Fixed Time for Extra Start if enabled and in future
-                if (extraEnabled) {
+                // Add Fixed Time for Bonus Start if > 0 and in future
+                if (bonusMin > 0) {
                     if (r >= startRound) {
-                        // Assuming special start happens at beginning of round. 
-                        // If we resume mid-round (e.g. exercise 3), we probably already did the special start.
                         // Only add if r > startRound OR (r == startRound AND startEx == 1 AND startSet == 1)
                         if (r > startRound || (r === startRound && startEx === 1 && startSet === 1)) {
-                             remainingFixedRestTime += extraDurSec;
-                             remainingFixedRestTime += exRst; // Add switch time after special start
+                             remainingFixedRestTime += bonusSec;
+                             remainingFixedRestTime += exRst; // Add switch time after bonus work
                         }
                     }
                 }
@@ -1431,22 +1403,18 @@
             const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
             const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
             
-            // Extra Options
-            const extraEnabled = document.getElementById('extra-enabled').checked;
-            const extraName = document.getElementById('extra-name').value || "Extra";
-            const extraDurMin = parseInt(document.getElementById('extra-duration').value) || 5;
-            const extraDurSec = extraDurMin * 60;
+            // Bonus Options
+            const bonusMin = parseInt(document.getElementById('bonus-duration').value) || 0;
+            const bonusSec = bonusMin * 60;
             const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
 
             totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
             schedule = []; schedule.push({ type: 'prep', time: 10, label: "Voorbereiden", initialTime: 10, info: { round:1, exercise:1, set:1, maxRounds:rounds, maxEx:ex, maxSets:sts } });
 
             for (let r = 1; r <= rounds; r++) { 
-                // INSERT EXTRA START
-                if(extraEnabled) {
+                // INSERT BONUS START
+                if(bonusMin > 0) {
                     let includeExtra = true;
-                    // If we resume, and we start at round 2, we must include extra for round 2.
-                    // If we start at round 2, exercise 3, we skipped the extra for round 2.
                     if (applyResumeFilter) {
                         if (r < startRound) includeExtra = false;
                         else if (r === startRound && (startEx > 1 || startSet > 1)) includeExtra = false;
@@ -1455,12 +1423,12 @@
                     if (includeExtra) {
                         schedule.push({ 
                             type: 'work', 
-                            time: extraDurSec, 
-                            initialTime: extraDurSec, 
-                            label: extraName.toUpperCase(), 
+                            time: bonusSec, 
+                            initialTime: bonusSec, 
+                            label: "BONUS OEFENING", 
                             info: { round: r, exercise: 0, set: 0, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: 0 } 
                         });
-                        // Add transition rest after extra work
+                        // Add transition rest after bonus work
                         schedule.push({ 
                             type: 'rest-exercise', 
                             time: exerciseRestSec, 
