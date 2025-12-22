@@ -1,4 +1,889 @@
-<script>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Friday-night-hawk-s Timer v8.21 Modular</title>
+    <style>
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --app-height: 100dvh;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            margin: 0; padding: 0;
+            height: var(--app-height);
+            width: 100vw;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            overscroll-behavior: none; 
+            transition: background-color 0.3s ease;
+        }
+        
+        .container {
+            padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom)) 10px;
+            height: 100%;
+            display: flex; flex-direction: column;
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* --- INTRO BANNER --- */
+        .intro-banner {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .intro-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #30D158;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+        .intro-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        /* --- LOGO & HEADER --- */
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .app-logo {
+            width: 120px;
+            height: auto;
+            border-radius: 50%;
+            border: 2px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+        }
+
+        .app-header {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            text-align: left;
+        }
+        .version-tag {
+            font-size: 11px;
+            color: #30D158;
+            background: #1c1c1e;
+            padding: 2px 5px;
+            border-radius: 4px;
+            vertical-align: middle;
+            margin-left: 5px;
+            font-weight: bold;
+            border: 1px solid #333;
+        }
+        
+        .header-buttons { display: flex; gap: 5px; }
+
+        .btn-header {
+            border: none;
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+        .btn-header:active { opacity: 0.6; }
+        .btn-save { background: #0A84FF; color: white; }
+        .btn-reset { background: #333; color: #ccc; border: 1px solid #444; }
+        .btn-share-app { background: #BF5AF2; color: white; }
+
+        /* --- GRID SYSTEMS --- */
+        .compact-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .bonus-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 8px;
+            align-items: end;
+        }
+        
+        .half-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .select-group { display: flex; flex-direction: column; min-width: 0; }
+
+        label { 
+            display: block; font-size: 11px; color: #888; margin-bottom: 4px; text-align: left; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;
+        }
+        
+        select.compact-select {
+            width: 100%; padding: 12px 8px; border-radius: 8px; border: 1px solid #333; 
+            background: #1c1c1e; color: white; font-size: 14px;
+            appearance: none; -webkit-appearance: none;
+            text-align: center; text-align-last: center;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23555%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .2em top 50%;
+            background-size: .65em auto;
+        }
+        
+        .highlight-input {
+            border: 1px solid #555 !important;
+            background: #222 !important;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .input-group { display: flex; flex-direction: column; min-width: 0; }
+        
+        input[type="time"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
+            background: #1c1c1e; color: white; font-size: 18px;
+            display: block;
+            appearance: none; -webkit-appearance: none;
+            text-align: center;
+            font-family: inherit;
+        }
+        
+        input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; 
+            background: #1c1c1e; color: white; font-size: 14px;
+            display: block;
+            -webkit-appearance: none;
+            text-align: center;
+        }
+
+        /* --- TOGGLES --- */
+        .toggle-container { display: flex; background: #1c1c1e; border-radius: 8px; padding: 4px; margin-bottom: 12px; flex-shrink: 0; }
+        .toggle-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: #666; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s;
+        }
+        .toggle-btn.active { background: #333; color: #fff; }
+
+        /* --- SPEECH SETTINGS --- */
+        .speech-options, .resume-options, .extra-options {
+            background: #1c1c1e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            text-align: left;
+        }
+        .resume-options, .extra-options { border-color: #555; margin-top: 15px; margin-bottom: 20px; } 
+
+        .category-header {
+            margin-top: 20px; margin-bottom: 10px;
+            font-size: 12px; font-weight: 900; color: #30D158; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #333; padding-bottom: 5px;
+        }
+        .category-header:first-child { margin-top: 0; }
+
+        .switch-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0;
+        }
+        .switch-label { font-size: 14px; color: #fff; flex: 1; }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 24px; flex-shrink: 0;}
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #30D158; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* Custom Text Input (Read only trigger) */
+        .text-input-trigger { 
+            width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
+            padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; margin-top: 5px;
+            white-space: pre-wrap; 
+            overflow: visible;
+            min-height: 80px; 
+            line-height: 1.4;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        .text-input-trigger:active { background: #3a3a3c; }
+
+        /* Custom Text Input (Real select for coach) */
+        select.text-input {
+            width: 100%; background: #2a2a2c; border: 1px solid #444; color: #ccc; 
+            padding: 8px; border-radius: 6px; font-size: 13px; margin-bottom: 10px; margin-top: 2px;
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right .7em top 50%;
+            background-size: .65em auto;
+        }
+
+        /* --- COLLAPSIBLE (Resume only) --- */
+        .collapsible-header {
+            background: #2c2c2e; padding: 10px; font-size: 12px; font-weight: bold;
+            color: #fff; text-transform: uppercase; cursor: pointer; border-radius: 6px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .collapsible-header:hover { background: #3a3a3c; }
+        .collapsible-content { padding: 10px; background: #151516; border-radius: 6px; margin-top: 5px; }
+        .collapsible-content.hidden { display: none; }
+        .arrow { font-size: 10px; transition: transform 0.2s; }
+        .open .arrow { transform: rotate(180deg); }
+
+
+        /* --- BUTTONS --- */
+        button.action-btn {
+            width: 100%; padding: 16px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; margin-bottom: 20px; flex-shrink: 0;
+        }
+        .btn-start { background-color: #30D158; color: black; }
+        .btn-view-schedule { background-color: #0A84FF; color: white; margin-bottom:10px; }
+        
+        /* Updated Control Buttons */
+        .btn-control {
+            flex: 1; 
+            padding: 20px; 
+            font-size: 40px; 
+            font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.15); 
+            background: rgba(255,255,255,0.05); /* Very subtle background */
+            color: #fff;
+            border-radius: 16px; 
+            cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-control:active { background: rgba(255,255,255,0.15); transform: scale(0.98); }
+        .btn-control.paused { border-color: rgba(255,255,255,0.5) !important; }
+        .btn-stop { color: #FF453A; /* Red icon for stop */ }
+
+        .btn-nav { background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); width: 60px; border-radius: 8px; font-size: 24px; font-weight: bold; cursor: pointer;}
+
+        /* --- INFO BOX --- */
+        .info-bar {
+            background: #111; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; flex-shrink: 0; margin-top: 5px;
+            position: relative;
+        }
+        .btn-force-edit {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: #333; border: 1px solid #555; color: white; 
+            font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer;
+        }
+
+        /* --- LISTS --- */
+        .schedule-list-wrapper {
+            flex: 1; text-align: left; background: #000; border-top: 1px solid #222; overflow-y: auto; min-height: 100px;
+        }
+        .schedule-item { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #555; display: flex; align-items: center; font-size: 14px; }
+        .schedule-item.active { color: #fff; background: #1c1c1e; border-left: 4px solid #30D158; }
+        .col-time { width: 60px; font-family: monospace; color: #888; font-size: 12px; flex-shrink: 0; }
+        .col-desc { flex: 1; padding: 0 8px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .col-dur  { width: 40px; text-align: right; font-weight: bold; flex-shrink: 0;}
+        
+        /* --- TIMER SCREEN (GYM MODE) --- */
+        #timer-screen { display: none; height: 100%; flex-direction: column; padding-bottom: var(--safe-bottom); width: 100vw;}
+        
+        /* PROGRESS BAR */
+        .progress-container { 
+            width: 100%; height: 50px; background: rgba(0,0,0,0.2); margin-top: var(--safe-top); 
+            position: relative; display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .progress-fill { 
+            position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,255,255,0.8); width: 0%; 
+            transition: width 0.2s linear; z-index: 1; 
+        }
+        #progress-text-center {
+            position: relative; z-index: 2; font-size: 20px; font-weight: 900; color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        
+        /* THE MAIN DISPLAY ZONE */
+        .display-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            position: relative;
+        }
+
+        .gym-phase-title {
+            font-size: 8vw; /* Normal size for long text */
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: 0.8;
+            line-height: 1;
+            position: relative;
+            z-index: 1; 
+            pointer-events: none;
+            transition: font-size 0.3s;
+        }
+
+        .gym-phase-title.huge-text {
+            font-size: 16vw; 
+        }
+
+        .gym-big-time {
+            font-size: 32vw; 
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            line-height: 0.9;
+            letter-spacing: -5px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* NEW STATS GRID STRUCTURE */
+        .stats-wrapper {
+            width: 95%;
+            max-width: 600px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            z-index: 50; 
+            pointer-events: none;
+        }
+
+        .stats-row-1 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stats-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            pointer-events: auto; /* CRITICAL: Re-enable clicks on the boxes */
+            position: relative;
+        }
+
+        /* --- EDITABLE STYLES --- */
+        .stat-box.editable {
+            border: 2px solid #30D158;
+            position: relative;
+            z-index: 60; 
+        }
+        .stat-box.editable:active { transform: scale(0.98); background: rgba(48, 209, 88, 0.2); }
+        .edit-icon { position: absolute; top: 4px; right: 4px; font-size: 10px; color: #30D158; }
+
+        .stat-label {
+            font-size: 2.5vw;
+            text-transform: uppercase;
+            opacity: 0.8;
+            font-weight: bold;
+            margin-bottom: 2px;
+            color: #ddd;
+        }
+        
+        .stat-value {
+            font-size: 6vw; /* Bigger as requested */
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Fallback for very small or very large screens */
+        @media (min-width: 600px) {
+            .stat-label { font-size: 14px; }
+            .stat-value { font-size: 36px; }
+            .gym-phase-title { font-size: 40px; }
+            .gym-phase-title.huge-text { font-size: 80px; }
+            .gym-big-time { font-size: 180px; }
+        }
+
+        .gym-next-info {
+            font-size: 3vw;
+            opacity: 0.7;
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .controls-container {
+            flex: 0 0 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            width: 100%;
+            background: rgba(0,0,0,0.2); 
+            position: relative;
+            z-index: 100; /* Highest priority */
+            pointer-events: auto;
+            gap: 15px; /* Spacing between big buttons */
+        }
+        
+        /* --- PHASE COLORS (Backgrounds) --- */
+        body.mode-work { background-color: #30D158; color: black; }
+        body.mode-work .progress-fill { background: black; }
+        body.mode-work .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-work .stat-box.editable { border-color: #000; } 
+        body.mode-work .edit-icon { color: #000; }
+        body.mode-work .stat-label { color: rgba(0,0,0,0.6); }
+        
+        body.mode-rest { background-color: #FF9F0A; color: black; }
+        body.mode-rest .progress-fill { background: black; }
+        body.mode-rest .stat-box { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); }
+        body.mode-rest .stat-box.editable { border-color: #000; }
+        body.mode-rest .edit-icon { color: #000; }
+        body.mode-rest .stat-label { color: rgba(0,0,0,0.6); }
+
+        body.mode-switch { background-color: #BF5AF2; color: white; }
+        body.mode-long { background-color: #0A84FF; color: white; }
+        body.mode-prep { background-color: #1c1c1e; color: white; }
+        body.mode-finish { background-color: #FFD60A; color: black; }
+        body.mode-pause { background-color: #333; color: white; }
+
+        /* --- MODALS --- */
+        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
+        
+        /* SPEECH MODAL FIX */
+        #speech-edit-modal .modal-content { width: 98%; max-width: 98%; padding: 15px; }
+        
+        /* SCHEDULE MODAL STYLES */
+        #schedule-modal .modal-content { max-width: 600px; width: 95%; text-align: left; padding: 15px; display: flex; flex-direction: column; height: 90vh; }
+        .schedule-table-container { flex: 1; overflow-y: auto; margin-top: 10px; border: 1px solid #333; border-radius: 8px; }
+        .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .schedule-table th { background: #333; color: #fff; padding: 8px; text-align: left; position: sticky; top: 0; }
+        .schedule-table td { padding: 8px; border-bottom: 1px solid #222; color: #ccc; }
+        .schedule-table tr.row-work td { color: #fff; font-weight: bold; }
+        .schedule-table tr.row-work input { background: #222; border: 1px solid #444; color: #30D158; width: 100%; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 14px;}
+        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; }
+
+        .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
+        .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
+        
+        .calc-input { width: 80px; font-size: 24px; padding: 10px; text-align: center; border-radius: 8px; border: 1px solid #555; background: #222; color: white; margin-bottom: 15px; }
+        .option-desc { font-size: 13px; color: #ccc; margin-top: 2px; font-weight: normal; }
+        
+        /* SPEECH EDIT TEXTAREA */
+        #speech-edit-area {
+            width: 100%; 
+            min-height: 350px;
+            background: #222; border: 1px solid #555; color: white;
+            font-size: 16px; padding: 15px; border-radius: 8px; resize: none; margin-bottom: 15px;
+            font-family: inherit;
+            box-sizing: border-box; 
+        }
+
+        .hidden { display: none !important; }
+        
+        /* TRANSPARENT INPUT STYLES */
+        .transparent-input {
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; z-index: 20; cursor: pointer; border: none; padding: 0; margin: 0; appearance: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="container">
+        
+        <div class="logo-container">
+            <img src="FNH logo.jpg" alt="FNH Logo" class="app-logo">
+        </div>
+
+        <div class="header-row">
+            <div class="app-header">
+                FNH Timer <span class="version-tag">v8.21 Modular</span>
+            </div>
+            <div class="header-buttons">
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
+                <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
+                <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
+            </div>
+        </div>
+
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
+        
+        <div class="half-row">
+             <div class="select-group">
+                <label>Klaar om (HH:MM) ✏️</label>
+                <input type="time" id="endTimeValue" class="highlight-input" onchange="syncTime('endtime'); saveToLocal();">
+            </div>
+             <div class="select-group">
+                <label>Totale tijd (min) ✏️</label>
+                <select id="totalMin" class="compact-select highlight-input" onchange="syncTime('duration'); saveToLocal();"></select>
+            </div>
+        </div>
+
+        <div class="compact-row">
+            <div class="select-group">
+                <label>Rondes</label>
+                <select id="rounds" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
+                <label>Oefeningen</label>
+                <select id="exercises" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
+                <label>Sets</label>
+                <select id="sets" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:15px; margin-top:5px;">
+            <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600; text-transform:uppercase;">EXTRA OEFENINGEN (BONUS)</div>
+             <div style="font-size:11px; color:#aaa; margin-bottom:10px; text-align:left;">
+                Bijv: Warming-up (eenmalig start), Spinning (begin elke ronde) of Toetje/Finisher (einde les).
+            </div>
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus1-name" value="Bonus 1" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus1-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus1-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus2-name" value="Bonus 2" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus2-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus2-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            
+            <div class="bonus-row">
+                <input type="text" id="bonus3-name" value="Bonus 3" class="text-input" style="text-align:left;" oninput="saveToLocal()">
+                <select id="bonus3-duration" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+                <select id="bonus3-freq" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+        </div>
+
+        <div class="compact-row">
+            <div class="select-group">
+                <label>Rust tussen sets</label>
+                <select id="restSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
+                <label>Rust tijdens wissel</label>
+                <select id="exerciseRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
+                <label>Rust tussen rondes</label>
+                <select id="roundRestSec" class="compact-select" onchange="calculateRealTime(); saveToLocal();"></select>
+            </div>
+        </div>
+
+        <div class="info-bar">
+            <div style="font-size:12px; color:#888;">WERKTIJD PER SET</div>
+            <div style="font-size:30px; font-weight:bold; color:#30D158;" id="live-calc-result">--</div>
+            <button class="btn-force-edit" onclick="openCalcModal()">✏️ Pas aan</button>
+            <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
+        </div>
+        
+        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
+        <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
+        
+        <div class="resume-options">
+            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-resume')">
+                <div>Beginnen vanaf moment in training</div>
+                <span class="arrow">▼</span>
+            </div>
+            <div id="sec-resume" class="collapsible-content">
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Vul hieronder in waar je wilt starten.</div>
+                
+                <div class="compact-row">
+                    <div class="select-group">
+                        <label>Ronde</label>
+                        <select id="start-round" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
+                    </div>
+                    <div class="select-group">
+                        <label>Oefening</label>
+                        <select id="start-ex" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
+                    </div>
+                    <div class="select-group">
+                        <label>Set</label>
+                        <select id="start-set" class="compact-select" onchange="saveToLocal(); calculateRealTime();"></select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">GELUIDSINSTELLINGEN (SPRAAK)</div>
+        
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
+            <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="color:#30D158; font-weight:bold;">Kies je Coach Stijl</label>
+            <select id="coach-preset" class="text-input" onchange="applyCoachPreset(this.value)" style="font-size:16px; padding:12px;">
+                </select>
+        </div>
+        <div style="font-size:11px; color:#888; margin-bottom:10px; margin-top:-10px;">
+            Tip: Je kunt meerdere zinnen scheiden met een <b>|</b> teken. De app kiest dan willekeurig een zin (zonder direct te herhalen).
+        </div>
+
+        <div id="speech-settings-panel" class="speech-options">
+            </div>
+
+        <div style="text-align:left; padding:5px 0; font-size:12px; color:#666; margin-top:20px;">VOORBEELD SCHEMA (VANAF NU):</div>
+        <div id="preview-list" class="schedule-list-wrapper">
+        </div>
+        
+        <div class="intro-banner">
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-text">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+            </div>
+        </div>
+
+    </div>
+
+    <div id="timer-screen">
+        <div class="progress-container">
+            <div class="progress-fill" id="total-progress"></div>
+            <div id="progress-text-center">0%</div>
+        </div>
+        
+        <div class="display-zone">
+            <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
+            <div class="gym-big-time" id="countdown">10</div>
+            
+            <div class="stats-wrapper" id="gym-stats-container">
+                <div class="stats-row-1">
+                    <div class="stat-box editable">
+                        <select id="jump-round" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="stat-label">Ronde</div>
+                        <div class="stat-value" id="val-round">-</div>
+                    </div>
+                    <div class="stat-box editable">
+                        <select id="jump-exercise" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="stat-label">Oefening</div>
+                        <div class="stat-value" id="val-exercise">-</div>
+                    </div>
+                    <div class="stat-box editable">
+                        <select id="jump-set" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="stat-label">Set</div>
+                        <div class="stat-value" id="val-set">-</div>
+                    </div>
+                </div>
+                <div class="stats-row-2">
+                    <div class="stat-box editable">
+                        <input type="time" id="live-endtime-input" class="transparent-input" onchange="handleNewEndTime(this.value)">
+                        
+                        <div class="edit-icon">✏️</div>
+                        <div class="stat-label">Einde (Klik!)</div>
+                        <div class="stat-value" id="val-endtime">--:--</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Nog</div>
+                        <div class="stat-value" id="val-remaining">--m</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
+        </div>
+
+        <div class="controls-container">
+            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">⏸</button>
+            <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
+        </div>
+    </div>
+
+    <div id="pause-modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">Pauze voorbij</h2>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd. Hoe halen we dit in?</p>
+            
+            <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">
+                🐢 Eindtijd verzetten
+                <span class="btn-subtext" id="btn-text-push">...</span>
+            </button>
+            
+            <button class="modal-btn" id="btn-catch-work" style="background: #0A84FF; color: white;" onclick="resolvePause('work')">
+                ⏱️ Inhalen via Werktijd
+                <span class="btn-subtext" id="btn-text-work">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-rest" style="background: #FF9F0A; color: black;" onclick="resolvePause('rest')">
+                💤 Inhalen via Rust (Set)
+                <span class="btn-subtext" id="btn-text-rest">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-switch" style="background: #BF5AF2; color: white;" onclick="resolvePause('switch')">
+                🔀 Inhalen via Wissels
+                <span class="btn-subtext" id="btn-text-switch">...</span>
+            </button>
+            
+            <button class="modal-btn" id="btn-catch-round" style="background: #30D158; color: black;" onclick="resolvePause('round')">
+                ☕ Inhalen via Ronde Rust
+                <span class="btn-subtext" id="btn-text-round">...</span>
+            </button>
+        </div>
+    </div>
+    
+    <div id="calc-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
+            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalc()">
+            
+            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white;" onclick="applyCalc('duration')">
+                ⏱️ Tijd aanpassen
+                <span class="btn-subtext" id="desc-calc-duration">...</span>
+            </button>
+            
+            <button class="modal-btn" id="btn-calc-rest" style="background: #FF9F0A; color: black;" onclick="applyCalc('rest')">
+                💤 Rust (Set) aanpassen
+                <span class="btn-subtext" id="desc-calc-rest">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-calc-switch" style="background: #BF5AF2; color: white;" onclick="applyCalc('exerciseRest')">
+                🔀 Rust (Wissel) aanpassen
+                <span class="btn-subtext" id="desc-calc-switch">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-calc-round" style="background: #30D158; color: black;" onclick="applyCalc('roundRest')">
+                ☕ Rust (Ronde) aanpassen
+                <span class="btn-subtext" id="desc-calc-round">...</span>
+            </button>
+            
+            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeCalcModal()">Annuleren</div>
+        </div>
+    </div>
+    
+    <div id="speech-edit-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Spraak aanpassen</h3>
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Gebruik | voor variatie</div>
+            <textarea id="speech-edit-area"></textarea>
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">💾 Opslaan</button>
+            <button class="modal-btn" style="background: #333; color: white; margin-top:10px;" onclick="closeSpeechEdit()">Annuleren</button>
+        </div>
+    </div>
+    
+    <div id="schedule-modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;">Volledig Schema</h3>
+                <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
+            </div>
+            <div style="font-size:12px; color:#888; margin-bottom:5px;">Klik op een naam om deze te wijzigen.</div>
+            <div class="schedule-table-container">
+                <table class="schedule-table" id="full-schedule-table">
+                    <thead><tr><th style="width:50px;">Tijd</th><th>Oefening / Fase</th><th style="width:40px;">Sec</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button class="modal-btn" style="background: #333; color: white; margin-top:15px;" onclick="closeScheduleModal()">Sluiten</button>
+        </div>
+    </div>
+
+    <div id="edit-scope-modal">
+        <div class="modal-content" style="max-width:320px;">
+            <h3 style="margin-top:0;">Naam wijzigen</h3>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Nieuwe naam: <span id="edit-target-name" style="color:white; font-weight:bold;">...</span>. <br>Waar wil je dit toepassen?</p>
+            
+            <input type="hidden" id="edit-round-idx">
+            <input type="hidden" id="edit-ex-idx">
+            <input type="hidden" id="edit-set-idx">
+            <input type="hidden" id="edit-new-val">
+            
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all_rounds')">
+                🌎 Hele oefening (Alle Rondes)
+                <span class="btn-subtext" style="font-size:10px;">(Oefening <span id="lbl-ex-all"></span> in elke ronde aanpassen)</span>
+            </button>
+
+            <button class="modal-btn" style="background: #FF9F0A; color: black;" onclick="applyNameChange('set_all_rounds')">
+                🔢 Deze set (Alle Rondes)
+                <span class="btn-subtext" style="font-size:10px;">(Set <span id="lbl-set-all"></span> van oef. <span id="lbl-ex-set-all"></span> overal)</span>
+            </button>
+            
+            <button class="modal-btn" style="background: #BF5AF2; color: white;" onclick="applyNameChange('round_ex')">
+                🔂 Hele oefening (Deze Ronde)
+                <span class="btn-subtext" style="font-size:10px;">(Alle sets van oefening <span id="lbl-ex"></span> in deze ronde)</span>
+            </button>
+
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="applyNameChange('single')">
+                1️⃣ Alleen dit blokje
+                <span class="btn-subtext" style="font-size:10px;">(Alleen set <span id="lbl-set"></span> van deze ronde)</span>
+            </button>
+            
+            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeEditScopeModal()">Annuleren</div>
+        </div>
+    </div>
+    
+    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
+
+    <script>
         // --- VARIABELEN ---
         let audioMode = 'speech';
         let speechPlaylists = {}; 
@@ -1380,3 +2265,5 @@
         
         function confirmStop() { if(confirm("Weet je zeker dat je de training wilt stoppen?")) { resetApp(); } }
     </script>
+</body>
+</html>
