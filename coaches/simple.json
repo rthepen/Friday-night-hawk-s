@@ -1,0 +1,26 @@
+{
+  "id": "simple",
+  "name": "Simpel (Alleen info)",
+  "data": {
+    "prep_intro": { "enabled": true, "text": "Training start." },
+    "prep_countdown": { "enabled": true, "text": "" },
+    "work_start": { "enabled": true, "text": "Start." },
+    "work_halfway": { "enabled": true, "text": "Halverwege." },
+    "work_30s": { "enabled": false, "text": "30." },
+    "work_10s": { "enabled": true, "text": "10." },
+    "work_5s": { "enabled": false, "text": "" },
+    "rest_set_start": { "enabled": true, "text": "Rust. | Stop." },
+    "rest_set_tips": { "enabled": false, "text": "" },
+    "rest_switch_start": { "enabled": true, "text": "Wissel." },
+    "rest_switch_info": { "enabled": true, "text": "" },
+    "rest_switch_10s": { "enabled": true, "text": "10." },
+    "rest_round_start": { "enabled": true, "text": "Ronde rust." },
+    "rest_round_15s": { "enabled": true, "text": "Klaarstaan." },
+    "rest_round_info": { "enabled": true, "text": "" },
+    "mile_start": { "enabled": false, "text": "" },
+    "mile_half": { "enabled": true, "text": "50 procent." },
+    "mile_end": { "enabled": false, "text": "" },
+    "mile_lastround": { "enabled": true, "text": "Laatste ronde." },
+    "finish": { "enabled": true, "text": "Klaar." }
+  }
+}
