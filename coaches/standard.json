@@ -2,7 +2,7 @@
   "id": "standard",
   "name": "Standaard Coach",
   "data": {
-    "prep_intro": { "enabled": true, "text": "Welkom Hawks! Tijd om te trainen. | Goedemorgen Hawks, laten we beginnen!" },
+    "prep_intro": { "enabled": true, "text": "Welkom, Tijd om te trainen. | Welkom, laten we beginnen!" },
     "prep_countdown": { "enabled": true, "text": "" },
     "work_start": { "enabled": true, "text": "Start! En actie | Start! Aan de slag" },
     "work_halfway": { "enabled": true, "text": "Halverwege! | Halverwege! Je bent op de helft" },
