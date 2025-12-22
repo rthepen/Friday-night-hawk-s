@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v8.15</title>
+    <title>Friday-night-hawk-s Timer v8.16</title>
     <style>
         :root {
             --safe-top: env(safe-area-inset-top, 0px);
@@ -508,7 +508,7 @@
         body.mode-pause { background-color: #333; color: white; }
 
         /* --- MODALS --- */
-        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        #pause-modal, #calc-modal, #speech-edit-modal, #schedule-modal, #edit-scope-modal, #bonus-edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1c1c1e; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto;}
         
         /* SPEECH MODAL FIX */
@@ -522,7 +522,7 @@
         .schedule-table td { padding: 8px; border-bottom: 1px solid #222; color: #ccc; }
         .schedule-table tr.row-work td { color: #fff; font-weight: bold; }
         .schedule-table tr.row-work input { background: #222; border: 1px solid #444; color: #30D158; width: 100%; padding: 6px; border-radius: 4px; font-weight: bold; font-size: 14px;}
-        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; }
+        .schedule-table tr.row-bonus td { color: #BF5AF2; font-weight: bold; cursor: pointer; } /* Bonus rows now pointer */
 
         .modal-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: left; position: relative;}
         .modal-btn .btn-subtext { display: block; font-size: 11px; font-weight: normal; opacity: 0.7; margin-top: 2px; }
@@ -558,7 +558,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v8.15</span>
+                FNH Timer <span class="version-tag">v8.16</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -597,6 +597,9 @@
         
         <div style="margin-bottom:15px; margin-top:5px;">
             <div style="font-size:11px; color:#888; margin-bottom:4px; text-align:left; font-weight:600; text-transform:uppercase;">EXTRA OEFENINGEN (BONUS)</div>
+             <div style="font-size:11px; color:#aaa; margin-bottom:10px; text-align:left;">
+                Bijv: Warming-up (eenmalig start), Spinning (begin elke ronde) of Toetje/Finisher (einde les). Een Toetje heeft geen wissel/rust na afloop.
+            </div>
             
             <div class="bonus-row">
                 <input type="text" id="bonus1-name" value="Bonus 1" class="text-input" style="text-align:left;" oninput="saveToLocal()">
@@ -832,6 +835,28 @@
         </div>
     </div>
     
+    <div id="bonus-edit-modal">
+        <div class="modal-content" style="max-width:300px;">
+            <h3 style="margin-top:0;">Bonus Wijzigen</h3>
+            
+            <div style="text-align:left; margin-bottom:15px;">
+                <label>Naam</label>
+                <input type="text" id="bonus-edit-name-input" class="text-input" style="text-align:left; margin-bottom:10px;">
+                
+                <label>Wanneer?</label>
+                <select id="bonus-edit-freq-input" class="compact-select"></select>
+                
+                <label style="margin-top:10px;">Duur</label>
+                <select id="bonus-edit-duration-input" class="compact-select"></select>
+            </div>
+            
+            <input type="hidden" id="bonus-edit-id">
+
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveBonusFromModal()">💾 Opslaan</button>
+            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeBonusEditModal()">Annuleren</div>
+        </div>
+    </div>
+    
     <div id="schedule-modal">
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -859,19 +884,24 @@
             <input type="hidden" id="edit-set-idx">
             <input type="hidden" id="edit-new-val">
             
-            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="applyNameChange('single')">
-                1️⃣ Alleen dit blokje
-                <span class="btn-subtext" style="font-size:10px;">(Alleen set <span id="lbl-set"></span> van deze ronde)</span>
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all_rounds')">
+                🌎 Hele oefening (Alle Rondes)
+                <span class="btn-subtext" style="font-size:10px;">(Oefening <span id="lbl-ex-all"></span> in elke ronde aanpassen)</span>
+            </button>
+
+            <button class="modal-btn" style="background: #FF9F0A; color: black;" onclick="applyNameChange('set_all_rounds')">
+                🔢 Deze set (Alle Rondes)
+                <span class="btn-subtext" style="font-size:10px;">(Set <span id="lbl-set-all"></span> van oef. <span id="lbl-ex-set-all"></span> overal)</span>
             </button>
             
             <button class="modal-btn" style="background: #BF5AF2; color: white;" onclick="applyNameChange('round_ex')">
                 🔂 Hele oefening (Deze Ronde)
                 <span class="btn-subtext" style="font-size:10px;">(Alle sets van oefening <span id="lbl-ex"></span> in deze ronde)</span>
             </button>
-            
-            <button class="modal-btn" style="background: #30D158; color: black;" onclick="applyNameChange('all_rounds')">
-                🌎 Hele oefening (Alle Rondes)
-                <span class="btn-subtext" style="font-size:10px;">(Oefening <span id="lbl-ex-all"></span> in elke ronde aanpassen)</span>
+
+            <button class="modal-btn" style="background: #0A84FF; color: white;" onclick="applyNameChange('single')">
+                1️⃣ Alleen dit blokje
+                <span class="btn-subtext" style="font-size:10px;">(Alleen set <span id="lbl-set"></span> van deze ronde)</span>
             </button>
             
             <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;" onclick="closeEditScopeModal()">Annuleren</div>
@@ -886,7 +916,6 @@
         let speechPlaylists = {}; 
         let editingSpeechKey = null; 
         
-        // Custom Names Store: "r{round}-e{exercise}" OR "r{round}-e{exercise}-s{set}"
         let customNames = {}; 
         
         // --- COACH PRESETS (Already Updated) ---
@@ -1143,6 +1172,10 @@
             for(let i=1; i<=3; i++) {
                 fillBonusDuration(`bonus${i}-duration`);
                 fillBonusFreq(`bonus${i}-freq`);
+                
+                // For Edit Modal
+                fillBonusDuration(`bonus-edit-duration-input`);
+                fillBonusFreq(`bonus-edit-freq-input`);
             }
         }
         
@@ -1224,9 +1257,44 @@
             editingSpeechKey = null;
         }
 
-        // --- NEW SCHEDULE MODAL LOGIC ---
+        // --- NEW BONUS EDIT MODAL LOGIC ---
+        function openBonusEditModal(bonusId) {
+             const nameVal = document.getElementById(`bonus${bonusId}-name`).value;
+             const durVal = document.getElementById(`bonus${bonusId}-duration`).value;
+             const freqVal = document.getElementById(`bonus${bonusId}-freq`).value;
+             
+             document.getElementById('bonus-edit-id').value = bonusId;
+             document.getElementById('bonus-edit-name-input').value = nameVal;
+             document.getElementById('bonus-edit-duration-input').value = durVal;
+             document.getElementById('bonus-edit-freq-input').value = freqVal;
+             
+             document.getElementById('bonus-edit-modal').style.display = 'flex';
+        }
+        
+        function closeBonusEditModal() {
+            document.getElementById('bonus-edit-modal').style.display = 'none';
+        }
+        
+        function saveBonusFromModal() {
+            const id = document.getElementById('bonus-edit-id').value;
+            const name = document.getElementById('bonus-edit-name-input').value;
+            const dur = document.getElementById('bonus-edit-duration-input').value;
+            const freq = document.getElementById('bonus-edit-freq-input').value;
+            
+            // Update main screen inputs
+            document.getElementById(`bonus${id}-name`).value = name;
+            document.getElementById(`bonus${id}-duration`).value = dur;
+            document.getElementById(`bonus${id}-freq`).value = freq;
+            
+            saveToLocal();
+            calculateRealTime();
+            closeBonusEditModal();
+            showScheduleModal(); // Refresh list
+        }
+
+        // --- SCHEDULE MODAL LOGIC ---
         function showScheduleModal() {
-            generateScheduleData(false); // Regenerate full schedule to be sure
+            generateScheduleData(false); 
             const tableBody = document.querySelector('#full-schedule-table tbody');
             tableBody.innerHTML = "";
             
@@ -1246,40 +1314,36 @@
                 
                 const tdName = document.createElement('td');
                 
-                // If it is a Regular Work Exercise (not bonus, not prep), allow editing
+                // Regular Work Exercise
                 if(step.type === 'work' && step.info.exercise > 0) {
                     const input = document.createElement('input');
                     input.type = "text";
                     // Hierachy: Specific Set > Round Exercise > Default
                     const keySet = `r${step.info.round}-e${step.info.exercise}-s${step.info.set}`;
                     const keyRound = `r${step.info.round}-e${step.info.exercise}`;
-                    const keyAll = `rALL-e${step.info.exercise}`; // Not really stored this way, but conceptually
-                    
-                    // Logic to find value
-                    // We only store precise keys or round-based keys.
-                    // To show "Burpees" if all rounds are Burpees, we just check the current round key.
-                    // If user set "All Rounds", we actually wrote to all rX-eY keys.
                     
                     let val = step.label; 
-                    // If step.label is default "Oefening X.Y", maybe show placeholder or value?
-                    // Actually generateScheduleData already sets the label based on customNames!
-                    // So step.label IS the correct value to show.
                     
                     input.value = val;
-                    
-                    // Add identification data
                     input.dataset.r = step.info.round;
                     input.dataset.e = step.info.exercise;
                     input.dataset.s = step.info.set;
                     
-                    // Pass current label to placeholder just in case
                     input.placeholder = `Oefening ${step.info.exercise}.${step.info.set}`;
 
                     input.onchange = function() {
                         openEditScopeModal(this.dataset.r, this.dataset.e, this.dataset.s, this.value);
                     };
                     tdName.appendChild(input);
-                } else {
+                } 
+                // Bonus Exercise
+                else if (step.type === 'work' && step.info.exercise === 0 && step.info.bonusId) {
+                     tdName.innerText = step.label + " ✏️";
+                     tdName.onclick = function() {
+                         openBonusEditModal(step.info.bonusId);
+                     };
+                }
+                else {
                     tdName.innerText = step.label;
                     if(step.info && step.info.round && step.info.exercise > 0) {
                         tdName.innerText += ` (R${step.info.round}/E${step.info.exercise})`;
@@ -1313,10 +1377,11 @@
             document.getElementById('edit-new-val').value = newVal;
             document.getElementById('edit-target-name').innerText = newVal;
             
-            // Update labels in buttons
             document.getElementById('lbl-set').innerText = s;
             document.getElementById('lbl-ex').innerText = e;
             document.getElementById('lbl-ex-all').innerText = e;
+            document.getElementById('lbl-set-all').innerText = s;
+            document.getElementById('lbl-ex-set-all').innerText = e;
             
             document.getElementById('edit-scope-modal').style.display = 'flex';
         }
@@ -1333,11 +1398,6 @@
             const newVal = document.getElementById('edit-new-val').value;
             const totalRounds = parseInt(document.getElementById('rounds').value);
             
-            // Logic:
-            // 1. Single Set: Store specific key `rX-eY-sZ`
-            // 2. Round Ex: Store key `rX-eY`. Clear specific set keys for this round/ex to avoid conflicts? Yes.
-            // 3. All Rounds: Store key `rX-eY` for ALL rounds. Clear specific sets everywhere for this ex.
-            
             if (scope === 'single') {
                 const key = `r${r}-e${e}-s${s}`;
                 if(newVal.trim() === "") delete customNames[key];
@@ -1347,22 +1407,23 @@
                 const key = `r${r}-e${e}`;
                 if(newVal.trim() === "") delete customNames[key];
                 else customNames[key] = newVal;
-                
                 // Cleanup specific set overrides for this round
-                Object.keys(customNames).forEach(k => {
-                    if(k.startsWith(`r${r}-e${e}-s`)) delete customNames[k];
-                });
+                Object.keys(customNames).forEach(k => { if(k.startsWith(`r${r}-e${e}-s`)) delete customNames[k]; });
             } 
             else if (scope === 'all_rounds') {
                 for(let i=1; i<=totalRounds; i++) {
                     const key = `r${i}-e${e}`;
                     if(newVal.trim() === "") delete customNames[key];
                     else customNames[key] = newVal;
-                    
-                    // Cleanup specific set overrides for this round
-                    Object.keys(customNames).forEach(k => {
-                        if(k.startsWith(`r${i}-e${e}-s`)) delete customNames[k];
-                    });
+                    // Cleanup specific set overrides
+                    Object.keys(customNames).forEach(k => { if(k.startsWith(`r${i}-e${e}-s`)) delete customNames[k]; });
+                }
+            }
+            else if (scope === 'set_all_rounds') {
+                for(let i=1; i<=totalRounds; i++) {
+                    const key = `r${i}-e${e}-s${s}`;
+                     if(newVal.trim() === "") delete customNames[key];
+                    else customNames[key] = newVal;
                 }
             }
             
@@ -1507,7 +1568,8 @@
                 const bMin = parseInt(document.getElementById(`bonus${b}-duration`).value) || 0;
                 const bFreq = document.getElementById(`bonus${b}-freq`).value;
                 if(bMin > 0 && bFreq === 'end_session') {
-                    remainingFixedRestTime += (bMin*60) + exRst;
+                    // Toetje NO REST after
+                    remainingFixedRestTime += (bMin*60);
                 }
             }
 
@@ -1705,7 +1767,8 @@
                 return {
                     name: document.getElementById(`bonus${i}-name`).value || `Bonus ${i}`,
                     min: parseInt(document.getElementById(`bonus${i}-duration`).value) || 0,
-                    freq: document.getElementById(`bonus${i}-freq`).value
+                    freq: document.getElementById(`bonus${i}-freq`).value,
+                    id: i
                 };
             };
 
@@ -1714,7 +1777,7 @@
                 const bonus = getBonus(b);
                 if (bonus.min > 0 && bonus.freq === 'warmup') {
                     if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
-                        addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                        addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
                     }
                 }
             }
@@ -1732,7 +1795,7 @@
                             if (r < startRound) include = false;
                             else if (r === startRound && (startEx > 1 || startSet > 1)) include = false;
                         }
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
                     }
                 }
 
@@ -1772,7 +1835,7 @@
                             let include = true;
                             if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
                             
-                            if(include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                            if(include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
                         }
                     }
                 }
@@ -1783,7 +1846,7 @@
                     if(bonus.min > 0 && bonus.freq === 'end_round') {
                         let include = true;
                         if (applyResumeFilter && r < startRound) include = false;
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec, bonus.id);
                     }
                 }
             }
@@ -1792,20 +1855,27 @@
             for(let b=1; b<=3; b++) {
                 const bonus = getBonus(b);
                 if (bonus.min > 0 && bonus.freq === 'end_session') {
-                    addBonusStep(0, bonus.name.toUpperCase(), bonus.min*60, exerciseRestSec);
+                    // TOETJE has NO rest/switch after!
+                    schedule.push({ 
+                        type: 'work', 
+                        time: bonus.min*60, 
+                        initialTime: bonus.min*60, 
+                        label: bonus.name.toUpperCase(), 
+                        info: { round: 0, exercise: 0, set: 0, globalSet: 0, bonusId: bonus.id } 
+                    });
                 }
             }
 
             if(schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
         }
         
-        function addBonusStep(r, label, time, rest) {
+        function addBonusStep(r, label, time, rest, bId) {
             schedule.push({ 
                 type: 'work', 
                 time: time, 
                 initialTime: time, 
                 label: label, 
-                info: { round: r, exercise: 0, set: 0, globalSet: 0 } // 0 indicates bonus
+                info: { round: r, exercise: 0, set: 0, globalSet: 0, bonusId: bId } // 0 indicates bonus
             });
             schedule.push({ 
                 type: 'rest-exercise', 
