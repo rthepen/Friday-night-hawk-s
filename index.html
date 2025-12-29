@@ -672,32 +672,7 @@
         }
 
         /* Audio Debug Log */
-        #audio-debug-log {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 300px;
-            height: 150px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #444;
-            color: #0f0;
-            font-family: monospace;
-            font-size: 10px;
-            padding: 5px;
-            overflow-y: hidden;
-            /* Auto scroll manual */
-            z-index: 9999;
-            pointer-events: none;
-            /* Let clicks pass through */
-            display: flex;
-            flex-direction: column-reverse;
-            /* Newest at bottom visually */
-        }
 
-        #audio-debug-log div {
-            border-bottom: 1px solid #222;
-            padding: 2px 0;
-        }
 
 
         .live-table tr {
@@ -2077,7 +2052,7 @@
     <div id="btn-pause" onclick="handlePauseClick()">⏸</div>
 
     <!-- Audio Debug Log -->
-    <div id="audio-debug-log"></div>
+
 
     <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
 
