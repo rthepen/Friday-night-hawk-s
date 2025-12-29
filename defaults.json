@@ -10,9 +10,21 @@
   "startEx": 1,
   "startSet": 1,
   "bonuses": [
-    { "name": "Bonus 1", "duration": 0, "freq": "start_round" },
-    { "name": "Bonus 2", "duration": 0, "freq": "start_round" },
-    { "name": "Bonus 3", "duration": 0, "freq": "start_round" }
+    {
+      "name": "Bonus 1",
+      "duration": 0,
+      "freq": "start_round"
+    },
+    {
+      "name": "Bonus 2",
+      "duration": 0,
+      "freq": "start_round"
+    },
+    {
+      "name": "Bonus 3",
+      "duration": 0,
+      "freq": "start_round"
+    }
   ],
-  "coachPreset": "standard"
+  "coachPreset": "tabataman"
 }
