@@ -3024,6 +3024,7 @@
         }
 
         // --- AI GENERATOR LOGIC ---
+        let globalCoachAudio = new Audio(); // iOS Fix: Reuse single audio object
         let genLogic = { set: 'same', round: 'same' };
 
         function openGeneratorModal() {
@@ -3821,9 +3822,11 @@
             if (speechSettings.use_mp3 && coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
                 logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
                 const mp3Path = `coaches/${coachId}/${key}.mp3`;
-                const audio = new Audio(mp3Path);
+                // FIX: Reuse global audio object for iOS compatibility
+                globalCoachAudio.src = mp3Path;
+                // const audio = new Audio(mp3Path); // Removed for iOS fix
 
-                const playPromise = audio.play();
+                const playPromise = globalCoachAudio.play();
 
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
