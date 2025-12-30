@@ -3887,7 +3887,58 @@
 
         function playBeep(f, t) { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value = f; o.type = 'sine'; const n = audioCtx.currentTime; if (t === 'tick') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.1); } else if (t === 'win') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.2); setTimeout(() => playBeep(1200, 'tick'), 300); } else { g.gain.setValueAtTime(0.3, n); o.start(n); o.stop(n + 0.5); } }
 
+        let preWorkoutInterval = null;
+
         function startWorkout() {
+            const startStr = document.getElementById('startTimeValue').value;
+            if (startStr) {
+                const now = new Date();
+                const [h, m] = startStr.split(':');
+                const targetStart = new Date();
+                targetStart.setHours(h, m, 0, 0);
+
+                if (targetStart > now) {
+                    // Show Countdown Overlay
+                    const overlay = document.getElementById('pre-workout-overlay');
+                    const timerEl = document.getElementById('pre-workout-timer');
+                    overlay.style.display = 'flex';
+
+                    // Initial wake lock attempt (user interaction context)
+                    if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+
+                    clearInterval(preWorkoutInterval);
+
+                    const updateTimer = () => {
+                        const currentNow = new Date();
+                        const diffMs = targetStart - currentNow;
+
+                        if (diffMs <= 0) {
+                            clearInterval(preWorkoutInterval);
+                            overlay.style.display = 'none';
+                            performStart();
+                            return;
+                        }
+
+                        // Format MM:SS
+                        const totalSec = Math.ceil(diffMs / 1000);
+                        const mins = Math.floor(totalSec / 60);
+                        const secs = totalSec % 60;
+                        timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    };
+
+                    updateTimer(); // Immediate update
+                    preWorkoutInterval = setInterval(updateTimer, 1000);
+                    return;
+                }
+            }
+            // No delay needed
+            performStart();
+        }
+
+        function performStart() {
+            // Hide overlay if manual skip was triggered
+            document.getElementById('pre-workout-overlay').style.display = 'none';
+            if (preWorkoutInterval) clearInterval(preWorkoutInterval);
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
             if (audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if (window.speechSynthesis) window.speechSynthesis.cancel(); }
 
