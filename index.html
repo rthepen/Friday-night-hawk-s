@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.4</title>
+    <title>Friday-night-hawk-s Timer v1.5</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1564,7 +1564,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.4</span>
+                FNH Timer <span class="version-tag">v1.5</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3043,15 +3043,32 @@
         // --- AI GENERATOR LOGIC ---
         let globalCoachAudio = new Audio();
         let audioCache = {}; // Cache for Web Audio buffers (Mix Mode)
-        let iosMixMode = false; // Default OFF
+        let iosMixMode = true; // Default ON (v1.5)
         let genLogic = { set: 'same', round: 'same' };
 
-        // Show Mix Mode toggle only on iOS
+        // Show Mix Mode toggle only on iOS & Add Resumption Listeners
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             document.addEventListener('DOMContentLoaded', () => {
                 const el = document.getElementById('ios-mix-container');
                 if (el) el.style.display = 'block';
+
+                // Set checkbox to default true if not loaded yet
+                const mixEl = document.getElementById('ios-mix-mode');
+                if (mixEl && !localStorage.getItem('fnh_settings')) mixEl.checked = true;
             });
+
+            // Auto-Resume AudioContext on Tab Focus/Return
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                    logAudioDebug("🔄 Resumed AudioCtx (Visibility)");
+                }
+            });
+
+            // Re-unlock on any touch (just in case)
+            document.addEventListener('touchstart', () => {
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            }, { passive: true });
         }
 
         function toggleMixMode(state) {
