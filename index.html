@@ -4124,10 +4124,18 @@
 
                     const init = step.initialTime;
                     if (step.type === 'work') {
-                        if (step.time === Math.floor(init / 2) && init >= 30) triggerAudio('work_halfway', "Halverwege");
-                        if (step.time === 30 && init > 40) triggerAudio('work_30s', "30 seconden");
-                        if (step.time === 10 && init > 15) triggerAudio('work_10s', "10 seconden");
-
+                        let audioTriggered = false;
+                        if (step.time === Math.floor(init / 2) && init >= 30) {
+                            triggerAudio('work_halfway', "Halverwege");
+                            audioTriggered = true;
+                        }
+                        if (!audioTriggered && step.time === 30 && init > 40) {
+                            triggerAudio('work_30s', "30 seconden");
+                            audioTriggered = true;
+                        }
+                        if (!audioTriggered && step.time === 10 && init > 15) {
+                            triggerAudio('work_10s', "10 seconden");
+                        }
                     }
                     if (step.type === 'rest-long' && step.time === 15 && init > 20) triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
                     if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
