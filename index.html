@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.6</title>
+    <title>Friday-night-hawk-s Timer v1.7</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1611,7 +1611,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.6</span>
+                FNH Timer <span class="version-tag">v1.7</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3916,7 +3916,16 @@
         function playBuffer(buffer) {
             const source = audioCtx.createBufferSource();
             source.buffer = buffer;
-            source.connect(audioCtx.destination);
+
+            // VOLUME BOOST (for Mix Mode)
+            // Since we cannot "duck" (lower) the background music on iOS,
+            // we digitally boost the voice volume to 250% to cut through.
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 2.5;
+
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
             source.start(0);
         }
 
