@@ -2381,10 +2381,34 @@
                 endInput.value = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
             }
             else if (source === 'starttime') {
-                // Change Start Time -> Update End Time (Keep Duration constant)
-                let base = getDateFromTimeStr(startInput.value, now) || now;
-                let target = new Date(base.getTime() + min * 60000);
-                endInput.value = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
+                // Change Start Time -> Update Duration (Keep End Time fixed)
+                let start = getDateFromTimeStr(startInput.value, now) || now;
+                let end = getDateFromTimeStr(endInput.value, now);
+
+                if (end) {
+                    if (end < start) end.setDate(end.getDate() + 1);
+                    let diffMs = end - start;
+                    let diffMin = Math.round(diffMs / 60000);
+                    if (diffMin < 0) diffMin += 1440;
+
+                    const sel = document.getElementById('totalMin');
+                    let exists = false;
+                    for (let i = 0; i < sel.options.length; i++) { if (parseInt(sel.options[i].value) === diffMin) exists = true; }
+
+                    if (!exists && diffMin > 0) {
+                        const opt = document.createElement('option');
+                        opt.value = diffMin;
+                        opt.text = diffMin + "m";
+                        sel.add(opt, 0);
+                        sel.value = diffMin;
+                    } else if (diffMin > 0) {
+                        sel.value = diffMin;
+                    }
+                } else {
+                    // No End Time set -> Standard behavior (maintain duration)
+                    let target = new Date(start.getTime() + min * 60000);
+                    endInput.value = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
+                }
             }
             else if (source === 'endtime') {
                 // Change End Time -> Update Duration
