@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.2</title>
+    <title>Friday-night-hawk-s Timer v1.3</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1564,7 +1564,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.2</span>
+                FNH Timer <span class="version-tag">v1.3</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1705,6 +1705,23 @@
         <div class="toggle-container">
             <button class="toggle-btn active" id="btn-audio-speech" onclick="setAudioMode('speech')">🗣️ Spraak</button>
             <button class="toggle-btn" id="btn-audio-beep" onclick="setAudioMode('beep')">🔔 Piepjes</button>
+        </div>
+
+        <!-- NEW: Mix Mode Switch for iOS -->
+        <div id="ios-mix-container"
+            style="background:#222; padding:10px; border-radius:12px; margin-bottom:15px; border:1px solid #333; text-align:left; display:none;">
+            <div class="switch-row">
+                <span class="switch-label" style="font-size:14px; font-weight:bold; color:#fff;">Mix Modus (Music
+                    Fix)</span>
+                <label class="switch">
+                    <input type="checkbox" id="ios-mix-mode" onchange="toggleMixMode(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div style="font-size:11px; color:#aaa; margin-top:5px; line-height:1.4;">
+                <span style="color:#FF9F0A; font-weight:bold;">⚠️ LET OP:</span> Voorkomt dat muziek stopt op iPhone.
+                <br><b>VEREISTE:</b> Je belsignaal-schakelaar (zijkant) MOET AAN staan, anders hoor je niets!
+            </div>
         </div>
 
         <div class="input-group" style="margin-bottom: 15px;">
@@ -3024,8 +3041,23 @@
         }
 
         // --- AI GENERATOR LOGIC ---
-        let globalCoachAudio = new Audio(); // Reverting to single audio object for all platforms
+        let globalCoachAudio = new Audio();
+        let audioCache = {}; // Cache for Web Audio buffers (Mix Mode)
+        let iosMixMode = false; // Default OFF
         let genLogic = { set: 'same', round: 'same' };
+
+        // Show Mix Mode toggle only on iOS
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            document.addEventListener('DOMContentLoaded', () => {
+                const el = document.getElementById('ios-mix-container');
+                if (el) el.style.display = 'block';
+            });
+        }
+
+        function toggleMixMode(state) {
+            iosMixMode = state;
+            saveToLocal();
+        }
 
         function openGeneratorModal() {
             document.getElementById('generator-modal').style.display = 'flex';
@@ -3380,6 +3412,7 @@
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 coachPreset: document.getElementById('coach-preset').value, // Save Coach Selection
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
+                iosMixMode: iosMixMode, // Save Mix Mode setting
                 // Save 3 Bonuses
                 bonus1: { name: document.getElementById('bonus1-name').value, dur: document.getElementById('bonus1-duration').value, freq: document.getElementById('bonus1-freq').value },
                 bonus2: { name: document.getElementById('bonus2-name').value, dur: document.getElementById('bonus2-duration').value, freq: document.getElementById('bonus2-freq').value },
@@ -3772,6 +3805,42 @@
             }
 
             if (schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
+        }
+
+        function playMp3WebAudio(url, key) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Check Cache
+            if (audioCache[url]) {
+                logAudioDebug(`✅ WebAudio Cache: ${key}`);
+                playBuffer(audioCache[url]);
+                return;
+            }
+
+            // Fetch
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("404");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
+                .then(audioBuffer => {
+                    audioCache[url] = audioBuffer;
+                    logAudioDebug(`✅ WebAudio Play: ${key}`);
+                    playBuffer(audioBuffer);
+                })
+                .catch(e => {
+                    failedAudioKeys.add(key);
+                    logAudioDebug(`❌ WebAudio Fail: ${key}`);
+                    console.error("WebAudio Error", e);
+                });
+        }
+
+        function playBuffer(buffer) {
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
         }
 
         function addBonusStep(r, label, time, rest, bId) {
