@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.11</title>
+    <title>Friday-night-hawk-s Timer v1.12</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1448,6 +1448,13 @@
             display: none !important;
         }
 
+        /* SAFETY: Prevent Timer Screen leaks if markup is broken */
+        #setup-screen #timer-screen,
+        #setup-screen .controls-container,
+        #setup-screen #pause-modal {
+            display: none !important;
+        }
+
         /* TRANSPARENT INPUT STYLES */
         .transparent-input {
             position: absolute;
@@ -1565,7 +1572,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.11</span>
+                FNH Timer <span class="version-tag">v1.12</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1754,7 +1761,7 @@
 
     </div>
 
-    <div id="timer-screen" style="display:none;">
+    <div id="timer-screen" style="display:none !important;">
         <div class="display-zone">
             <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
 
@@ -4073,7 +4080,10 @@
 
             document.getElementById('setup-screen').classList.add('hidden');
             // Scroll Fix v1.9: Use block display for reliable scrolling
-            document.getElementById('timer-screen').style.display = 'block';
+            // Reset style completely to remove !important inline hider
+            const ts = document.getElementById('timer-screen');
+            ts.style.cssText = '';
+            ts.style.display = 'block';
 
             workoutStartTime = new Date();
             const [h, m] = document.getElementById('endTimeValue').value.split(':');
