@@ -2166,7 +2166,12 @@
             rounds: 2, exercises: 6, sets: 2,
             restSec: 20, exerciseRestSec: 30, roundRestSec: 90,
             totalMin: 30,
-            coachPreset: 'tabataman' // Default to MP3
+            coachPreset: 'tabataman', // Default to MP3
+            bonuses: [
+                { name: "Bonus 1", duration: 0, freq: "start_round" },
+                { name: "Bonus 2", duration: 0, freq: "start_round" },
+                { name: "Bonus 3", duration: 0, freq: "start_round" }
+            ]
         };
 
         const coachPresets = {
@@ -2243,16 +2248,7 @@
                 }
             };
 
-            // 1. Probeer defaults.json
-            try {
-                const defaultsResp = await fetch('defaults.json');
-                if (defaultsResp.ok) {
-                    const loadedDefaults = await defaultsResp.json();
-                    Object.assign(appDefaults, loadedDefaults); // Merge into appDefaults
-                }
-            } catch (err) {
-                console.warn("Defaults.json niet geladen, gebruik fallback.", err);
-            }
+            // 1. Init Defaults (Skipped external fetch, usage hardcoded)
 
             // 2. Probeer Coaches
             // The coachPresets object is now hardcoded, so we just populate the select based on it.
