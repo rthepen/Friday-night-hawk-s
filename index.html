@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.14</title>
+    <title>Friday-night-hawk-s Timer v1.15</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1571,7 +1571,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.14</span>
+                FNH Timer <span class="version-tag">v1.15</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2152,6 +2152,7 @@
     </div>
 
     <script>
+        // --- v1.15: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
         let audioMode = 'speech';
         let speechPlaylists = {};
@@ -2160,22 +2161,25 @@
         let failedAudioKeys = new Set(); // Cache for missing MP3s
 
         // CONTAINERS
-        let coachPresets = {};
-
         // HARDE FALLBACK DEFAULTS (Zodat de app altijd werkt)
-        let appDefaults = {
-            rounds: 2, exercises: 6, sets: 2, restSec: 20, exerciseRestSec: 30, roundRestSec: 90, totalMin: 30,
-            startRound: 1, startEx: 1, startSet: 1, coachPreset: "tabataman",
-            bonuses: [
-                { name: "Bonus 1", duration: 0, freq: "start_round" },
-                { name: "Bonus 2", duration: 0, freq: "start_round" },
-                { name: "Bonus 3", duration: 0, freq: "start_round" }
-            ]
+        const appDefaults = {
+            rounds: 2, exercises: 6, sets: 2,
+            restSec: 20, exerciseRestSec: 30, roundRestSec: 90,
+            totalMin: 30,
+            coachPreset: 'tabataman' // Default to MP3
         };
 
-        let speechSettings = {};
+        const coachPresets = {
+            'tabataman': { use_mp3: true },
+            'nl_female': { use_mp3: true },
+            'nl_male': { use_mp3: true }
+        };
 
-        // UI Config
+        let currentCoachName = "Tabataman (Standaard)";
+
+        let speechSettings = {}; // This will now only hold the current coach's settings (use_mp3: true)
+
+        // UI Config (still used for validation and structure, but not for TTS text)
         const uiConfig = [
             { header: "Voorbereiding" },
             { id: "prep_intro", label: "Introductie tekst", type: "text" },
@@ -2244,64 +2248,25 @@
                 const defaultsResp = await fetch('defaults.json');
                 if (defaultsResp.ok) {
                     const loadedDefaults = await defaultsResp.json();
-                    appDefaults = { ...appDefaults, ...loadedDefaults };
+                    Object.assign(appDefaults, loadedDefaults); // Merge into appDefaults
                 }
             } catch (err) {
                 console.warn("Defaults.json niet geladen, gebruik fallback.", err);
             }
 
             // 2. Probeer Coaches
-            try {
-                const response = await fetch('coaches/manifest.json');
-                if (!response.ok) throw new Error("Manifest 404");
-                const files = await response.json();
-
-                for (const file of files) {
-                    let coachId = file.replace('.json', '');
-                    let loaded = false;
-
-                    try {
-                        const url = file.endsWith('.json') ? `coaches/${file}` : `coaches/${file}.json`;
-                        const coachResp = await fetch(url);
-                        if (coachResp.ok) {
-                            const coachObj = await coachResp.json();
-                            coachPresets[coachObj.id] = coachObj.data;
-                            addOption(coachObj.id, coachObj.name);
-                            loaded = true;
-                        }
-                    } catch (e) { console.error("Fout bij laden coach json:", file, e); }
-
-                    // FALLBACK: Als JSON niet bestaat, maak AUTOMATISCH een MP3 coach aan
-                    if (!loaded) {
-                        const autoData = { use_mp3: true };
-                        // Zet alles standaard AAN voor MP3 coaches (zodat triggerAudio niet early exits)
-                        uiConfig.forEach(u => { if (u.id) autoData[u.id] = { enabled: true, text: "" }; });
-
-                        // Maak mooie naam
-                        const displayName = coachId.charAt(0).toUpperCase() + coachId.slice(1);
-
-                        coachPresets[coachId] = autoData;
-                        addOption(coachId, displayName);
-                        console.log(`Auto-generated MP3 coach for: ${coachId}`);
-                    }
-                }
-            } catch (error) {
-                console.warn("Geen coaches gevonden.", error);
-                if (select.options.length <= 1) {
-                    const errOpt = document.createElement('option'); errOpt.text = "(Geen externe coaches)"; errOpt.disabled = true; select.appendChild(errOpt);
-                }
+            // The coachPresets object is now hardcoded, so we just populate the select based on it.
+            for (const coachId in coachPresets) {
+                let displayName = coachId.charAt(0).toUpperCase() + coachId.slice(1);
+                if (coachId === 'tabataman') displayName = 'TabataMan (Actief)';
+                if (coachId === 'nl_female') displayName = 'Eva (Rustig)';
+                if (coachId === 'nl_male') displayName = 'Daan (Energiek)';
+                addOption(coachId, displayName);
             }
 
             // Clean up dropdown UI
             const loadingOpt = select.querySelector('option[value="loading"]');
             if (loadingOpt) loadingOpt.remove();
-
-            const customOpt = document.createElement('option');
-            customOpt.value = "custom";
-            customOpt.text = "Geïmporteerd / Aangepast";
-            customOpt.disabled = true;
-            customOpt.hidden = true;
-            select.appendChild(customOpt);
 
             // 3. PAS NU DE WAARDEN TOE
             finalizeInit();
@@ -2311,24 +2276,19 @@
             const select = document.getElementById('coach-preset');
 
             // Selecteer standaard uit defaults, of fallback op eerste in lijst
-            let targetPreset = appDefaults.coachPreset || 'standard';
+            let targetPreset = appDefaults.coachPreset || 'tabataman';
 
-            // Als de target niet bestaat (bijv standard.json mist), pak de eerste beschikbare
-            if (!coachPresets[targetPreset] && select.options.length > 0 && select.options[0].value !== 'loading') {
-                targetPreset = select.options[0].value;
+            // If the target preset doesn't exist (shouldn't happen with hardcoded presets),
+            // or if the select value isn't set, default to 'tabataman'.
+            if (!coachPresets[targetPreset] || !select.querySelector(`option[value="${targetPreset}"]`)) {
+                targetPreset = 'tabataman';
             }
 
             select.value = targetPreset;
-            if (coachPresets[targetPreset]) {
-                speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset]));
-            } else {
-                // Fallback: lege settings als er echt niets is
-                speechSettings = {};
-            }
+            speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset])); // Load the simple MP3 coach setting
 
             loadFromLocal();
             checkForSharedSettings();
-            renderSpeechSettings();
 
             // Zet inputs op basis van defaults (als ze nog niet zijn overschreven door local)
             // Let op: loadFromLocal overschrijft dit weer als er iets is opgeslagen.
@@ -2352,6 +2312,7 @@
             document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec;
             document.getElementById('roundRestSec').value = appDefaults.roundRestSec;
             document.getElementById('totalMin').value = appDefaults.totalMin;
+            document.getElementById('coach-preset').value = appDefaults.coachPreset;
 
             if (appDefaults.bonuses) {
                 for (let i = 0; i < 3; i++) {
@@ -2546,20 +2507,11 @@
             }
         }
 
-        function applyCoachPreset(presetName) {
-            const preset = coachPresets[presetName];
-            if (preset) {
-                speechSettings = JSON.parse(JSON.stringify(preset));
-                speechPlaylists = {};
-                failedAudioKeys.clear(); // Reset MP3 failure cache
-                saveToLocal();
-                renderSpeechSettings();
-
-                // Validate if MP3 coach
-                if (speechSettings.use_mp3) {
-                    validateCoachFiles(presetName);
-                }
-            }
+        function handleCoachChange() {
+            const val = document.getElementById('coach-preset').value;
+            speechSettings = JSON.parse(JSON.stringify(coachPresets[val])); // Update speechSettings to the selected coach
+            saveToLocal();
+            validateCoachFiles(val); // Validate MP3 files for the new coach
         }
 
         async function validateCoachFiles(coachId) {
@@ -2615,63 +2567,6 @@
             }
         }
 
-        function renderSpeechSettings() {
-            const container = document.getElementById('speech-settings-panel');
-            container.innerHTML = "";
-            uiConfig.forEach(item => {
-                if (item.header) {
-                    const h = document.createElement('div'); h.className = "category-header"; h.innerText = item.header; container.appendChild(h);
-                } else {
-                    const wrapper = document.createElement('div');
-                    const row = document.createElement('div'); row.className = "switch-row";
-                    const label = document.createElement('span'); label.className = "switch-label"; label.innerText = item.label;
-                    const switchLabel = document.createElement('label'); switchLabel.className = "switch";
-                    const cb = document.createElement('input'); cb.type = "checkbox"; cb.id = `sw_${item.id}`;
-                    cb.checked = speechSettings[item.id] ? speechSettings[item.id].enabled : false;
-                    cb.onchange = () => { if (speechSettings[item.id]) { speechSettings[item.id].enabled = cb.checked; saveToLocal(); } };
-                    const slider = document.createElement('span'); slider.className = "slider";
-                    switchLabel.appendChild(cb); switchLabel.appendChild(slider); row.appendChild(label); row.appendChild(switchLabel); wrapper.appendChild(row);
-                    if (item.type === 'text') {
-                        const trigger = document.createElement('div'); trigger.className = "text-input-trigger";
-
-                        if (speechSettings.use_mp3) {
-                            trigger.innerText = "🔈 MP3 Audio (niet aanpasbaar)";
-                            trigger.style.opacity = "0.5";
-                            trigger.style.cursor = "default";
-                            trigger.style.fontStyle = "italic";
-                            trigger.style.background = "#222";
-                            trigger.style.color = "#888";
-                        } else {
-                            const val = speechSettings[item.id] ? speechSettings[item.id].text : "";
-                            trigger.innerText = val || "(Klik om te bewerken...)";
-                            trigger.onclick = () => openSpeechEdit(item.id, val);
-                        }
-                        wrapper.appendChild(trigger);
-                    }
-                    container.appendChild(wrapper);
-                }
-            });
-        }
-
-        function openSpeechEdit(key, currentText) {
-            editingSpeechKey = key;
-            document.getElementById('speech-edit-area').value = currentText;
-            document.getElementById('speech-edit-modal').style.display = 'flex';
-        }
-
-        function saveSpeechEdit() {
-            if (editingSpeechKey && speechSettings[editingSpeechKey]) {
-                speechSettings[editingSpeechKey].text = document.getElementById('speech-edit-area').value;
-                saveToLocal();
-                renderSpeechSettings();
-            }
-            closeSpeechEdit();
-        }
-
-        function closeSpeechEdit() {
-            document.getElementById('speech-edit-modal').style.display = 'none';
-            editingSpeechKey = null;
-        }
 
         // --- SCHEDULE MODAL LOGIC ---
         function getExerciseDetails(name) {
@@ -3026,23 +2921,9 @@
 
             syncTime('duration');
             setAudioMode('speech');
+            document.getElementById('coach-preset').value = 'tabataman';
 
-            const defCoach = appDefaults.coachPreset || 'standard';
-            if (coachPresets[defCoach]) {
-                document.getElementById('coach-preset').value = defCoach;
-                speechSettings = JSON.parse(JSON.stringify(coachPresets[defCoach]));
-            } else {
-                // Fallback als de default preset er niet is
-                if (document.getElementById('coach-preset').options.length > 0) {
-                    const first = document.getElementById('coach-preset').options[0].value;
-                    document.getElementById('coach-preset').value = first;
-                    if (coachPresets[first]) speechSettings = JSON.parse(JSON.stringify(coachPresets[first]));
-                }
-            }
-
-            speechPlaylists = {};
             saveToLocal();
-            renderSpeechSettings();
             calculateRealTime();
         }
 
@@ -3445,7 +3326,8 @@
             const data = {
                 rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value, sets: document.getElementById('sets').value,
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
-                totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings,
+                totalMin: document.getElementById('totalMin').value, audioMode: audioMode,
+                // v1.15: Removed speechSettings from save
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 coachPreset: document.getElementById('coach-preset').value, // Save Coach Selection
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
@@ -3489,7 +3371,7 @@
                     }
 
                     if (data.audioMode) setAudioMode(data.audioMode);
-                    if (data.speechSettings) { for (const key in speechSettings) { if (data.speechSettings[key]) speechSettings[key] = data.speechSettings[key]; } }
+                    // v1.15: Removed SpeechSettings restoration
                 } catch (e) { console.log("Error loading settings", e); }
             }
         }
@@ -3498,8 +3380,6 @@
             audioMode = newMode;
             document.getElementById('btn-audio-speech').className = (audioMode === 'speech') ? 'toggle-btn active' : 'toggle-btn';
             document.getElementById('btn-audio-beep').className = (audioMode === 'beep') ? 'toggle-btn active' : 'toggle-btn';
-            const panel = document.getElementById('speech-settings-panel');
-            if (audioMode === 'speech') panel.classList.remove('hidden'); else panel.classList.add('hidden');
         }
 
         function calculateRealTime() {
@@ -3923,18 +3803,10 @@
         function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
 
-            // Ensure manual_override always goes to TTS immediately, skipping MP3 checks
-            if (key === 'manual_override') {
-                logAudioDebug(`📢 Override: ${fallbackText}`);
-                fallbackToTTS(key, fallbackText, extraInfo);
-                return;
-            }
+            // MP3 Support Logic (SIMPLIFIED v1.15)
+            const coachId = document.getElementById('coach-preset').value || 'tabataman';
 
-            // MP3 Support Logic (New with Flag & Cache)
-            const coachId = document.getElementById('coach-preset').value;
-
-            // Only proceed if enabled in config AND not previously failed
-            if (speechSettings.use_mp3 && coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
+            if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
                 logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
                 const mp3Path = `coaches/${coachId}/${key}.mp3`;
 
@@ -3952,47 +3824,14 @@
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         logAudioDebug(`✅ Playing MP3: ${key}`);
-                        if (window.speechSynthesis) window.speechSynthesis.cancel();
                     })
                         .catch(error => {
                             failedAudioKeys.add(key); // Mark as missing/broken
                             logAudioDebug(`❌ MP3 Failed: ${key}`);
-                            console.log("Missing MP3 for " + key);
                         });
                 }
                 return;
             }
-
-            // Direct Fallback Logic
-            // If use_mp3 is ON, we NEVER want TTS for coach cues (Silence)
-            if (speechSettings.use_mp3) {
-                logAudioDebug(`🔇 MP3 Mode Silence: ${key} (MP3 Disabled/Failed)`);
-                return;
-            }
-
-            // Standard TTS Fallback
-            fallbackToTTS(key, fallbackText, extraInfo);
-        }
-
-        function fallbackToTTS(key, fallbackText, extraInfo) {
-            logAudioDebug(`🗣️ TTS Fallback: ${key}`);
-            if (!window.speechSynthesis) return;
-            if (key === 'manual_override') { const utterance = new SpeechSynthesisUtterance(fallbackText); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance); return; }
-            let setting = speechSettings[key]; if (!setting && key === 'tick') setting = speechSettings.prep_countdown;
-            if (!setting || !setting.enabled) return;
-            let textToSpeak = fallbackText;
-            if (setting.text && setting.text.trim() !== "") {
-                const rawText = setting.text;
-                if (!speechPlaylists[key] || speechPlaylists[key].originalText !== rawText) {
-                    let phrases = rawText.split('|').map(s => s.trim()).filter(s => s !== "");
-                    for (let i = phrases.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[phrases[i], phrases[j]] = [phrases[j], phrases[i]]; }
-                    speechPlaylists[key] = { phrases: phrases, index: 0, originalText: rawText };
-                }
-                let pl = speechPlaylists[key]; if (pl.phrases.length > 0) { textToSpeak = pl.phrases[pl.index]; pl.index++; if (pl.index >= pl.phrases.length) pl.index = 0; }
-            }
-            if (extraInfo) textToSpeak += ". " + extraInfo;
-            logAudioDebug(`🗣️ Speaking: "${textToSpeak}"`);
-            window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.lang = 'nl-NL'; window.speechSynthesis.speak(utterance);
         }
 
         function logAudioDebug(msg) {
@@ -4090,7 +3929,7 @@
 
             updateEndTimeDisplay();
             currentIndex = 0;
-            speechPlaylists = {};
+            // speechPlaylists = {}; // REMOVED v1.15
             failedAudioKeys.clear(); // Reset MP3 failures on new workout start
             stepEndTime = Date.now() + (schedule[0].time * 1000);
 
