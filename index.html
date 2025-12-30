@@ -3373,6 +3373,7 @@
                     document.getElementById('rounds').value = data.rounds || 2; document.getElementById('exercises').value = data.exercises || 6; document.getElementById('sets').value = data.sets || 2;
                     document.getElementById('restSec').value = data.restSec || 20; document.getElementById('exerciseRestSec').value = data.exerciseRestSec || 30; document.getElementById('roundRestSec').value = data.roundRestSec || 90;
                     document.getElementById('totalMin').value = data.totalMin || 30;
+                    if (data.startTimeValue) document.getElementById('startTimeValue').value = data.startTimeValue;
                     if (data.startRound) document.getElementById('start-round').value = data.startRound;
                     if (data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if (data.startSet) document.getElementById('start-set').value = data.startSet;
@@ -3495,11 +3496,24 @@
             remainingFixedRestTime += 10;
 
             let availableSec = 0;
+            const startStr = document.getElementById('startTimeValue').value;
             const endStr = document.getElementById('endTimeValue').value;
+
             if (endStr) {
-                const now = new Date(); const [h, m] = endStr.split(':'); const target = new Date(); target.setHours(h, m, 0, 0);
-                if (target < now) target.setDate(target.getDate() + 1);
-                availableSec = Math.floor((target - now) / 1000);
+                const now = new Date();
+                let base = now;
+                if (startStr) {
+                    const [sh, sm] = startStr.split(':');
+                    base = new Date();
+                    base.setHours(sh, sm, 0, 0);
+                }
+
+                const [h, m] = endStr.split(':');
+                const target = new Date();
+                target.setHours(h, m, 0, 0);
+
+                if (target < base) target.setDate(target.getDate() + 1);
+                availableSec = Math.floor((target - base) / 1000);
             }
 
             const workSecTotal = availableSec - remainingFixedRestTime;
