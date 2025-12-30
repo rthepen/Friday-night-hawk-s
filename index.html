@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.15</title>
+    <title>Friday-night-hawk-s Timer v1.16</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1571,7 +1571,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.15</span>
+                FNH Timer <span class="version-tag">v1.16</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2152,7 +2152,7 @@
     </div>
 
     <script>
-        // --- v1.15: SIMPLIFIED AUDIO (MP3 ONLY) ---
+        // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
         let audioMode = 'speech';
         let speechPlaylists = {};
@@ -2281,10 +2281,15 @@
             }
 
             select.value = targetPreset;
-            speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset])); // Load the simple MP3 coach setting
+            if (!speechSettings || Object.keys(speechSettings).length === 0) {
+                speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset]));
+            }
 
             loadFromLocal();
             checkForSharedSettings();
+
+            // Generate Toggles
+            renderAudioToggles();
 
             // Zet inputs op basis van defaults (als ze nog niet zijn overschreven door local)
             // Let op: loadFromLocal overschrijft dit weer als er iets is opgeslagen.
@@ -2331,8 +2336,9 @@
                 i.addEventListener('input', () => { calculateRealTime(); saveToLocal(); });
             });
 
-            document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
-            document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
+            // These are now handled by the new card-group
+            // document.getElementById('btn-audio-speech').onclick = () => { setAudioMode('speech'); saveToLocal(); };
+            // document.getElementById('btn-audio-beep').onclick = () => { setAudioMode('beep'); saveToLocal(); };
 
             document.addEventListener("visibilitychange", handleVisibilityChange);
 
@@ -2505,9 +2511,59 @@
 
         function handleCoachChange() {
             const val = document.getElementById('coach-preset').value;
-            speechSettings = JSON.parse(JSON.stringify(coachPresets[val])); // Update speechSettings to the selected coach
+            // Merge new coach preset but KEEP user toggle overrides if they exist? 
+            // Ideally we reset to the new coach defaults, but user might want to keep "Halfway OFF".
+            // For now, let's reset to defaults of the new coach to be safe.
+            speechSettings = JSON.parse(JSON.stringify(coachPresets[val]));
+
             saveToLocal();
-            validateCoachFiles(val); // Validate MP3 files for the new coach
+            renderAudioToggles(); // Re-render toggles
+            validateCoachFiles(val);
+        }
+
+        // --- v1.16: RENDER AUDIO TOGGLES ---
+        function renderAudioToggles() {
+            const container = document.getElementById('audio-toggles-panel');
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (audioMode === 'beep') {
+                container.innerHTML = "<div style='color:#666; font-style:italic; font-size:12px; padding:10px;'>In piepjes-modus zijn er geen spraak instellingen.</div>";
+                return;
+            }
+
+            uiConfig.forEach(item => {
+                if (item.header) {
+                    const h = document.createElement('div'); h.className = "category-header"; h.innerText = item.header;
+                    h.style.marginTop = "15px"; h.style.marginBottom = "5px"; h.style.fontSize = "11px"; h.style.color = "#888"; h.style.fontWeight = "600";
+                    container.appendChild(h);
+                } else {
+                    const wrapper = document.createElement('div'); wrapper.className = "switch-row";
+
+                    const label = document.createElement('span'); label.className = "switch-label"; label.innerText = item.label;
+                    const switchLabel = document.createElement('label'); switchLabel.className = "switch";
+
+                    const cb = document.createElement('input'); cb.type = "checkbox";
+
+                    // Check logic: if key missing, assume enabled by default
+                    let isEnabled = true;
+                    if (speechSettings[item.id] && typeof speechSettings[item.id].enabled !== 'undefined') {
+                        isEnabled = speechSettings[item.id].enabled;
+                    }
+                    cb.checked = isEnabled;
+
+                    cb.onchange = () => {
+                        if (!speechSettings[item.id]) speechSettings[item.id] = { enabled: true };
+                        speechSettings[item.id].enabled = cb.checked;
+                        saveToLocal();
+                    };
+
+                    const slider = document.createElement('span'); slider.className = "slider";
+                    switchLabel.appendChild(cb); switchLabel.appendChild(slider);
+                    wrapper.appendChild(label); wrapper.appendChild(switchLabel);
+                    container.appendChild(wrapper);
+                }
+            });
         }
 
         async function validateCoachFiles(coachId) {
@@ -2655,7 +2711,7 @@
                             </div>
 
                             <div>
-                                <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:2px;">Instructie</div>
+                                <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase;">Instructie</div>
                                 <div style="font-size:13px; color:#fff; line-height:1.4;">${instr}</div>
                             </div>
 
@@ -3323,7 +3379,7 @@
                 rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value, sets: document.getElementById('sets').value,
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode,
-                // v1.15: Removed speechSettings from save
+                speechSettings: speechSettings, // v1.16: Restore Save
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 coachPreset: document.getElementById('coach-preset').value, // Save Coach Selection
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
@@ -3367,7 +3423,18 @@
                     }
 
                     if (data.audioMode) setAudioMode(data.audioMode);
-                    // v1.15: Removed SpeechSettings restoration
+                    // v1.16: Restore speechSettings load
+                    if (data.speechSettings) {
+                        for (const key in speechSettings) {
+                            if (data.speechSettings[key]) {
+                                speechSettings[key].enabled = data.speechSettings[key].enabled;
+                            }
+                        }
+                        // Also Add keys that might be in data but not in current preset (though standardizing via uiConfig is better)
+                        for (const key in data.speechSettings) {
+                            if (!speechSettings[key]) speechSettings[key] = data.speechSettings[key];
+                        }
+                    }
                 } catch (e) { console.log("Error loading settings", e); }
             }
         }
@@ -3376,6 +3443,7 @@
             audioMode = newMode;
             document.getElementById('btn-audio-speech').className = (audioMode === 'speech') ? 'toggle-btn active' : 'toggle-btn';
             document.getElementById('btn-audio-beep').className = (audioMode === 'beep') ? 'toggle-btn active' : 'toggle-btn';
+            renderAudioToggles(); // Re-render when mode changes
         }
 
         function calculateRealTime() {
@@ -3799,8 +3867,14 @@
         function triggerAudio(key, fallbackText, extraInfo = "") {
             if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
 
-            // MP3 Support Logic (SIMPLIFIED v1.15)
+            // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
             const coachId = document.getElementById('coach-preset').value || 'tabataman';
+
+            // Check Enable/Disable Toggle provided by user
+            if (speechSettings[key] && speechSettings[key].enabled === false) {
+                logAudioDebug(`🔇 Silenced by user setting: ${key}`);
+                return;
+            }
 
             if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
                 logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
