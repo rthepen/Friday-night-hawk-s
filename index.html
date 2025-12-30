@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.9</title>
+    <title>Friday-night-hawk-s Timer v1.10</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -566,53 +566,6 @@
             width: 60px;
             /* Fixed width for small buttons */
             flex: 0 0 60px;
-        }
-
-        /* MUSIC SHORTCUTS */
-        .music-bar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: rgba(44, 44, 46, 0.8);
-            margin: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .btn-music {
-            background: #222;
-            border: 1px solid #444;
-            color: #ccc;
-            border-radius: 12px;
-            padding: 8px 12px;
-            font-size: 12px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            flex: 1;
-            justify-content: center;
-        }
-
-        .btn-music:active {
-            transform: scale(0.95);
-            background: #333;
-        }
-
-        .btn-music.spotify {
-            border-color: #1DB954;
-            color: #1DB954;
-        }
-
-        .btn-music.yt {
-            border-color: #FF0000;
-            color: #FF0000;
-        }
-
-        .btn-music.apple {
-            border-color: #FA243C;
-            color: #FA243C;
         }
 
         /* LIVE SCHEDULE TABLE */
@@ -1612,7 +1565,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.9</span>
+                FNH Timer <span class="version-tag">v1.10</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1866,32 +1819,19 @@
             <button class="btn-control btn-skip" onclick="handleNextClick()">⏭</button>
             <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
         </div>
-        <!-- MUSIC SHORTCUTS BAR -->
-        <div class="music-bar">
-            <a href="https://open.spotify.com" target="_blank" class="btn-music spotify">
-                <span style="font-size:16px">🟢</span> Spotify
-            </a>
-            <a href="https://music.youtube.com" target="_blank" class="btn-music yt">
-                <span style="font-size:16px">🔴</span> YT Music
-            </a>
-            <a href="https://music.apple.com" target="_blank" class="btn-music apple">
-                <span style="font-size:16px">🎵</span> Apple
-            </a>
-        </div>
-    </div>
 
-    <div id="live-schedule-container">
-        <table class="live-table" id="live-table">
-            <thead>
-                <tr>
-                    <th style="width:60px;">Tijd</th>
-                    <th>Activiteit</th>
-                    <th style="width:50px; text-align:right;">Duur</th>
-                </tr>
-            </thead>
-            <tbody id="live-table-body"></tbody>
-        </table>
-    </div>
+        <div id="live-schedule-container">
+            <table class="live-table" id="live-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">Tijd</th>
+                        <th>Activiteit</th>
+                        <th style="width:50px; text-align:right;">Duur</th>
+                    </tr>
+                </thead>
+                <tbody id="live-table-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="pause-modal">
