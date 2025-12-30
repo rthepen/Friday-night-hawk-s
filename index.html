@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.12</title>
+    <title>Friday-night-hawk-s Timer v1.13</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1572,7 +1572,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.12</span>
+                FNH Timer <span class="version-tag">v1.13</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2079,12 +2079,11 @@
         </div>
     </div>
 
-    <div id="btn-pause" onclick="handlePauseClick()">⏸</div>
 
     <!-- Audio Debug Log -->
 
 
-    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)">
+    <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)" style="display:none;">
 
     <div id="generator-modal" class="modal-overlay" style="display:none; align-items:center; justify-content:center;">
         <div class="modal-content">
