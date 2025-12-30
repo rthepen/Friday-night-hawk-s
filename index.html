@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.0</title>
+    <title>Friday-night-hawk-s Timer v1.1</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -3024,7 +3024,8 @@
         }
 
         // --- AI GENERATOR LOGIC ---
-        let globalCoachAudio = new Audio(); // iOS Fix: Reuse single audio object
+        let globalCoachAudio = new Audio(); // Android/Desktop: Reuse single audio object
+        let audioCache = {}; // iOS: Cache for Web Audio buffers
         let genLogic = { set: 'same', round: 'same' };
 
         function openGeneratorModal() {
@@ -3822,7 +3823,17 @@
             if (speechSettings.use_mp3 && coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
                 logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
                 const mp3Path = `coaches/${coachId}/${key}.mp3`;
-                // FIX: Reuse global audio object for iOS compatibility
+
+                // iOS SPECIAL HANDLING: Use Web Audio API to prevent pausing background music (Spotify/YouTube)
+                // Android: Use HTML5 Audio to allow "Ducking" (lowering volume of music)
+                const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+                if (isIOS) {
+                    playMp3WebAudio(mp3Path, key);
+                    return;
+                }
+
+                // FIX: Reuse global audio object for Android/Desktop (Standard HTML5 Audio)
                 globalCoachAudio.src = mp3Path;
                 // const audio = new Audio(mp3Path); // Removed for iOS fix
 
@@ -3890,9 +3901,49 @@
 
         function playBeep(f, t) { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value = f; o.type = 'sine'; const n = audioCtx.currentTime; if (t === 'tick') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.1); } else if (t === 'win') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.2); setTimeout(() => playBeep(1200, 'tick'), 300); } else { g.gain.setValueAtTime(0.3, n); o.start(n); o.stop(n + 0.5); } }
 
+        function playMp3WebAudio(url, key) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Check Cache
+            if (audioCache[url]) {
+                logAudioDebug(`✅ WebAudio Cache: ${key}`);
+                playBuffer(audioCache[url]);
+                return;
+            }
+
+            // Fetch
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("404");
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
+                .then(audioBuffer => {
+                    audioCache[url] = audioBuffer;
+                    logAudioDebug(`✅ WebAudio Play: ${key}`);
+                    playBuffer(audioBuffer);
+                })
+                .catch(e => {
+                    failedAudioKeys.add(key);
+                    logAudioDebug(`❌ WebAudio Fail: ${key}`);
+                    console.error("WebAudio Error", e);
+                });
+        }
+
+        function playBuffer(buffer) {
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+        }
+
         let preWorkoutInterval = null;
 
         function startWorkout() {
+            // ALWAYS Initialize Audio Context on User Click (Crucial for iOS Web Audio)
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
             const startStr = document.getElementById('startTimeValue').value;
             if (startStr) {
                 const now = new Date();
