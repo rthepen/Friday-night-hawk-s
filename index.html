@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.8</title>
+    <title>Friday-night-hawk-s Timer v1.9</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -846,12 +846,14 @@
         /* --- TIMER SCREEN (GYM MODE) --- */
         #timer-screen {
             display: none;
-            /* Fix: Remove fixed height/overflow to allow natural scrolling in parent */
+            /* Scroll Fix v1.9: Use block layout and auto height */
+            height: auto;
             min-height: 100%;
-            flex-direction: column;
-            padding-bottom: 0;
-            width: 100vw;
-            /* overflow-y: auto;  <-- REMOVED to prevent nested scroll issues */
+            width: 100%;
+            /* Fit container */
+            padding-bottom: 150px;
+            /* Space for bottom content */
+            overflow: visible;
         }
 
         /* PROGRESS RINGS */
@@ -1610,7 +1612,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.8</span>
+                FNH Timer <span class="version-tag">v1.9</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3118,16 +3120,30 @@
 
             // Auto-Resume AudioContext on Tab Focus/Return
             document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                    logAudioDebug("🔄 Resumed AudioCtx (Visibility)");
-                }
+                if (!document.hidden) wakeUpAudio();
             });
 
-            // Re-unlock on any touch (just in case)
+            // Re-unlock on any touch (ensure playback)
             document.addEventListener('touchstart', () => {
-                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                wakeUpAudio();
             }, { passive: true });
+        }
+
+        function wakeUpAudio() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                audioCtx.resume().then(() => logAudioDebug("⚡ Audio Resumed (WakeUp)"));
+            }
+            // Force silent oscillator to wake up iOS Audio Engine
+            try {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                g.gain.value = 0; // Silent
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                osc.start(0);
+                osc.stop(audioCtx.currentTime + 0.01);
+            } catch (e) { /* ignore */ }
         }
 
         function toggleMixMode(state) {
@@ -3568,7 +3584,7 @@
                 const bFreq = document.getElementById(`bonus${b}-freq`).value;
                 if (bMin > 0 && bFreq === 'end_session') {
                     // Toetje NO REST after
-                    remainingFixedRestTime += (bMin * 60);
+                    remainingFixedRestTime += (bMin * 60) + exRst; // Added exRst here to account for the "switch" after bonus
                 }
             }
 
@@ -4116,7 +4132,8 @@
             populateJumpMenus();
 
             document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('timer-screen').style.display = 'flex';
+            // Scroll Fix v1.9: Use block display for reliable scrolling
+            document.getElementById('timer-screen').style.display = 'block';
 
             workoutStartTime = new Date();
             const [h, m] = document.getElementById('endTimeValue').value.split(':');
