@@ -1575,16 +1575,21 @@
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px;">TIJDSINSTELLINGEN</div>
 
-        <div class="half-row">
+        <div class="compact-row">
             <div class="select-group">
-                <label>Klaar om (HH:MM) ✏️</label>
-                <input type="time" id="endTimeValue" class="highlight-input"
-                    onchange="syncTime('endtime'); saveToLocal();">
+                <label>Starttijd</label>
+                <input type="time" id="startTimeValue" class="highlight-input"
+                    onchange="syncTime('starttime'); saveToLocal();">
             </div>
             <div class="select-group">
-                <label>Totale tijd (min) ✏️</label>
+                <label>Duur (min)</label>
                 <select id="totalMin" class="compact-select highlight-input"
                     onchange="syncTime('duration'); saveToLocal();"></select>
+            </div>
+            <div class="select-group">
+                <label>Eindtijd</label>
+                <input type="time" id="endTimeValue" class="highlight-input"
+                    onchange="syncTime('endtime'); saveToLocal();">
             </div>
         </div>
 
@@ -2356,26 +2361,43 @@
         });
 
         function syncTime(source) {
+            const min = parseInt(document.getElementById('totalMin').value) || 30;
+            const startInput = document.getElementById('startTimeValue');
+            const endInput = document.getElementById('endTimeValue');
+            const now = new Date();
+
+            const getDateFromTimeStr = (str, baseDate) => {
+                if (!str) return null;
+                const [h, m] = str.split(':');
+                let d = new Date(baseDate.getTime());
+                d.setHours(h, m, 0, 0);
+                return d;
+            };
+
             if (source === 'duration') {
-                const min = parseInt(document.getElementById('totalMin').value) || 30;
-                const now = new Date();
-                const target = new Date(now.getTime() + min * 60000);
-                const timeStr = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('endTimeValue').value = timeStr;
-            } else {
-                const endStr = document.getElementById('endTimeValue').value;
-                if (!endStr) return;
-                const now = new Date();
-                const [h, m] = endStr.split(':');
-                let target = new Date();
-                target.setHours(h, m, 0, 0);
+                // Change Duration -> Update End Time
+                let base = getDateFromTimeStr(startInput.value, now) || now;
+                let target = new Date(base.getTime() + min * 60000);
+                endInput.value = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            else if (source === 'starttime') {
+                // Change Start Time -> Update End Time (Keep Duration constant)
+                let base = getDateFromTimeStr(startInput.value, now) || now;
+                let target = new Date(base.getTime() + min * 60000);
+                endInput.value = target.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            else if (source === 'endtime') {
+                // Change End Time -> Update Duration
+                let end = getDateFromTimeStr(endInput.value, now);
+                if (!end) return;
 
-                if (target < now) {
-                    target.setDate(target.getDate() + 1);
-                }
+                let base = getDateFromTimeStr(startInput.value, now) || now;
 
-                const diffMs = target - now;
-                const diffMin = Math.round(diffMs / 60000);
+                // Handle overnight
+                if (end < base) end.setDate(end.getDate() + 1);
+
+                let diffMs = end - base;
+                let diffMin = Math.round(diffMs / 60000);
 
                 const sel = document.getElementById('totalMin');
                 let exists = false;
@@ -3330,6 +3352,7 @@
                 rounds: document.getElementById('rounds').value, exercises: document.getElementById('exercises').value, sets: document.getElementById('sets').value,
                 restSec: document.getElementById('restSec').value, exerciseRestSec: document.getElementById('exerciseRestSec').value, roundRestSec: document.getElementById('roundRestSec').value,
                 totalMin: document.getElementById('totalMin').value, audioMode: audioMode, speechSettings: speechSettings,
+                startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 coachPreset: document.getElementById('coach-preset').value, // Save Coach Selection
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
                 // Save 3 Bonuses
