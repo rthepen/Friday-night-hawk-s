@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.19</title>
+    <title>Friday-night-hawk-s Timer v1.20</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.19</span>
+                FNH Timer <span class="version-tag">v1.20</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1937,6 +1937,14 @@
                             style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
                     <label class="switch">
                         <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-row" style="margin-bottom:10px; border-top:1px solid #333; padding-top:10px;">
+                    <span class="switch-label">Eindtijd (Verschuiven)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-calc-endtime" onchange="previewSmartCalc()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -3624,6 +3632,7 @@
             document.getElementById('chk-calc-rest').checked = false;
             document.getElementById('chk-calc-switch').checked = false;
             document.getElementById('chk-calc-round').checked = false;
+            document.getElementById('chk-calc-endtime').checked = true; // Default: Allow dynamic end time
             previewSmartCalc();
         }
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
@@ -3724,23 +3733,39 @@
             }
 
             // End Time Shift
-            const totalDiffMin = Math.round(remainingDiff / 60);
-            let sign = totalDiffMin >= 0 ? "+" : "";
-            const currentEnd = document.getElementById('endTimeValue').value;
-            if (currentEnd) {
-                const [h, m] = currentEnd.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
-                d.setMinutes(d.getMinutes() + totalDiffMin);
-                const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            const useEndTime = document.getElementById('chk-calc-endtime').checked;
 
-                let color = totalDiffMin === 0 ? "#30D158" : "#fff";
-                distributionText += `<div style="margin-top:5px; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${sign}${totalDiffMin} min)</div>`;
+            if (remainingDiff !== 0) {
+                if (useEndTime) {
+                    const totalDiffMin = Math.round(remainingDiff / 60);
+                    let sign = totalDiffMin >= 0 ? "+" : "";
+                    const currentEnd = document.getElementById('endTimeValue').value;
+                    if (currentEnd) {
+                        const [h, m] = currentEnd.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
+                        d.setMinutes(d.getMinutes() + totalDiffMin);
+                        const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+                        let color = totalDiffMin === 0 ? "#30D158" : "#fff";
+                        distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${sign}${totalDiffMin} min)</div>`;
+                    }
+                    btnEl.disabled = false; btnEl.style.opacity = 1;
+                } else {
+                    // Blocked!
+                    distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#FF453A; font-weight:bold;">⚠️ Onmogelijk: Tijd komt niet uit!</div>`;
+                    distributionText += `<div style="font-size:12px; color:#aaa;">Selecteer 'Eindtijd' of meer rustopties.</div>`;
+
+                    btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                }
+            } else {
+                // Perfect fit
+                distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#30D158;">✅ Past precies! Eindtijd blijft gelijk.</div>`;
+                btnEl.disabled = false; btnEl.style.opacity = 1;
             }
 
             // Check Min Bounds (Rough check)
             /* Real validation happens on Apply, but visually warning could be added */
 
             summaryEl.innerHTML = distributionText;
-            btnEl.disabled = false; btnEl.style.opacity = 1;
         }
 
         function applySmartCalc() {
