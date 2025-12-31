@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.24</title>
+    <title>Friday-night-hawk-s Timer v1.25</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.24</span>
+                FNH Timer <span class="version-tag">v1.25</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3731,7 +3731,7 @@
             }
         }
 
-        // --- SMART DISTRIBUTION LOGIC (v1.24) ---
+        // --- SMART DISTRIBUTION LOGIC (v1.25) ---
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
             document.getElementById('target-work-sec').value = workTimeSec;
@@ -3753,12 +3753,18 @@
             document.getElementById('chk-freeze-rest').checked = false;
             document.getElementById('chk-freeze-switch').checked = false;
             document.getElementById('chk-freeze-round').checked = false;
-            document.getElementById('chk-freeze-endtime').checked = false;
+            document.getElementById('chk-freeze-endtime').checked = true; // Default Fix Endtime ON
 
-            // Sync Display Values
-            document.getElementById('disp-rest-set').value = document.getElementById('restSec').value;
-            document.getElementById('disp-rest-switch').value = document.getElementById('exerciseRestSec').value;
-            document.getElementById('disp-rest-round').value = document.getElementById('roundRestSec').value;
+            // Initialize BASE values for manual adjustment tracking
+            // The logic: Display = Base + SmartAdjust
+            const setRest = parseInt(document.getElementById('restSec').value);
+            const switchRest = parseInt(document.getElementById('exerciseRestSec').value);
+            const roundRest = parseInt(document.getElementById('roundRestSec').value);
+
+            // Store base on the DISPLAY elements
+            const elSet = document.getElementById('disp-rest-set'); elSet.dataset.base = setRest; elSet.value = setRest;
+            const elSwitch = document.getElementById('disp-rest-switch'); elSwitch.dataset.base = switchRest; elSwitch.value = switchRest;
+            const elRound = document.getElementById('disp-rest-round'); elRound.dataset.base = roundRest; elRound.value = roundRest;
 
             previewSmartCalcV2();
         }
@@ -3774,16 +3780,18 @@
         }
 
         function adjustRestTime(inputId, delta) {
-            const el = document.getElementById(inputId);
-            let val = parseInt(el.value) || 0;
-            val += delta;
-            if (val < 5) val = 5; // Enforce min 5s
-            el.value = val;
+            // Mapping inputId to displayElement
+            let dispId = '';
+            if (inputId === 'restSec') dispId = 'disp-rest-set';
+            if (inputId === 'exerciseRestSec') dispId = 'disp-rest-switch';
+            if (inputId === 'roundRestSec') dispId = 'disp-rest-round';
 
-            // Update display in modal
-            if (inputId === 'restSec') document.getElementById('disp-rest-set').value = val;
-            if (inputId === 'exerciseRestSec') document.getElementById('disp-rest-switch').value = val;
-            if (inputId === 'roundRestSec') document.getElementById('disp-rest-round').value = val;
+            const dispEl = document.getElementById(dispId);
+            let base = parseInt(dispEl.dataset.base) || 0;
+            base += delta;
+            if (base < 5) base = 5;
+            dispEl.dataset.base = base;
+            // Note: We do NOT set dispEl.value here directly, previewSmartCalcV2 handles the final display value
 
             previewSmartCalcV2();
         }
