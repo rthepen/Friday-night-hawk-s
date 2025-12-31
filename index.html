@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.23</title>
+    <title>Friday-night-hawk-s Timer v1.24</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.23</span>
+                FNH Timer <span class="version-tag">v1.24</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1907,7 +1907,7 @@
     <!-- CALCULATOR MODAL (Smart Distribution) -->
     <div id="calc-modal" class="modal-overlay" style="display:none; align-items:center; justify-content:center;">
         <div
-            style="background:#1c1c1e; padding:20px; border-radius:20px; border:1px solid #333; width:90%; max-width:350px; text-align:center;">
+            style="background:#1c1c1e; padding:20px; border-radius:20px; border:1px solid #333; width:95%; max-width:400px; text-align:center;">
             <h3 style="margin-top:0; color:#fff;">Gewenste Werktijd?</h3>
 
             <!-- Manual Controls for Work Time -->
@@ -1915,57 +1915,149 @@
                 <button class="btn-control"
                     style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
                     onclick="adjustWorkTime(-1)">-</button>
-                <input type="text" id="target-work-sec" class="calc-input" style="width:100px; margin-bottom:0;"
-                    readonly>
+                <input type="text" id="target-work-sec" class="calc-input"
+                    style="width:80px; margin-bottom:0; text-align:center; font-size:18px;" readonly>
                 <button class="btn-control"
                     style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
                     onclick="adjustWorkTime(1)">+</button>
             </div>
 
             <div style="text-align:left; margin-bottom:15px;">
-                <span style="font-size:11px; color:#aaa; font-weight:bold; text-transform:uppercase;">COMPENSEER
-                    MET:</span>
+                <span style="font-size:11px; color:#aaa; font-weight:bold; text-transform:uppercase;">COMPENSEER MET
+                    (Klik + / -):</span>
             </div>
 
-            <!-- Toggles for Compensation Channels -->
-            <div class="switch-row">
-                <span class="switch-label" style="font-size:13px;">Rust (Set) <span id="preview-rest-set"
-                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
-                <label class="switch">
-                    <input type="checkbox" id="chk-calc-rest" onchange="previewSmartCalc()">
-                    <span class="slider"></span>
-                </label>
+            <!-- New Button Control Rows -->
+            <!-- Helper style for rows -->
+            <style>
+                .calc-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                    padding: 5px;
+                    background: #2c2c2e;
+                    border-radius: 10px;
+                }
+
+                .calc-label-col {
+                    flex: 1;
+                    text-align: left;
+                    font-size: 13px;
+                    padding-left: 10px;
+                }
+
+                .calc-ctrl-col {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+
+                .btn-mini {
+                    width: 30px;
+                    height: 30px;
+                    background: #444;
+                    color: #fff;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+
+                .val-display {
+                    width: 40px;
+                    text-align: center;
+                    font-size: 13px;
+                    color: #fff;
+                    background: transparent;
+                    border: none;
+                }
+
+                .chk-col {
+                    margin-left: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    font-size: 9px;
+                    color: #888;
+                }
+
+                .chk-col input {
+                    margin: 0 0 3px 0;
+                    transform: scale(1.2);
+                }
+            </style>
+
+            <!-- RUST (SET) -->
+            <div class="calc-row">
+                <div class="calc-label-col">
+                    Rust (Set) <br><span id="preview-rest-set" style="font-size:10px; color:#aaa;"></span>
+                </div>
+                <div class="calc-ctrl-col">
+                    <button class="btn-mini" onclick="adjustRestTime('restSec', -1)">-</button>
+                    <input type="text" id="disp-rest-set" class="val-display" readonly value="--">
+                    <button class="btn-mini" onclick="adjustRestTime('restSec', 1)">+</button>
+                </div>
+                <div class="chk-col">
+                    <input type="checkbox" id="chk-freeze-rest" onchange="previewSmartCalcV2()">
+                    <span>Bevries</span>
+                </div>
             </div>
 
-            <div class="switch-row">
-                <span class="switch-label" style="font-size:13px;">Rust (Wissel) <span id="preview-rest-switch"
-                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
-                <label class="switch">
-                    <input type="checkbox" id="chk-calc-switch" onchange="previewSmartCalc()">
-                    <span class="slider"></span>
-                </label>
+            <!-- RUST (WISSEL) -->
+            <div class="calc-row">
+                <div class="calc-label-col">
+                    Rust (Wissel) <br><span id="preview-rest-switch" style="font-size:10px; color:#aaa;"></span>
+                </div>
+                <div class="calc-ctrl-col">
+                    <button class="btn-mini" onclick="adjustRestTime('exerciseRestSec', -1)">-</button>
+                    <input type="text" id="disp-rest-switch" class="val-display" readonly value="--">
+                    <button class="btn-mini" onclick="adjustRestTime('exerciseRestSec', 1)">+</button>
+                </div>
+                <div class="chk-col">
+                    <input type="checkbox" id="chk-freeze-switch" onchange="previewSmartCalcV2()">
+                    <span>Bevries</span>
+                </div>
             </div>
 
-            <div class="switch-row">
-                <span class="switch-label" style="font-size:13px;">Rust (Ronde) <span id="preview-rest-round"
-                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
-                <label class="switch">
-                    <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
-                    <span class="slider"></span>
-                </label>
+            <!-- RUST (RONDE) -->
+            <div class="calc-row">
+                <div class="calc-label-col">
+                    Rust (Ronde) <br><span id="preview-rest-round" style="font-size:10px; color:#aaa;"></span>
+                </div>
+                <div class="calc-ctrl-col">
+                    <button class="btn-mini" onclick="adjustRestTime('roundRestSec', -1)">-</button>
+                    <input type="text" id="disp-rest-round" class="val-display" readonly value="--">
+                    <button class="btn-mini" onclick="adjustRestTime('roundRestSec', 1)">+</button>
+                </div>
+                <div class="chk-col">
+                    <input type="checkbox" id="chk-freeze-round" onchange="previewSmartCalcV2()">
+                    <span>Bevries</span>
+                </div>
             </div>
 
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-
-            <div class="switch-row">
-                <span class="switch-label" style="font-size:13px;">Fix Eindtijd (Bevries)</span>
-                <label class="switch">
-                    <input type="checkbox" id="chk-fix-endtime" onchange="previewSmartCalc()">
-                    <span class="slider"></span>
-                </label>
+            <!-- EINDTIJD -->
+            <div class="calc-row" style="margin-top:15px; border:1px solid #444;">
+                <div class="calc-label-col">
+                    Eindtijd
+                </div>
+                <div class="calc-ctrl-col">
+                    <!-- Optional: +/- could shift end time by minutes? For now just placehold or disable -->
+                    <span style="font-size:10px; color:#666;">(Auto)</span>
+                </div>
+                <div class="chk-col">
+                    <input type="checkbox" id="chk-freeze-endtime" onchange="previewSmartCalcV2()">
+                    <span>Bevries</span>
+                </div>
             </div>
+
             <!-- Hidden old checkbox to prevent errors if referenced elsewhere -->
             <input type="checkbox" id="chk-calc-endtime" style="display:none;">
+            <input type="checkbox" id="chk-calc-rest" style="display:none;">
+            <input type="checkbox" id="chk-calc-switch" style="display:none;">
+            <input type="checkbox" id="chk-calc-round" style="display:none;">
+            <input type="checkbox" id="chk-fix-endtime" style="display:none;">
+
 
             <div id="smart-calc-summary"
                 style="background:#222; padding:10px; border-radius:8px; margin-top:15px; font-size:12px; line-height:1.4; min-height:40px;">
@@ -3639,7 +3731,7 @@
             }
         }
 
-        // --- SMART DISTRIBUTION LOGIC (v1.21) ---
+        // --- SMART DISTRIBUTION LOGIC (v1.24) ---
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
             document.getElementById('target-work-sec').value = workTimeSec;
@@ -3652,16 +3744,22 @@
             });
 
             // Specific listeners for calculator checkboxes
-            document.getElementById('chk-calc-rest').onchange = previewSmartCalcV2;
-            document.getElementById('chk-calc-switch').onchange = previewSmartCalcV2;
-            document.getElementById('chk-calc-round').onchange = previewSmartCalcV2;
-            document.getElementById('chk-fix-endtime').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-rest').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-switch').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-round').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-endtime').onchange = previewSmartCalcV2;
 
-            // Defaults
-            document.getElementById('chk-calc-rest').checked = false;
-            document.getElementById('chk-calc-switch').checked = false;
-            document.getElementById('chk-calc-round').checked = false;
-            document.getElementById('chk-fix-endtime').checked = false;
+            // Defaults (Unchecked = Not Frozen = Default Behavior)
+            document.getElementById('chk-freeze-rest').checked = false;
+            document.getElementById('chk-freeze-switch').checked = false;
+            document.getElementById('chk-freeze-round').checked = false;
+            document.getElementById('chk-freeze-endtime').checked = false;
+
+            // Sync Display Values
+            document.getElementById('disp-rest-set').value = document.getElementById('restSec').value;
+            document.getElementById('disp-rest-switch').value = document.getElementById('exerciseRestSec').value;
+            document.getElementById('disp-rest-round').value = document.getElementById('roundRestSec').value;
+
             previewSmartCalcV2();
         }
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
@@ -3675,6 +3773,21 @@
             previewSmartCalcV2();
         }
 
+        function adjustRestTime(inputId, delta) {
+            const el = document.getElementById(inputId);
+            let val = parseInt(el.value) || 0;
+            val += delta;
+            if (val < 5) val = 5; // Enforce min 5s
+            el.value = val;
+
+            // Update display in modal
+            if (inputId === 'restSec') document.getElementById('disp-rest-set').value = val;
+            if (inputId === 'exerciseRestSec') document.getElementById('disp-rest-switch').value = val;
+            if (inputId === 'roundRestSec') document.getElementById('disp-rest-round').value = val;
+
+            previewSmartCalcV2();
+        }
+
         function previewSmartCalcV2() {
             const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
             const currentW = workTimeSec;
@@ -3682,16 +3795,32 @@
             const summaryEl = document.getElementById('smart-calc-summary');
             const btnEl = document.getElementById('btn-smart-apply');
 
+            // Logic Inversion: Freeze Checked = Use False
+            // But actually: We distribute to "Active" channels (Not Frozen)
+            const freezeRest = document.getElementById('chk-freeze-rest').checked;
+            const freezeSwitch = document.getElementById('chk-freeze-switch').checked;
+            const freezeRound = document.getElementById('chk-freeze-round').checked;
+            const freezeEnd = document.getElementById('chk-freeze-endtime').checked;
+
+            // Use = Not Frozen
+            const useRest = !freezeRest;
+            const useSwitch = !freezeSwitch;
+            const useRound = !freezeRound;
+            const useEnd = !freezeEnd;
+            const isFixedEnd = freezeEnd; // Alias for old logic compatibility concept
+
+            // Clear legacy/old previews if any remain (New UI uses separate spans but let's clear them)
+            if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
+            if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
+            if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
+
             if (diffPerSet === 0) {
                 summaryEl.innerHTML = "<span style='color:#888;'>Geen wijziging in werktijd.</span>";
                 btnEl.disabled = true; btnEl.style.opacity = 0.5;
-                if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
-                if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
-                if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
                 return;
             }
 
-            // Calculate Counts
+            // Calculate Total Work Impacts
             const rounds = parseInt(document.getElementById('rounds').value);
             const ex = parseInt(document.getElementById('exercises').value);
             const sts = parseInt(document.getElementById('sets').value);
@@ -3713,35 +3842,23 @@
             }
             const totalDiffSec = diffPerSet * countSets;
 
-            // Check "Fix End Time"
-            const isFixedEnd = document.getElementById('chk-fix-endtime').checked;
-
-            // Channels
-            const useRest = document.getElementById('chk-calc-rest').checked;
-            const useSwitch = document.getElementById('chk-calc-switch').checked;
-            const useRound = document.getElementById('chk-calc-round').checked;
-
-            // Clear previews
-            if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
-            if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
-            if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
-
             let distributionText = "";
 
             if (isFixedEnd) {
-                // FIXED END TIME: Distribute to Rests
+                // FIXED END TIME (Freeze End Time is Checked)
+                // We MUST distribute to other channels
                 const chRest = useRest ? countFutureRestSteps('rest') : 0;
                 const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
                 const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
                 const totalSlots = chRest + chSwitch + chRound;
 
                 if (totalSlots > 0) {
-                    const factor = -1;
+                    const factor = -1; // +Work means -Rest
                     const totalRestAdjustNeeded = totalDiffSec * factor;
                     const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
 
-                    const updatePreview = (chk, labelId, inputId) => {
-                        if (chk) {
+                    const updatePreview = (isActive, labelId, inputId) => {
+                        if (isActive) {
                             const current = parseInt(document.getElementById(inputId).value);
                             const newVal = Math.max(5, current + adjustPerSlot);
                             const diff = newVal - current;
@@ -3761,13 +3878,21 @@
                     distributionText += `<div>Compensatie via ${totalSlots} momenten (FIX AAN): <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b>.</div>`;
                     distributionText += `<div style="color:#30D158; margin-top:5px;">✅ Eindtijd blijft behouden.</div>`;
                     btnEl.disabled = false; btnEl.style.opacity = 1;
+
                 } else {
-                    distributionText += "<div style='color:#FF453A;'>Kies minstens 1 rustoptie om te compenseren!</div>";
+                    distributionText += "<div style='color:#FF453A;'>Eindtijd is bevroren, maar alle rustopties zijn ook bevroren!</div>";
                     btnEl.disabled = true; btnEl.style.opacity = 0.5;
                 }
 
             } else {
-                // VARIABLE END TIME: Shift End Time
+                // VARIABLE END TIME (Freeze End Time is UNCHECKED)
+                // Default behavior: End Time shifts.
+                // NOTE: We *could* still distribute to rests if user manually adjusted them, but for "Smart Calc" driven by Work Time,
+                // if End Time is NOT fixed, we usually just let End Time move.
+                // However, strictly speaking, if user did NOT check "Bevries" on rests, maybe they WANT them to move?
+                // CURRENT LOGIC (v1.24): If End Time is NOT frozen, we primarily shift End Time.
+                // Any 'not frozen' rests are theoretically available, but easier to just shift End Time if allowed.
+
                 const currentEnd = document.getElementById('endTimeValue').value;
                 if (currentEnd) {
                     const [h, m] = currentEnd.split(':');
@@ -3799,24 +3924,32 @@
             const currentW = workTimeSec;
             const diffPerSet = targetW - currentW;
 
-            // Collect Active Channels
-            const useRest = document.getElementById('chk-calc-rest').checked;
-            const useSwitch = document.getElementById('chk-calc-switch').checked;
-            const useRound = document.getElementById('chk-calc-round').checked;
-            const isFixedEnd = document.getElementById('chk-fix-endtime').checked;
+            // Collect Active Channels (Freeze = FALSE, Active = TRUE)
+            const freezeRest = document.getElementById('chk-freeze-rest').checked;
+            const freezeSwitch = document.getElementById('chk-freeze-switch').checked;
+            const freezeRound = document.getElementById('chk-freeze-round').checked;
+            const freezeEnd = document.getElementById('chk-freeze-endtime').checked;
+
+            const useRest = !freezeRest;
+            const useSwitch = !freezeSwitch;
+            const useRound = !freezeRound;
+            const isFixedEnd = freezeEnd;
 
             // Apply Work Time Change
             document.getElementById('workSec').value = targetW;
 
             if (diffPerSet !== 0 && isFixedEnd) {
-                // ONLY Apply Distribution if Fixed End Time is active
+                // ONLY Apply Distribution if Fixed End Time is active (And thus Frozen)
                 // If NOT fixed, we only changed Work Time, which naturally moves End Time.
 
-
                 // We need to calculate `adjustPerSlot` again.
+                const rounds = parseInt(document.getElementById('rounds').value);
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sts = parseInt(document.getElementById('sets').value);
                 const startRound = parseInt(document.getElementById('start-round').value);
                 const startEx = parseInt(document.getElementById('start-ex').value);
                 const startSet = parseInt(document.getElementById('start-set').value);
+
                 let futureSets = 0;
                 // Similar loop as preview
                 for (let r = 1; r <= rounds; r++) {
