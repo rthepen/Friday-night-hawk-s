@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.17</title>
+    <title>Friday-night-hawk-s Timer v1.18</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.17</span>
+                FNH Timer <span class="version-tag">v1.18</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1907,30 +1907,47 @@
     <div id="calc-modal" style="display:none;">
         <div class="modal-content">
             <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
-            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewCalc()">
+            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewSmartCalc()">
 
-            <button class="modal-btn" id="btn-calc-duration" style="background: #0A84FF; color: white;"
-                onclick="applyCalc('duration')">
-                ⏱️ Tijd aanpassen
-                <span class="btn-subtext" id="desc-calc-duration">...</span>
-            </button>
+            <div style="text-align:left; margin-top:20px; margin-bottom:10px; font-size:14px; color:#aaa;">COMPENSEER
+                MET:</div>
 
-            <button class="modal-btn" id="btn-calc-rest" style="background: #FF9F0A; color: black;"
-                onclick="applyCalc('rest')">
-                💤 Rust (Set) aanpassen
-                <span class="btn-subtext" id="desc-calc-rest">...</span>
-            </button>
+            <div id="calc-options-list">
+                <!-- Smart Distribution Checkboxes -->
+                <div class="switch-row" style="margin-bottom:10px;">
+                    <span class="switch-label">Rust (Set)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-calc-rest" onchange="previewSmartCalc()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
-            <button class="modal-btn" id="btn-calc-switch" style="background: #BF5AF2; color: white;"
-                onclick="applyCalc('exerciseRest')">
-                🔀 Rust (Wissel) aanpassen
-                <span class="btn-subtext" id="desc-calc-switch">...</span>
-            </button>
+                <div class="switch-row" style="margin-bottom:10px;">
+                    <span class="switch-label">Rust (Wissel)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-calc-switch" onchange="previewSmartCalc()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
-            <button class="modal-btn" id="btn-calc-round" style="background: #30D158; color: black;"
-                onclick="applyCalc('roundRest')">
-                ☕ Rust (Ronde) aanpassen
-                <span class="btn-subtext" id="desc-calc-round">...</span>
+                <div class="switch-row" style="margin-bottom:10px;">
+                    <span class="switch-label">Rust (Ronde)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dynamic Summary of Impact -->
+            <div id="smart-calc-summary"
+                style="background:#222; padding:10px; border-radius:8px; margin:15px 0; font-size:13px; color:#fff; line-height:1.4;">
+                Pas de werktijd aan om de impact te zien.
+            </div>
+
+            <button class="modal-btn" id="btn-smart-apply" style="background: #0A84FF; color: white;"
+                onclick="applySmartCalc()">
+                Toepassen
             </button>
 
             <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;"
@@ -3596,62 +3613,184 @@
             }
         }
 
-        // --- NEW REVERSE CALC LOGIC ---
+        // --- SMART DISTRIBUTION LOGIC (v1.18) ---
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
             document.getElementById('target-work-sec').value = workTimeSec;
-            previewCalc();
+            // Uncheck all by default (start fresh)
+            document.getElementById('chk-calc-rest').checked = false;
+            document.getElementById('chk-calc-switch').checked = false;
+            document.getElementById('chk-calc-round').checked = false;
+            previewSmartCalc();
         }
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
 
-        function previewCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0; const currentW = workTimeSec;
+        function previewSmartCalc() {
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+            const currentW = workTimeSec;
             const diffPerSet = targetW - currentW;
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+            const summaryEl = document.getElementById('smart-calc-summary');
+            const btnEl = document.getElementById('btn-smart-apply');
+
+            if (diffPerSet === 0) {
+                summaryEl.innerHTML = "<span style='color:#888;'>Geen wijziging in werktijd.</span>";
+                btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                return;
+            }
+
+            // Calculate Total Work Diff needed
+            const rounds = parseInt(document.getElementById('rounds').value);
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sts = parseInt(document.getElementById('sets').value);
+            const startRound = parseInt(document.getElementById('start-round').value);
+            const startEx = parseInt(document.getElementById('start-ex').value);
+            const startSet = parseInt(document.getElementById('start-set').value);
+
             let countSets = 0;
             for (let r = 1; r <= rounds; r++) {
                 for (let e = 1; e <= ex; e++) {
                     for (let s = 1; s <= sts; s++) {
-                        let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                        let isFuture = false;
+                        if (r > startRound) isFuture = true;
+                        else if (r === startRound && e > startEx) isFuture = true;
+                        else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
                         if (isFuture) countSets++;
                     }
                 }
             }
 
-            const totalDiffSec = diffPerSet * countSets;
-            const totalDiffMin = Math.round(totalDiffSec / 60);
-            let sign = totalDiffMin >= 0 ? "+" : "";
-            const currentEnd = document.getElementById('endTimeValue').value; const [h, m] = currentEnd.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
-            d.setMinutes(d.getMinutes() + totalDiffMin);
-            const endText = `Nieuw einde: ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })} (${sign}${totalDiffMin} min)`;
-            document.getElementById('desc-calc-duration').innerText = endText;
+            const totalDiffSec = diffPerSet * countSets; // e.g., +120s needed (longer work) or -120s (shorter work)
 
-            updateRestCalcButton('rest', 'btn-calc-rest', 'desc-calc-rest', totalDiffSec);
-            updateRestCalcButton('exerciseRest', 'btn-calc-switch', 'desc-calc-switch', totalDiffSec);
-            updateRestCalcButton('roundRest', 'btn-calc-round', 'desc-calc-round', totalDiffSec);
+            // Collect Active Channels
+            const useRest = document.getElementById('chk-calc-rest').checked;
+            const useSwitch = document.getElementById('chk-calc-switch').checked;
+            const useRound = document.getElementById('chk-calc-round').checked;
+
+            const chRest = useRest ? countFutureRestSteps('rest') : 0;
+            const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
+            const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
+            const totalSlots = chRest + chSwitch + chRound;
+
+            let distributionText = "";
+            let remainingDiff = totalDiffSec;
+
+            if (totalSlots > 0 && totalDiffSec !== 0) {
+                // Try to Distribute
+                // NOTE: If totalDiffSec is POSITIVE (Need MORE work time), we SUBTRACT from Rests.
+                // If totalDiffSec is NEGATIVE (Work time reduced), we ADD to Rests (or just shrink workout).
+                // Usually user increases work time -> Needs to reduce rest to keep EndTime same.
+
+                const factor = -1; // Invert: +Work -> -Rest
+                const totalRestAdjustNeeded = totalDiffSec * factor;
+                const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
+
+                distributionText += `<div>Compensatie via ${totalSlots} rustmomenten: <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b> per moment.</div>`;
+
+                // Calculate Net Result for EndTime
+                // Integer math might leave small remainder, but roughly:
+                const covered = adjustPerSlot * totalSlots; // e.g. -10 * 12 = -120
+                remainingDiff = totalDiffSec + covered; // +120 + (-120) = 0.
+            } else {
+                distributionText += "<div style='color:#FF9F0A;'>Geen compensatie geselecteerd.</div>";
+            }
+
+            // End Time Shift
+            const totalDiffMin = Math.round(remainingDiff / 60);
+            let sign = totalDiffMin >= 0 ? "+" : "";
+            const currentEnd = document.getElementById('endTimeValue').value;
+            if (currentEnd) {
+                const [h, m] = currentEnd.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
+                d.setMinutes(d.getMinutes() + totalDiffMin);
+                const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+                let color = totalDiffMin === 0 ? "#30D158" : "#fff";
+                distributionText += `<div style="margin-top:5px; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${sign}${totalDiffMin} min)</div>`;
+            }
+
+            // Check Min Bounds (Rough check)
+            /* Real validation happens on Apply, but visually warning could be added */
+
+            summaryEl.innerHTML = distributionText;
+            btnEl.disabled = false; btnEl.style.opacity = 1;
         }
 
-        function updateRestCalcButton(type, btnId, textId, totalWorkDiff) {
-            const btn = document.getElementById(btnId);
-            const steps = countFutureRestSteps(type);
-            if (steps > 0) {
-                let currentVal = 0;
-                if (type === 'rest') currentVal = parseInt(document.getElementById('restSec').value);
-                if (type === 'exerciseRest') currentVal = parseInt(document.getElementById('exerciseRestSec').value);
-                if (type === 'roundRest') currentVal = parseInt(document.getElementById('roundRestSec').value);
-                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
-                const newVal = currentVal - reductionPerStep;
-                if (newVal >= 5) {
-                    btn.disabled = false; btn.style.opacity = 1;
-                    document.getElementById(textId).innerText = `${currentVal}s -> ${newVal}s`;
-                } else {
-                    btn.disabled = true; btn.style.opacity = 0.5;
-                    document.getElementById(textId).innerText = `Niet mogelijk (${newVal}s < 5s)`;
+        function applySmartCalc() {
+            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+            const currentW = workTimeSec;
+            const diffPerSet = targetW - currentW;
+
+            // Collect Active Channels
+            const useRest = document.getElementById('chk-calc-rest').checked;
+            const useSwitch = document.getElementById('chk-calc-switch').checked;
+            const useRound = document.getElementById('chk-calc-round').checked;
+
+            if (diffPerSet !== 0) {
+                // Apply Work Time Change
+                document.getElementById('workSec').value = targetW;
+
+                // Apply Distributions
+                const rounds = parseInt(document.getElementById('rounds').value);
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sts = parseInt(document.getElementById('sets').value);
+                // Need total Sets (Future) count again for Math? No, just apply logic.
+                // Actually logic is simpler:
+                // 1. Calculate Total Needed.
+                // 2. Distribute.
+                // 3. For loop to apply to inputs? 
+                // Wait, inputs are global (restSec, etc). Changing them changes ALL future steps.
+                // So we just update the INPUT values.
+
+                // Recalculate Total Work Diff (Future)
+                // NOTE: Since we update global inputs, we affect future steps.
+                // Count future sets:
+                let countSets = 0; /* ... Re-run the loop or reuse? Optimization: Just update global inputs */
+                /* The logic in previewSmartCalc used "countSets" to estimate EndTime shift.
+                   To apply, we just need to update the global Rest Inputs based on the "AdjustPerSlot".
+                */
+
+                // We need to calculate `adjustPerSlot` again.
+                const startRound = parseInt(document.getElementById('start-round').value);
+                const startEx = parseInt(document.getElementById('start-ex').value);
+                const startSet = parseInt(document.getElementById('start-set').value);
+                let futureSets = 0;
+                // Similar loop as preview
+                for (let r = 1; r <= rounds; r++) {
+                    for (let e = 1; e <= ex; e++) {
+                        for (let s = 1; s <= sts; s++) {
+                            let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                            if (isFuture) futureSets++;
+                        }
+                    }
                 }
-            } else {
-                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
+
+                const totalDiffSec = diffPerSet * futureSets;
+                const chRest = useRest ? countFutureRestSteps('rest') : 0;
+                const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
+                const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
+                const totalSlots = chRest + chSwitch + chRound;
+
+                if (totalSlots > 0) {
+                    const factor = -1;
+                    const adjustPerSlot = Math.round((totalDiffSec * factor) / totalSlots);
+
+                    if (useRest) {
+                        const el = document.getElementById('restSec');
+                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                    }
+                    if (useSwitch) {
+                        const el = document.getElementById('exerciseRestSec');
+                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                    }
+                    if (useRound) {
+                        const el = document.getElementById('roundRestSec');
+                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                    }
+                }
             }
+
+            closeCalcModal();
+            generateScheduleData(true);
+            renderPreviewList();
         }
 
         function countFutureRestSteps(type) {
