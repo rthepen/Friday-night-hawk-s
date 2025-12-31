@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.25.02</title>
+    <title>Friday-night-hawk-s Timer v1.26</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.25.02</span>
+                FNH Timer <span class="version-tag">v1.26</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1908,23 +1908,19 @@
     <div id="calc-modal" class="modal-overlay" style="display:none; align-items:center; justify-content:center;">
         <div
             style="background:#1c1c1e; padding:20px; border-radius:20px; border:1px solid #333; width:95%; max-width:400px; text-align:center;">
-            <h3 style="margin-top:0; color:#fff;">Gewenste Werktijd?</h3>
+            <h3 style="margin-top:0; color:#fff;">Rusttijden Balanceren</h3>
 
-            <!-- Manual Controls for Work Time -->
-            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:20px;">
-                <button class="btn-control"
-                    style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
-                    onclick="adjustWorkTime(-1)">-</button>
-                <input type="text" id="target-work-sec" class="calc-input"
-                    style="width:80px; margin-bottom:0; text-align:center; font-size:18px;" readonly>
-                <button class="btn-control"
-                    style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
-                    onclick="adjustWorkTime(1)">+</button>
+            <div style="text-align:left; margin-bottom:15px; font-size:12px; color:#aaa;">
+                Pas hieronder je rusttijden aan. <br>
+                Als <b>Eindtijd Bevries</b> aan staat, worden andere tijden automatisch aangepast om de eindtijd gelijk
+                te houden.
             </div>
 
+            <!-- Removed Work Time Controls -->
+
             <div style="text-align:left; margin-bottom:15px;">
-                <span style="font-size:11px; color:#aaa; font-weight:bold; text-transform:uppercase;">COMPENSEER MET
-                    (Klik + / -):</span>
+                <span style="font-size:11px; color:#aaa; font-weight:bold; text-transform:uppercase;">RUSTTIJDEN (KLIK +
+                    / -):</span>
             </div>
 
             <!-- New Button Control Rows -->
@@ -3730,13 +3726,13 @@
             }
         }
 
-        // --- SMART DISTRIBUTION LOGIC (v1.25) ---
+        // --- SMART DISTRIBUTION LOGIC (v1.26 - Rest Balancer) ---
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
-            document.getElementById('target-work-sec').value = workTimeSec;
+            // Removed target-work-sec logic
 
-            // Set Inputs and Listeners
-            const inputs = ['target-work-sec', 'restSec', 'exerciseRestSec', 'roundRestSec', 'rounds', 'exercises', 'sets'];
+            // Set Inputs and Listeners (Removed target-work-sec)
+            const inputs = ['restSec', 'exerciseRestSec', 'roundRestSec', 'rounds', 'exercises', 'sets'];
             inputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.oninput = previewSmartCalcV2;
@@ -3785,15 +3781,6 @@
         }
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
 
-        function adjustWorkTime(delta) {
-            const el = document.getElementById('target-work-sec');
-            let val = parseInt(el.value) || 0;
-            val += delta;
-            if (val < 5) val = 5; // Enforce min 5s reasonable limit
-            el.value = val;
-            previewSmartCalcV2();
-        }
-
         // Explicitly expose to window to ensure button onclick works
         window.adjustRestTime = function (inputId, delta) {
             // Mapping inputId to displayElement
@@ -3806,171 +3793,23 @@
             if (!dispEl) return;
 
             let base = parseInt(dispEl.getAttribute('data-base')) || parseInt(dispEl.value) || 0;
+            const oldBase = base;
             base += delta;
             if (base < 5) base = 5;
 
-            // Update the base
-            dispEl.setAttribute('data-base', base);
-
-            // Trigger calculation
-            previewSmartCalcV2();
-        };
-
-        function previewSmartCalcV2() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-            const summaryEl = document.getElementById('smart-calc-summary');
-            const btnEl = document.getElementById('btn-smart-apply');
-
-            // Logic Inversion: Freeze Checked = Use False
-            // But actually: We distribute to "Active" channels (Not Frozen)
-            const freezeRest = document.getElementById('chk-freeze-rest').checked;
-            const freezeSwitch = document.getElementById('chk-freeze-switch').checked;
-            const freezeRound = document.getElementById('chk-freeze-round').checked;
-            const freezeEnd = document.getElementById('chk-freeze-endtime').checked;
-
-            // Use = Not Frozen
-            const useRest = !freezeRest;
-            const useSwitch = !freezeSwitch;
-            const useRound = !freezeRound;
-            const useEnd = !freezeEnd;
-            const isFixedEnd = freezeEnd; // Alias for old logic compatibility concept
-
-            // Clear legacy/old previews if any remain (New UI uses separate spans but let's clear them)
-            if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
-            if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
-            if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
-
-            if (diffPerSet === 0) {
-                summaryEl.innerHTML = "<span style='color:#888;'>Geen wijziging in werktijd.</span>";
-                btnEl.disabled = true; btnEl.style.opacity = 0.5;
-                return;
-            }
-
-            // Calculate Total Work Impacts
-            const rounds = parseInt(document.getElementById('rounds').value);
-            const ex = parseInt(document.getElementById('exercises').value);
-            const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value);
-            const startEx = parseInt(document.getElementById('start-ex').value);
-            const startSet = parseInt(document.getElementById('start-set').value);
-
-            let countSets = 0;
-            for (let r = 1; r <= rounds; r++) {
-                for (let e = 1; e <= ex; e++) {
-                    for (let s = 1; s <= sts; s++) {
-                        let isFuture = false;
-                        if (r > startRound) isFuture = true;
-                        else if (r === startRound && e > startEx) isFuture = true;
-                        else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                        if (isFuture) countSets++;
-                    }
-                }
-            }
-            const totalDiffSec = diffPerSet * countSets;
-
-            let distributionText = "";
+            // Check if we need to balance other rest times
+            const isFixedEnd = document.getElementById('chk-freeze-endtime').checked;
 
             if (isFixedEnd) {
-                // FIXED END TIME (Freeze End Time is Checked)
-                // We MUST distribute to other channels
-                const chRest = useRest ? countFutureRestSteps('rest') : 0;
-                const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
-                const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
-                const totalSlots = chRest + chSwitch + chRound;
+                // BALANCER LOGIC:
+                // We increased this Rest by (base - oldBase).
+                // We need to decrease others by same total amount of seconds spread over their occurrences? 
+                // Actually simpler: Total Work Time should stay constant?
+                // Wait, User wants Realtime Balancer.
+                // If I increase "Rest Set" by 1 sec, that adds X seconds to total workout.
+                // If "Fixed End" is ON, I must remove X seconds from other places.
 
-                if (totalSlots > 0) {
-                    const factor = -1; // +Work means -Rest
-                    const totalRestAdjustNeeded = totalDiffSec * factor;
-                    const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
-
-                    const updatePreview = (isActive, labelId, inputId) => {
-                        if (isActive) {
-                            const current = parseInt(document.getElementById(inputId).value);
-                            const newVal = Math.max(5, current + adjustPerSlot);
-                            const diff = newVal - current;
-                            const el = document.getElementById(labelId);
-                            el.innerText = `${current}s -> ${newVal}s`;
-                            if (newVal === 5 && current > 5) el.style.color = "#FF9F0A";
-                            else if (diff < 0) el.style.color = "#FF453A";
-                            else if (diff > 0) el.style.color = "#30D158";
-                            else el.style.color = "#888";
-                        }
-                    };
-
-                    updatePreview(useRest, 'preview-rest-set', 'restSec');
-                    updatePreview(useSwitch, 'preview-rest-switch', 'exerciseRestSec');
-                    updatePreview(useRound, 'preview-rest-round', 'roundRestSec');
-
-                    distributionText += `<div>Compensatie via ${totalSlots} momenten (FIX AAN): <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b>.</div>`;
-                    distributionText += `<div style="color:#30D158; margin-top:5px;">✅ Eindtijd blijft behouden.</div>`;
-                    btnEl.disabled = false; btnEl.style.opacity = 1;
-
-                } else {
-                    distributionText += "<div style='color:#FF453A;'>Eindtijd is bevroren, maar alle rustopties zijn ook bevroren!</div>";
-                    btnEl.disabled = true; btnEl.style.opacity = 0.5;
-                }
-
-            } else {
-                // VARIABLE END TIME (Freeze End Time is UNCHECKED)
-                // Default behavior: End Time shifts.
-                // NOTE: We *could* still distribute to rests if user manually adjusted them, but for "Smart Calc" driven by Work Time,
-                // if End Time is NOT fixed, we usually just let End Time move.
-                // However, strictly speaking, if user did NOT check "Bevries" on rests, maybe they WANT them to move?
-                // CURRENT LOGIC (v1.24): If End Time is NOT frozen, we primarily shift End Time.
-                // Any 'not frozen' rests are theoretically available, but easier to just shift End Time if allowed.
-
-                const currentEnd = document.getElementById('endTimeValue').value;
-                if (currentEnd) {
-                    const [h, m] = currentEnd.split(':');
-                    const d = new Date(); d.setHours(h, m, 0, 0);
-                    d.setSeconds(d.getSeconds() + totalDiffSec);
-
-                    const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                    const diffMin = Math.floor(totalDiffSec / 60);
-                    const diffSec = Math.abs(totalDiffSec % 60);
-                    const sign = totalDiffSec >= 0 ? "+" : "-";
-                    let timeDiffStr = `${sign}${Math.abs(diffMin)} min`;
-                    if (diffSec > 0) timeDiffStr += ` ${diffSec}s`;
-
-                    let color = totalDiffSec === 0 ? "#30D158" : "#fff";
-                    distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${timeDiffStr})</div>`;
-                    if (Math.abs(totalDiffSec % 30) !== 0) {
-                        distributionText += `<div style="font-size:11px; color:#aaa;">(Niet afgerond op 30s)</div>`;
-                    }
-                }
-                btnEl.disabled = false; btnEl.style.opacity = 1;
-            }
-
-            summaryEl.innerHTML = distributionText;
-        }
-
-        function applySmartCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-
-            // Collect Active Channels (Freeze = FALSE, Active = TRUE)
-            const freezeRest = document.getElementById('chk-freeze-rest').checked;
-            const freezeSwitch = document.getElementById('chk-freeze-switch').checked;
-            const freezeRound = document.getElementById('chk-freeze-round').checked;
-            const freezeEnd = document.getElementById('chk-freeze-endtime').checked;
-
-            const useRest = !freezeRest;
-            const useSwitch = !freezeSwitch;
-            const useRound = !freezeRound;
-            const isFixedEnd = freezeEnd;
-
-            // Apply Work Time Change
-            document.getElementById('workSec').value = targetW;
-
-            if (diffPerSet !== 0 && isFixedEnd) {
-                // ONLY Apply Distribution if Fixed End Time is active (And thus Frozen)
-                // If NOT fixed, we only changed Work Time, which naturally moves End Time.
-
-                // We need to calculate `adjustPerSlot` again.
+                // 1. Calculate impact of this change
                 const rounds = parseInt(document.getElementById('rounds').value);
                 const ex = parseInt(document.getElementById('exercises').value);
                 const sts = parseInt(document.getElementById('sets').value);
@@ -3978,43 +3817,195 @@
                 const startEx = parseInt(document.getElementById('start-ex').value);
                 const startSet = parseInt(document.getElementById('start-set').value);
 
-                let futureSets = 0;
-                // Similar loop as preview
-                for (let r = 1; r <= rounds; r++) {
-                    for (let e = 1; e <= ex; e++) {
-                        for (let s = 1; s <= sts; s++) {
-                            let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                            if (isFuture) futureSets++;
+                // Count occurrences of the changed type
+                const countType = (type) => {
+                    // simplified count function based on countFutureRestSteps logic but purely for count
+                    // ... actually I can just use countFutureRestSteps logic if I had it handy or iterate
+                    // For now, let's use a simpler heuristic:
+                    // The total duration change is (delta * occurrences).
+                    // We need to distribute -(delta * occurrences) to other active channels.
+                    return countFutureRestSteps(type === 'restSec' ? 'rest' : (type === 'exerciseRestSec' ? 'exerciseRest' : 'roundRest'));
+                };
+
+                const actualDelta = base - oldBase;
+                if (actualDelta !== 0) {
+                    const myOccurrences = countType(inputId);
+                    const totalAddedTime = actualDelta * myOccurrences;
+
+                    // Distribute removal of totalAddedTime
+                    // Find other active channels
+                    const freezeRest = document.getElementById('chk-freeze-rest').checked;
+                    const freezeSwitch = document.getElementById('chk-freeze-switch').checked;
+                    const freezeRound = document.getElementById('chk-freeze-round').checked;
+
+                    const activeChannels = [];
+                    if (inputId !== 'restSec' && !freezeRest && countType('restSec') > 0) activeChannels.push('disp-rest-set');
+                    if (inputId !== 'exerciseRestSec' && !freezeSwitch && countType('exerciseRestSec') > 0) activeChannels.push('disp-rest-switch');
+                    if (inputId !== 'roundRestSec' && !freezeRound && countType('roundRestSec') > 0) activeChannels.push('disp-rest-round');
+
+                    if (activeChannels.length > 0) {
+                        // Simplify: Distribute evenly to buttons? Or evenly to total time?
+                        // "Balancer" usually implies: I add 5s here, where do I take it from?
+                        // Let's try to remove roughly equal amount of seconds from others relative to their count?
+                        // Too complex for instant JS.
+                        // Alternative: Just subtract `actualDelta` from others if counts are similar?
+                        // Let's do: Divide `totalAddedTime` by `sum(occurrences of active)`.
+
+                        let totalActiveOccurrences = 0;
+                        activeChannels.forEach(id => {
+                            let type = '';
+                            if (id === 'disp-rest-set') type = 'restSec';
+                            if (id === 'disp-rest-switch') type = 'exerciseRestSec';
+                            if (id === 'disp-rest-round') type = 'roundRestSec';
+                            totalActiveOccurrences += countType(type);
+                        });
+
+                        if (totalActiveOccurrences > 0) {
+                            const secsToRemovePerOccurrence = totalAddedTime / totalActiveOccurrences;
+                            // Apply to bases
+                            activeChannels.forEach(id => {
+                                const el = document.getElementById(id);
+                                let b = parseFloat(el.getAttribute('data-base')) || 0;
+                                b -= secsToRemovePerOccurrence; // Float math for smoother feel? Or round?
+                                // Let's keep it integer for UI simplicity, accumulation of error mimics "drift" which is fine for "playing around"
+                                // Or round to nearest integer?
+                                let effectiveChange = Math.round(secsToRemovePerOccurrence);
+                                if (effectiveChange === 0 && secsToRemovePerOccurrence !== 0) effectiveChange = (secsToRemovePerOccurrence > 0 ? 1 : -1);
+
+                                // Actually, simpler approach:
+                                // If I add 1s to Rest Set (occurs 20 times) -> +20s total.
+                                // I have Rest Switch (occurs 20 times).
+                                // I should remove 1s from Rest Switch.
+
+                                b = Math.max(5, Math.round(b - secsToRemovePerOccurrence));
+                                el.setAttribute('data-base', b);
+                            });
                         }
                     }
                 }
+            }
+            // Update self base
+            dispEl.setAttribute('data-base', base);
 
-                const totalDiffSec = diffPerSet * futureSets;
-                const chRest = useRest ? countFutureRestSteps('rest') : 0;
-                const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
-                const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
-                const totalSlots = chRest + chSwitch + chRound;
+            // Trigger calculation
+            previewSmartCalcV2();
+        };
 
-                if (totalSlots > 0) {
-                    const factor = -1;
-                    const adjustPerSlot = Math.round((totalDiffSec * factor) / totalSlots);
+        function previewSmartCalcV2() {
+            // New logic: No "Target Work Time". Just "Current Base Values".
+            // Calculate resulting End Time based on the currently set BASE values (which are updated by buttons).
 
-                    if (useRest) {
-                        const el = document.getElementById('restSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
-                    if (useSwitch) {
-                        const el = document.getElementById('exerciseRestSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
-                    if (useRound) {
-                        const el = document.getElementById('roundRestSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
+            const getBase = (id) => parseInt(document.getElementById(id).getAttribute('data-base')) || 0;
+            const currentSetRest = getBase('disp-rest-set');
+            const currentSwitchRest = getBase('disp-rest-switch');
+            const currentRoundRest = getBase('disp-rest-round');
+
+            // Validate minimums
+            const setRest = Math.max(5, currentSetRest);
+            const switchRest = Math.max(5, currentSwitchRest);
+            const roundRest = Math.max(5, currentRoundRest);
+
+            // Update the display boxes with the "Base" (which is now the ACTUAL proposed value)
+            document.getElementById('disp-rest-set').value = setRest;
+            document.getElementById('disp-rest-switch').value = switchRest;
+            document.getElementById('disp-rest-round').value = roundRest;
+
+            // Calculate resulting Total Rest Time change vs Original?
+            // Or just calculate new End Time?
+            // Let's compare against the *currently active on main screen* values to show diffs?
+
+            const originalSetRest = parseInt(document.getElementById('restSec').value);
+            const originalSwitchRest = parseInt(document.getElementById('exerciseRestSec').value);
+            const originalRoundRest = parseInt(document.getElementById('roundRestSec').value);
+
+            // Show diffs under labels
+            const showDiff = (current, original, id) => {
+                const el = document.getElementById(id);
+                if (current !== original) {
+                    const diff = current - original;
+                    el.innerText = `${original}s -> ${current}s`;
+                    if (diff < 0) el.style.color = "#FF453A";
+                    else el.style.color = "#30D158";
+                } else {
+                    el.innerText = "";
+                }
+            };
+            showDiff(setRest, originalSetRest, 'preview-rest-set');
+            showDiff(switchRest, originalSwitchRest, 'preview-rest-switch');
+            showDiff(roundRest, originalRoundRest, 'preview-rest-round');
+
+            // Calculate New End Time
+            // We need to know TOTAL Work+Rest duration based on these new settings.
+            const rounds = parseInt(document.getElementById('rounds').value);
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sets = parseInt(document.getElementById('sets').value);
+            const w = parseInt(document.getElementById('workSec').value); // Work time is constant now
+
+            // We need a helper to calc total duration from scratch given params
+            // Simplified: Total Steps * Times
+            // Actually, we can just calc the DIFFERENCE in total rest time and add to current End Time.
+
+            const diffSet = setRest - originalSetRest;
+            const diffSwitch = switchRest - originalSwitchRest;
+            const diffRound = roundRest - originalRoundRest;
+
+            // Count occurrences (Future only? Or Total? For End Time display usually Future is what matters for "New End Time")
+            // But if we want to show "Schedule Length changed by X", we might care about total.
+            // Usually "Eindtijd" implies when the currently running workout will end.
+            // If workout hasn't started, Future = Total.
+
+            const countFuture = (type) => countFutureRestSteps(type);
+
+            const totalDiffSec = (diffSet * countFuture('rest')) + (diffSwitch * countFuture('exerciseRest')) + (diffRound * countFuture('roundRest'));
+
+            const summaryEl = document.getElementById('smart-calc-summary');
+            const btnEl = document.getElementById('btn-smart-apply');
+
+            let distributionText = "";
+            const currentEnd = document.getElementById('endTimeValue').value;
+
+            if (currentEnd) {
+                const [h, m] = currentEnd.split(':');
+                const d = new Date(); d.setHours(h, m, 0, 0);
+                d.setSeconds(d.getSeconds() + totalDiffSec);
+
+                const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                const diffMin = Math.floor(Math.abs(totalDiffSec) / 60);
+                const diffSec = Math.abs(totalDiffSec % 60);
+                const sign = totalDiffSec >= 0 ? "+" : "-";
+                let timeDiffStr = `${sign}${diffMin} min`;
+                if (diffSec > 0) timeDiffStr += ` ${diffSec}s`;
+
+                let color = totalDiffSec === 0 ? "#30D158" : "#fff";
+
+                distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${timeDiffStr})</div>`;
+            }
+
+            // Logic regarding "Fix End Time" checkbox visualization
+            const isFixedEnd = document.getElementById('chk-freeze-endtime').checked;
+            if (isFixedEnd) {
+                if (Math.abs(totalDiffSec) < 5) { // Tolerance
+                    distributionText += `<div style="color:#30D158; font-size:11px;">✅ Eindtijd blijft behouden (Balancer actief).</div>`;
+                } else {
+                    distributionText += `<div style="color:#FF9F0A; font-size:11px;">⚠️ Eindtijd wijhigt licht (${Math.abs(totalDiffSec)}s).</div>`;
                 }
             }
 
+            summaryEl.innerHTML = distributionText;
+            btnEl.disabled = false; btnEl.style.opacity = 1;
+        }
+
+
+        function applySmartCalc() {
+            // Apply the values from the modal to the main application
+            document.getElementById('restSec').value = document.getElementById('disp-rest-set').value;
+            document.getElementById('exerciseRestSec').value = document.getElementById('disp-rest-switch').value;
+            document.getElementById('roundRestSec').value = document.getElementById('disp-rest-round').value;
+
             closeCalcModal();
+            calculateRealTime();
+            saveToLocal();
             generateScheduleData(true);
             renderPreviewList();
         }
