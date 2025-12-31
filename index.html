@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.18</title>
+    <title>Friday-night-hawk-s Timer v1.19</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.18</span>
+                FNH Timer <span class="version-tag">v1.19</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1915,7 +1915,8 @@
             <div id="calc-options-list">
                 <!-- Smart Distribution Checkboxes -->
                 <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Set)</span>
+                    <span class="switch-label">Rust (Set) <span id="preview-rest-set"
+                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
                     <label class="switch">
                         <input type="checkbox" id="chk-calc-rest" onchange="previewSmartCalc()">
                         <span class="slider"></span>
@@ -1923,7 +1924,8 @@
                 </div>
 
                 <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Wissel)</span>
+                    <span class="switch-label">Rust (Wissel) <span id="preview-rest-switch"
+                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
                     <label class="switch">
                         <input type="checkbox" id="chk-calc-switch" onchange="previewSmartCalc()">
                         <span class="slider"></span>
@@ -1931,7 +1933,8 @@
                 </div>
 
                 <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Ronde)</span>
+                    <span class="switch-label">Rust (Ronde) <span id="preview-rest-round"
+                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
                     <label class="switch">
                         <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
                         <span class="slider"></span>
@@ -3674,6 +3677,11 @@
             let distributionText = "";
             let remainingDiff = totalDiffSec;
 
+            // Reset Previews
+            if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
+            if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
+            if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
+
             if (totalSlots > 0 && totalDiffSec !== 0) {
                 // Try to Distribute
                 // NOTE: If totalDiffSec is POSITIVE (Need MORE work time), we SUBTRACT from Rests.
@@ -3683,6 +3691,27 @@
                 const factor = -1; // Invert: +Work -> -Rest
                 const totalRestAdjustNeeded = totalDiffSec * factor;
                 const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
+
+                // Update UI Previews
+                const updatePreview = (chk, labelId, inputId) => {
+                    if (chk) {
+                        const current = parseInt(document.getElementById(inputId).value);
+                        const newVal = Math.max(5, current + adjustPerSlot);
+                        const diff = newVal - current;
+
+                        const el = document.getElementById(labelId);
+                        el.innerText = `${current}s -> ${newVal}s`;
+
+                        if (newVal === 5 && current > 5) el.style.color = "#FF9F0A"; // Warning Limit
+                        else if (diff < 0) el.style.color = "#FF453A"; // Reduction
+                        else if (diff > 0) el.style.color = "#30D158"; // Increase
+                        else el.style.color = "#888";
+                    }
+                };
+
+                updatePreview(useRest, 'preview-rest-set', 'restSec');
+                updatePreview(useSwitch, 'preview-rest-switch', 'exerciseRestSec');
+                updatePreview(useRound, 'preview-rest-round', 'roundRestSec');
 
                 distributionText += `<div>Compensatie via ${totalSlots} rustmomenten: <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b> per moment.</div>`;
 
