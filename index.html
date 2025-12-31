@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.16</title>
+    <title>Friday-night-hawk-s Timer v1.17</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1206,6 +1206,33 @@
         }
 
         /* --- PHASE COLORS (Backgrounds) --- */
+        /* --- PRE-WORKOUT EPIC EFFECTS --- */
+        @keyframes epic-pulse {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 20px rgba(48, 209, 88, 0.2);
+            }
+
+            50% {
+                transform: scale(1.02);
+                text-shadow: 0 0 40px rgba(48, 209, 88, 0.6), 0 0 10px rgba(48, 209, 88, 0.8);
+            }
+
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 20px rgba(48, 209, 88, 0.2);
+            }
+        }
+
+        .epic-timer {
+            animation: epic-pulse 2s infinite ease-in-out;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .epic-overlay {
+            background: radial-gradient(circle at center, #222 0%, #000 100%) !important;
+        }
+
         body.mode-work {
             background-color: #30D158;
             color: black;
@@ -1571,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.16</span>
+                FNH Timer <span class="version-tag">v1.17</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3937,7 +3964,10 @@
                     // Show Countdown Overlay
                     const overlay = document.getElementById('pre-workout-overlay');
                     const timerEl = document.getElementById('pre-workout-timer');
+                    const startInfoEl = document.getElementById('pre-workout-start-time'); // NEW
+
                     overlay.style.display = 'flex';
+                    if (startInfoEl) startInfoEl.innerText = `STARTTIJD: ${startStr}`;
 
                     // Initial wake lock attempt (user interaction context)
                     if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
@@ -4597,15 +4627,25 @@
             }
         }
     </script>
-    <div id="pre-workout-overlay" class="modal-overlay"
+    <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
         style="display:none; flex-direction:column; justify-content:center; align-items:center; background:black; color:white;">
-        <div style="font-size:24px; color:#888; text-transform:uppercase; letter-spacing:2px; margin-bottom:20px;">
-            Training begint over</div>
-        <div id="pre-workout-timer" style="font-size:120px; font-weight:800; font-variant-numeric:tabular-nums;">00:00
+        <div style="font-size:18px; color:#888; text-transform:uppercase; letter-spacing:4px; margin-bottom:10px;">
+            TRAINING BEGINT OVER</div>
+
+        <!-- NEW START TIME INFO -->
+        <div id="pre-workout-start-time"
+            style="font-size:24px; color:#30D158; font-weight:bold; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 10px rgba(48,209,88,0.4);">
+            STARTTIJD: --:--
         </div>
-        <button onclick="performStart()"
-            style="margin-top:40px; padding:15px 30px; background:#333; border:1px solid #555; color:white; border-radius:12px; font-size:16px;">Nu
-            beginnen (Overslaan)</button>
+
+        <div id="pre-workout-timer" class="epic-timer" style="font-size:120px; font-weight:900; line-height:1;">
+            00:00
+        </div>
+
+        <button onclick="performStart()" class="action-btn"
+            style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
+            🚀 NU BEGINNEN (OVERSLAAN)
+        </button>
     </div>
 </body>
 
