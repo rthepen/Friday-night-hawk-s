@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.25.01</title>
+    <title>Friday-night-hawk-s Timer v1.25.02</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.25.01</span>
+                FNH Timer <span class="version-tag">v1.25.02</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1994,12 +1994,12 @@
                     Rust (Set) <br><span id="preview-rest-set" style="font-size:10px; color:#aaa;"></span>
                 </div>
                 <div class="calc-ctrl-col">
-                    <button class="btn-mini" onclick="adjustRestTime('restSec', -1)">-</button>
+                    <button id="btn-dec-rest-set" class="btn-mini">-</button>
                     <input type="text" id="disp-rest-set" class="val-display" readonly value="--">
-                    <button class="btn-mini" onclick="adjustRestTime('restSec', 1)">+</button>
+                    <button id="btn-inc-rest-set" class="btn-mini">+</button>
                 </div>
                 <div class="chk-col">
-                    <input type="checkbox" id="chk-freeze-rest" onchange="previewSmartCalcV2()">
+                    <input type="checkbox" id="chk-freeze-rest">
                     <span>Bevries</span>
                 </div>
             </div>
@@ -2010,12 +2010,12 @@
                     Rust (Wissel) <br><span id="preview-rest-switch" style="font-size:10px; color:#aaa;"></span>
                 </div>
                 <div class="calc-ctrl-col">
-                    <button class="btn-mini" onclick="adjustRestTime('exerciseRestSec', -1)">-</button>
+                    <button id="btn-dec-rest-switch" class="btn-mini">-</button>
                     <input type="text" id="disp-rest-switch" class="val-display" readonly value="--">
-                    <button class="btn-mini" onclick="adjustRestTime('exerciseRestSec', 1)">+</button>
+                    <button id="btn-inc-rest-switch" class="btn-mini">+</button>
                 </div>
                 <div class="chk-col">
-                    <input type="checkbox" id="chk-freeze-switch" onchange="previewSmartCalcV2()">
+                    <input type="checkbox" id="chk-freeze-switch">
                     <span>Bevries</span>
                 </div>
             </div>
@@ -2026,12 +2026,12 @@
                     Rust (Ronde) <br><span id="preview-rest-round" style="font-size:10px; color:#aaa;"></span>
                 </div>
                 <div class="calc-ctrl-col">
-                    <button class="btn-mini" onclick="adjustRestTime('roundRestSec', -1)">-</button>
+                    <button id="btn-dec-rest-round" class="btn-mini">-</button>
                     <input type="text" id="disp-rest-round" class="val-display" readonly value="--">
-                    <button class="btn-mini" onclick="adjustRestTime('roundRestSec', 1)">+</button>
+                    <button id="btn-inc-rest-round" class="btn-mini">+</button>
                 </div>
                 <div class="chk-col">
-                    <input type="checkbox" id="chk-freeze-round" onchange="previewSmartCalcV2()">
+                    <input type="checkbox" id="chk-freeze-round">
                     <span>Bevries</span>
                 </div>
             </div>
@@ -2042,11 +2042,10 @@
                     Eindtijd
                 </div>
                 <div class="calc-ctrl-col">
-                    <!-- Optional: +/- could shift end time by minutes? For now just placehold or disable -->
                     <span style="font-size:10px; color:#666;">(Auto)</span>
                 </div>
                 <div class="chk-col">
-                    <input type="checkbox" id="chk-freeze-endtime" onchange="previewSmartCalcV2()">
+                    <input type="checkbox" id="chk-freeze-endtime">
                     <span>Bevries</span>
                 </div>
             </div>
@@ -3765,6 +3764,22 @@
             const elSet = document.getElementById('disp-rest-set'); elSet.dataset.base = setRest; elSet.value = setRest;
             const elSwitch = document.getElementById('disp-rest-switch'); elSwitch.dataset.base = switchRest; elSwitch.value = switchRest;
             const elRound = document.getElementById('disp-rest-round'); elRound.dataset.base = roundRest; elRound.value = roundRest;
+
+            // Attach Click Listeners (Avoid inline onclick issues)
+            document.getElementById('btn-dec-rest-set').onclick = () => adjustRestTime('restSec', -1);
+            document.getElementById('btn-inc-rest-set').onclick = () => adjustRestTime('restSec', 1);
+
+            document.getElementById('btn-dec-rest-switch').onclick = () => adjustRestTime('exerciseRestSec', -1);
+            document.getElementById('btn-inc-rest-switch').onclick = () => adjustRestTime('exerciseRestSec', 1);
+
+            document.getElementById('btn-dec-rest-round').onclick = () => adjustRestTime('roundRestSec', -1);
+            document.getElementById('btn-inc-rest-round').onclick = () => adjustRestTime('roundRestSec', 1);
+
+            // Re-attach checkbox listeners (removed from HTML)
+            document.getElementById('chk-freeze-rest').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-switch').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-round').onchange = previewSmartCalcV2;
+            document.getElementById('chk-freeze-endtime').onchange = previewSmartCalcV2;
 
             previewSmartCalcV2();
         }
