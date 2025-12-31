@@ -1,0 +1,9 @@
+@echo off
+echo Adding files...
+git add .
+echo Committing changes...
+git commit -m "Update version and calc logic"
+echo Pushing to GitHub...
+git push
+echo Done!
+pause

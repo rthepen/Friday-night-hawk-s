@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.20</title>
+    <title>Friday-night-hawk-s Timer v1.21</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.20</span>
+                FNH Timer <span class="version-tag">v1.21</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1904,65 +1904,80 @@
         </div>
     </div>
 
-    <div id="calc-modal" style="display:none;">
-        <div class="modal-content">
-            <h3 style="margin-top:0;">Gewenste Werktijd?</h3>
-            <input type="number" id="target-work-sec" class="calc-input" placeholder="sec" oninput="previewSmartCalc()">
+    <!-- CALCULATOR MODAL (Smart Distribution) -->
+    <div id="calc-modal" class="modal-overlay" style="display:none; align-items:center; justify-content:center;">
+        <div
+            style="background:#1c1c1e; padding:20px; border-radius:20px; border:1px solid #333; width:90%; max-width:350px; text-align:center;">
+            <h3 style="margin-top:0; color:#fff;">Gewenste Werktijd?</h3>
 
-            <div style="text-align:left; margin-top:20px; margin-bottom:10px; font-size:14px; color:#aaa;">COMPENSEER
-                MET:</div>
-
-            <div id="calc-options-list">
-                <!-- Smart Distribution Checkboxes -->
-                <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Set) <span id="preview-rest-set"
-                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
-                    <label class="switch">
-                        <input type="checkbox" id="chk-calc-rest" onchange="previewSmartCalc()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Wissel) <span id="preview-rest-switch"
-                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
-                    <label class="switch">
-                        <input type="checkbox" id="chk-calc-switch" onchange="previewSmartCalc()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-row" style="margin-bottom:10px;">
-                    <span class="switch-label">Rust (Ronde) <span id="preview-rest-round"
-                            style="font-size:12px; margin-left:8px; font-weight:bold;"></span></span>
-                    <label class="switch">
-                        <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-row" style="margin-bottom:10px; border-top:1px solid #333; padding-top:10px;">
-                    <span class="switch-label">Eindtijd (Verschuiven)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="chk-calc-endtime" onchange="previewSmartCalc()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+            <!-- Manual Controls for Work Time -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:20px;">
+                <button class="btn-control"
+                    style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
+                    onclick="adjustWorkTime(-1)">-</button>
+                <input type="text" id="target-work-sec" class="calc-input" style="width:100px; margin-bottom:0;"
+                    readonly>
+                <button class="btn-control"
+                    style="height:50px; width:50px; font-size:24px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;"
+                    onclick="adjustWorkTime(1)">+</button>
             </div>
 
-            <!-- Dynamic Summary of Impact -->
+            <div style="text-align:left; margin-bottom:15px;">
+                <span style="font-size:11px; color:#aaa; font-weight:bold; text-transform:uppercase;">COMPENSEER
+                    MET:</span>
+            </div>
+
+            <!-- Toggles for Compensation Channels -->
+            <div class="switch-row">
+                <span class="switch-label" style="font-size:13px;">Rust (Set) <span id="preview-rest-set"
+                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
+                <label class="switch">
+                    <input type="checkbox" id="chk-calc-rest" onchange="previewSmartCalc()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-row">
+                <span class="switch-label" style="font-size:13px;">Rust (Wissel) <span id="preview-rest-switch"
+                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
+                <label class="switch">
+                    <input type="checkbox" id="chk-calc-switch" onchange="previewSmartCalc()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="switch-row">
+                <span class="switch-label" style="font-size:13px;">Rust (Ronde) <span id="preview-rest-round"
+                        style="font-size:11px; font-weight:bold; margin-left:5px;"></span></span>
+                <label class="switch">
+                    <input type="checkbox" id="chk-calc-round" onchange="previewSmartCalc()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+
+            <div class="switch-row">
+                <span class="switch-label" style="font-size:13px;">Fix Eindtijd (Bevries)</span>
+                <label class="switch">
+                    <input type="checkbox" id="chk-fix-endtime" onchange="previewSmartCalc()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <!-- Hidden old checkbox to prevent errors if referenced elsewhere -->
+            <input type="checkbox" id="chk-calc-endtime" style="display:none;">
+
             <div id="smart-calc-summary"
-                style="background:#222; padding:10px; border-radius:8px; margin:15px 0; font-size:13px; color:#fff; line-height:1.4;">
-                Pas de werktijd aan om de impact te zien.
+                style="background:#222; padding:10px; border-radius:8px; margin-top:15px; font-size:12px; line-height:1.4; min-height:40px;">
+                --
             </div>
 
-            <button class="modal-btn" id="btn-smart-apply" style="background: #0A84FF; color: white;"
-                onclick="applySmartCalc()">
-                Toepassen
-            </button>
-
-            <div style="margin-top:15px; font-size:12px; color:#888; text-decoration:underline; cursor:pointer;"
-                onclick="closeCalcModal()">Annuleren</div>
+            <button id="btn-smart-apply" class="action-btn btn-view-schedule" style="margin-top:15px;"
+                onclick="applySmartCalc()">Toepassen</button>
+            <div style="text-align:center;">
+                <a href="#" onclick="closeCalcModal()"
+                    style="color:#888; text-decoration:underline; font-size:12px;">Annuleren</a>
+            </div>
         </div>
     </div>
 
@@ -3624,18 +3639,41 @@
             }
         }
 
-        // --- SMART DISTRIBUTION LOGIC (v1.18) ---
+        // --- SMART DISTRIBUTION LOGIC (v1.21) ---
         function openCalcModal() {
             document.getElementById('calc-modal').style.display = 'flex';
             document.getElementById('target-work-sec').value = workTimeSec;
-            // Uncheck all by default (start fresh)
+
+            // Set Inputs and Listeners
+            const inputs = ['target-work-sec', 'restSec', 'exerciseRestSec', 'roundRestSec', 'rounds', 'exercises', 'sets'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.oninput = previewSmartCalcV2;
+            });
+
+            // Specific listeners for calculator checkboxes
+            document.getElementById('chk-calc-rest').onchange = previewSmartCalcV2;
+            document.getElementById('chk-calc-switch').onchange = previewSmartCalcV2;
+            document.getElementById('chk-calc-round').onchange = previewSmartCalcV2;
+            document.getElementById('chk-fix-endtime').onchange = previewSmartCalcV2;
+
+            // Defaults
             document.getElementById('chk-calc-rest').checked = false;
             document.getElementById('chk-calc-switch').checked = false;
             document.getElementById('chk-calc-round').checked = false;
-            document.getElementById('chk-calc-endtime').checked = true; // Default: Allow dynamic end time
-            previewSmartCalc();
+            document.getElementById('chk-fix-endtime').checked = false;
+            previewSmartCalcV2();
         }
         function closeCalcModal() { document.getElementById('calc-modal').style.display = 'none'; }
+
+        function adjustWorkTime(delta) {
+            const el = document.getElementById('target-work-sec');
+            let val = parseInt(el.value) || 0;
+            val += delta;
+            if (val < 5) val = 5; // Enforce min 5s reasonable limit
+            el.value = val;
+            previewSmartCalcV2();
+        }
 
         function previewSmartCalc() {
             const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
@@ -3673,1152 +3711,1277 @@
 
             const totalDiffSec = diffPerSet * countSets; // e.g., +120s needed (longer work) or -120s (shorter work)
 
-            // Collect Active Channels
+            // Logic Split: Check "Fix End Time"
+            const isFixedEnd = document.getElementById('chk-fix-endtime').checked;
+
+            // Check active Rest Channels
             const useRest = document.getElementById('chk-calc-rest').checked;
             const useSwitch = document.getElementById('chk-calc-switch').checked;
             const useRound = document.getElementById('chk-calc-round').checked;
-
-            const chRest = useRest ? countFutureRestSteps('rest') : 0;
-            const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
-            const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
-            const totalSlots = chRest + chSwitch + chRound;
-
-            let distributionText = "";
-            let remainingDiff = totalDiffSec;
 
             // Reset Previews
             if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
             if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
             if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
 
-            if (totalSlots > 0 && totalDiffSec !== 0) {
-                // Try to Distribute
-                // NOTE: If totalDiffSec is POSITIVE (Need MORE work time), we SUBTRACT from Rests.
-                // If totalDiffSec is NEGATIVE (Work time reduced), we ADD to Rests (or just shrink workout).
-                // Usually user increases work time -> Needs to reduce rest to keep EndTime same.
+            let distributionText = "";
 
-                const factor = -1; // Invert: +Work -> -Rest
-                const totalRestAdjustNeeded = totalDiffSec * factor;
-                const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
+            if (isFixedEnd) {
+                // FIXED END TIME LOGIC:
+                // We must compensate EXACTLY the totalDiffSec by reducing/increasing Rest Times.
 
-                // Update UI Previews
-                const updatePreview = (chk, labelId, inputId) => {
-                    if (chk) {
-                        const current = parseInt(document.getElementById(inputId).value);
-                        const newVal = Math.max(5, current + adjustPerSlot);
-                        const diff = newVal - current;
-
-                        const el = document.getElementById(labelId);
-                        el.innerText = `${current}s -> ${newVal}s`;
-
-                        if (newVal === 5 && current > 5) el.style.color = "#FF9F0A"; // Warning Limit
-                        else if (diff < 0) el.style.color = "#FF453A"; // Reduction
-                        else if (diff > 0) el.style.color = "#30D158"; // Increase
-                        else el.style.color = "#888";
-                    }
-                };
-
-                updatePreview(useRest, 'preview-rest-set', 'restSec');
-                updatePreview(useSwitch, 'preview-rest-switch', 'exerciseRestSec');
-                updatePreview(useRound, 'preview-rest-round', 'roundRestSec');
-
-                distributionText += `<div>Compensatie via ${totalSlots} rustmomenten: <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b> per moment.</div>`;
-
-                // Calculate Net Result for EndTime
-                // Integer math might leave small remainder, but roughly:
-                const covered = adjustPerSlot * totalSlots; // e.g. -10 * 12 = -120
-                remainingDiff = totalDiffSec + covered; // +120 + (-120) = 0.
-            } else {
-                distributionText += "<div style='color:#FF9F0A;'>Geen compensatie geselecteerd.</div>";
-            }
-
-            // End Time Shift
-            const useEndTime = document.getElementById('chk-calc-endtime').checked;
-
-            if (remainingDiff !== 0) {
-                if (useEndTime) {
-                    const totalDiffMin = Math.round(remainingDiff / 60);
-                    let sign = totalDiffMin >= 0 ? "+" : "";
-                    const currentEnd = document.getElementById('endTimeValue').value;
-                    if (currentEnd) {
-                        const [h, m] = currentEnd.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
-                        d.setMinutes(d.getMinutes() + totalDiffMin);
-                        const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-
-                        let color = totalDiffMin === 0 ? "#30D158" : "#fff";
-                        distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${sign}${totalDiffMin} min)</div>`;
-                    }
-                    btnEl.disabled = false; btnEl.style.opacity = 1;
-                } else {
-                    // Blocked!
-                    distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#FF453A; font-weight:bold;">⚠️ Onmogelijk: Tijd komt niet uit!</div>`;
-                    distributionText += `<div style="font-size:12px; color:#aaa;">Selecteer 'Eindtijd' of meer rustopties.</div>`;
-
-                    btnEl.disabled = true; btnEl.style.opacity = 0.5;
-                }
-            } else {
-                // Perfect fit
-                distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#30D158;">✅ Past precies! Eindtijd blijft gelijk.</div>`;
-                btnEl.disabled = false; btnEl.style.opacity = 1;
-            }
-
-            // Check Min Bounds (Rough check)
-            /* Real validation happens on Apply, but visually warning could be added */
-
-            summaryEl.innerHTML = distributionText;
-        }
-
-        function applySmartCalc() {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-
-            // Collect Active Channels
-            const useRest = document.getElementById('chk-calc-rest').checked;
-            const useSwitch = document.getElementById('chk-calc-switch').checked;
-            const useRound = document.getElementById('chk-calc-round').checked;
-
-            if (diffPerSet !== 0) {
-                // Apply Work Time Change
-                document.getElementById('workSec').value = targetW;
-
-                // Apply Distributions
-                const rounds = parseInt(document.getElementById('rounds').value);
-                const ex = parseInt(document.getElementById('exercises').value);
-                const sts = parseInt(document.getElementById('sets').value);
-                // Need total Sets (Future) count again for Math? No, just apply logic.
-                // Actually logic is simpler:
-                // 1. Calculate Total Needed.
-                // 2. Distribute.
-                // 3. For loop to apply to inputs? 
-                // Wait, inputs are global (restSec, etc). Changing them changes ALL future steps.
-                // So we just update the INPUT values.
-
-                // Recalculate Total Work Diff (Future)
-                // NOTE: Since we update global inputs, we affect future steps.
-                // Count future sets:
-                let countSets = 0; /* ... Re-run the loop or reuse? Optimization: Just update global inputs */
-                /* The logic in previewSmartCalc used "countSets" to estimate EndTime shift.
-                   To apply, we just need to update the global Rest Inputs based on the "AdjustPerSlot".
-                */
-
-                // We need to calculate `adjustPerSlot` again.
-                const startRound = parseInt(document.getElementById('start-round').value);
-                const startEx = parseInt(document.getElementById('start-ex').value);
-                const startSet = parseInt(document.getElementById('start-set').value);
-                let futureSets = 0;
-                // Similar loop as preview
-                for (let r = 1; r <= rounds; r++) {
-                    for (let e = 1; e <= ex; e++) {
-                        for (let s = 1; s <= sts; s++) {
-                            let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                            if (isFuture) futureSets++;
-                        }
-                    }
-                }
-
-                const totalDiffSec = diffPerSet * futureSets;
                 const chRest = useRest ? countFutureRestSteps('rest') : 0;
                 const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
                 const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
                 const totalSlots = chRest + chSwitch + chRound;
 
-                if (totalSlots > 0) {
-                    const factor = -1;
-                    const adjustPerSlot = Math.round((totalDiffSec * factor) / totalSlots);
+                if (totalSlots > 0 && totalDiffSec !== 0) {
+                    // Try to Distribute
+                    // NOTE: If totalDiffSec is POSITIVE (Need MORE work time), we SUBTRACT from Rests.
+                    // If totalDiffSec is NEGATIVE (Work time reduced), we ADD to Rests (or just shrink workout).
+                    // Usually user increases work time -> Needs to reduce rest to keep EndTime same.
 
-                    if (useRest) {
-                        const el = document.getElementById('restSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
-                    if (useSwitch) {
-                        const el = document.getElementById('exerciseRestSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
-                    if (useRound) {
-                        const el = document.getElementById('roundRestSec');
-                        el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
-                    }
+                    const factor = -1; // Invert: +Work -> -Rest
+                    const totalRestAdjustNeeded = totalDiffSec * factor;
+                    const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
+
+                    // Update UI Previews
+                    const updatePreview = (chk, labelId, inputId) => {
+                        if (chk) {
+                            const current = parseInt(document.getElementById(inputId).value);
+                            const newVal = Math.max(5, current + adjustPerSlot);
+                            const diff = newVal - current;
+
+                            const el = document.getElementById(labelId);
+                            el.innerText = `${current}s -> ${newVal}s`;
+
+                            if (newVal === 5 && current > 5) el.style.color = "#FF9F0A"; // Warning Limit
+                            else if (diff < 0) el.style.color = "#FF453A"; // Reduction
+                            else if (diff > 0) el.style.color = "#30D158"; // Increase
+                            else el.style.color = "#888";
+                        }
+                    };
+
+                    updatePreview(useRest, 'preview-rest-set', 'restSec');
+                    updatePreview(useSwitch, 'preview-rest-switch', 'exerciseRestSec');
+                    updatePreview(useRound, 'preview-rest-round', 'roundRestSec');
+
+                    distributionText += `<div>Compensatie via ${totalSlots} rustmomenten: <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b> per moment.</div>`;
+
+                    // Calculate Net Result for EndTime
+                    // Integer math might leave small remainder, but roughly:
+                    const covered = adjustPerSlot * totalSlots; // e.g. -10 * 12 = -120
+                    remainingDiff = totalDiffSec + covered; // +120 + (-120) = 0.
+                } else {
+                    distributionText += "<div style='color:#FF9F0A;'>Kies minstens 1 rustoptie om te compenseren!</div>";
+                    btnEl.disabled = true; btnEl.style.opacity = 0.5;
                 }
+
+            } else {
+                // VARIABLE END TIME LOGIC (Default)
+                // This replaces the old End Time Shift logic
+                const useEndTime = true; // Always true in this branch
+
+                if (remainingDiff !== 0) {
+                    if (useEndTime) {
+                        // Update: Use exact seconds for end time
+                        const currentEnd = document.getElementById('endTimeValue').value;
+                        if (currentEnd) {
+                            const [h, m] = currentEnd.split(':');
+                            const d = new Date();
+                            d.setHours(h, m, 0, 0);
+
+                            // Add exact seconds difference
+                            d.setSeconds(d.getSeconds() + remainingDiff);
+
+                            const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                            // Formatting diff text
+                            const diffMin = Math.floor(remainingDiff / 60);
+                            const diffSec = Math.abs(remainingDiff % 60);
+                            const sign = remainingDiff >= 0 ? "+" : "-";
+
+                            let timeDiffStr = `${sign}${Math.abs(diffMin)} min`;
+                            if (diffSec > 0) timeDiffStr += ` ${diffSec}s`;
+
+                            let color = remainingDiff === 0 ? "#30D158" : "#fff";
+                            distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${timeDiffStr})</div>`;
+                        }
+                        btnEl.disabled = false; btnEl.style.opacity = 1;
+                    } else {
+                        // Blocked!
+                        distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#FF453A; font-weight:bold;">⚠️ Onmogelijk: Tijd komt niet uit!</div>`;
+                        distributionText += `<div style="font-size:12px; color:#aaa;">Selecteer 'Eindtijd' of meer rustopties.</div>`;
+
+                        btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                    }
+                } else {
+                    // Perfect fit
+                    distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:#30D158;">✅ Past precies! Eindtijd blijft gelijk.</div>`;
+                    btnEl.disabled = false; btnEl.style.opacity = 1;
+                }
+
+                // Check Min Bounds (Rough check)
+                /* Real validation happens on Apply, but visually warning could be added */
+
+                summaryEl.innerHTML = distributionText;
             }
 
-            closeCalcModal();
-            generateScheduleData(true);
-            renderPreviewList();
-        }
+            function previewSmartCalcV2() {
+                const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+                const currentW = workTimeSec;
+                const diffPerSet = targetW - currentW;
+                const summaryEl = document.getElementById('smart-calc-summary');
+                const btnEl = document.getElementById('btn-smart-apply');
 
-        function countFutureRestSteps(type) {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            let count = 0;
-            for (let r = 1; r <= rounds; r++) {
-                for (let e = 1; e <= ex; e++) {
-                    for (let s = 1; s <= sts; s++) {
-                        let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
-                        if (isFuture) {
-                            const isLastSetOfWorkout = (r === rounds && e === ex && s === sts); const isLastSetOfRound = (e === ex && s === sts); const isLastSetOfExercise = (s === sts);
-                            if (!isLastSetOfWorkout) {
-                                if (isLastSetOfRound) { if (type === 'roundRest') count++; }
-                                else if (isLastSetOfExercise) { if (type === 'exerciseRest') count++; }
-                                else { if (type === 'rest') count++; }
+                if (diffPerSet === 0) {
+                    summaryEl.innerHTML = "<span style='color:#888;'>Geen wijziging in werktijd.</span>";
+                    btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                    if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
+                    if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
+                    if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
+                    return;
+                }
+
+                // Calculate Counts
+                const rounds = parseInt(document.getElementById('rounds').value);
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sts = parseInt(document.getElementById('sets').value);
+                const startRound = parseInt(document.getElementById('start-round').value);
+                const startEx = parseInt(document.getElementById('start-ex').value);
+                const startSet = parseInt(document.getElementById('start-set').value);
+
+                let countSets = 0;
+                for (let r = 1; r <= rounds; r++) {
+                    for (let e = 1; e <= ex; e++) {
+                        for (let s = 1; s <= sts; s++) {
+                            let isFuture = false;
+                            if (r > startRound) isFuture = true;
+                            else if (r === startRound && e > startEx) isFuture = true;
+                            else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                            if (isFuture) countSets++;
+                        }
+                    }
+                }
+                const totalDiffSec = diffPerSet * countSets;
+
+                // Check "Fix End Time"
+                const isFixedEnd = document.getElementById('chk-fix-endtime').checked;
+
+                // Channels
+                const useRest = document.getElementById('chk-calc-rest').checked;
+                const useSwitch = document.getElementById('chk-calc-switch').checked;
+                const useRound = document.getElementById('chk-calc-round').checked;
+
+                // Clear previews
+                if (document.getElementById('preview-rest-set')) document.getElementById('preview-rest-set').innerText = "";
+                if (document.getElementById('preview-rest-switch')) document.getElementById('preview-rest-switch').innerText = "";
+                if (document.getElementById('preview-rest-round')) document.getElementById('preview-rest-round').innerText = "";
+
+                let distributionText = "";
+
+                if (isFixedEnd) {
+                    // FIXED END TIME: Distribute to Rests
+                    const chRest = useRest ? countFutureRestSteps('rest') : 0;
+                    const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
+                    const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
+                    const totalSlots = chRest + chSwitch + chRound;
+
+                    if (totalSlots > 0) {
+                        const factor = -1;
+                        const totalRestAdjustNeeded = totalDiffSec * factor;
+                        const adjustPerSlot = Math.round(totalRestAdjustNeeded / totalSlots);
+
+                        const updatePreview = (chk, labelId, inputId) => {
+                            if (chk) {
+                                const current = parseInt(document.getElementById(inputId).value);
+                                const newVal = Math.max(5, current + adjustPerSlot);
+                                const diff = newVal - current;
+                                const el = document.getElementById(labelId);
+                                el.innerText = `${current}s -> ${newVal}s`;
+                                if (newVal === 5 && current > 5) el.style.color = "#FF9F0A";
+                                else if (diff < 0) el.style.color = "#FF453A";
+                                else if (diff > 0) el.style.color = "#30D158";
+                                else el.style.color = "#888";
+                            }
+                        };
+
+                        updatePreview(useRest, 'preview-rest-set', 'restSec');
+                        updatePreview(useSwitch, 'preview-rest-switch', 'exerciseRestSec');
+                        updatePreview(useRound, 'preview-rest-round', 'roundRestSec');
+
+                        distributionText += `<div>Compensatie via ${totalSlots} momenten (FIX AAN): <b>${adjustPerSlot > 0 ? '+' : ''}${adjustPerSlot}s</b>.</div>`;
+                        distributionText += `<div style="color:#30D158; margin-top:5px;">✅ Eindtijd blijft behouden.</div>`;
+                        btnEl.disabled = false; btnEl.style.opacity = 1;
+                    } else {
+                        distributionText += "<div style='color:#FF453A;'>Kies minstens 1 rustoptie om te compenseren!</div>";
+                        btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                    }
+
+                } else {
+                    // VARIABLE END TIME: Shift End Time
+                    const currentEnd = document.getElementById('endTimeValue').value;
+                    if (currentEnd) {
+                        const [h, m] = currentEnd.split(':');
+                        const d = new Date(); d.setHours(h, m, 0, 0);
+                        d.setSeconds(d.getSeconds() + totalDiffSec);
+
+                        const newEndTime = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                        const diffMin = Math.floor(totalDiffSec / 60);
+                        const diffSec = Math.abs(totalDiffSec % 60);
+                        const sign = totalDiffSec >= 0 ? "+" : "-";
+                        let timeDiffStr = `${sign}${Math.abs(diffMin)} min`;
+                        if (diffSec > 0) timeDiffStr += ` ${diffSec}s`;
+
+                        let color = totalDiffSec === 0 ? "#30D158" : "#fff";
+                        distributionText += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid #444; color:${color}; font-weight:bold;">Nieuw Einde: ${newEndTime} (${timeDiffStr})</div>`;
+                        if (Math.abs(totalDiffSec % 30) !== 0) {
+                            distributionText += `<div style="font-size:11px; color:#aaa;">(Niet afgerond op 30s)</div>`;
+                        }
+                    }
+                    btnEl.disabled = false; btnEl.style.opacity = 1;
+                }
+
+                summaryEl.innerHTML = distributionText;
+            }
+
+            function applySmartCalc() {
+                const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+                const currentW = workTimeSec;
+                const diffPerSet = targetW - currentW;
+
+                // Collect Active Channels
+                const useRest = document.getElementById('chk-calc-rest').checked;
+                const useSwitch = document.getElementById('chk-calc-switch').checked;
+                const useRound = document.getElementById('chk-calc-round').checked;
+                const isFixedEnd = document.getElementById('chk-fix-endtime').checked;
+
+                // Apply Work Time Change
+                document.getElementById('workSec').value = targetW;
+
+                if (diffPerSet !== 0 && isFixedEnd) {
+                    // ONLY Apply Distribution if Fixed End Time is active
+                    // If NOT fixed, we only changed Work Time, which naturally moves End Time.
+
+
+                    // We need to calculate `adjustPerSlot` again.
+                    const startRound = parseInt(document.getElementById('start-round').value);
+                    const startEx = parseInt(document.getElementById('start-ex').value);
+                    const startSet = parseInt(document.getElementById('start-set').value);
+                    let futureSets = 0;
+                    // Similar loop as preview
+                    for (let r = 1; r <= rounds; r++) {
+                        for (let e = 1; e <= ex; e++) {
+                            for (let s = 1; s <= sts; s++) {
+                                let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                                if (isFuture) futureSets++;
+                            }
+                        }
+                    }
+
+                    const totalDiffSec = diffPerSet * futureSets;
+                    const chRest = useRest ? countFutureRestSteps('rest') : 0;
+                    const chSwitch = useSwitch ? countFutureRestSteps('exerciseRest') : 0;
+                    const chRound = useRound ? countFutureRestSteps('roundRest') : 0;
+                    const totalSlots = chRest + chSwitch + chRound;
+
+                    if (totalSlots > 0) {
+                        const factor = -1;
+                        const adjustPerSlot = Math.round((totalDiffSec * factor) / totalSlots);
+
+                        if (useRest) {
+                            const el = document.getElementById('restSec');
+                            el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                        }
+                        if (useSwitch) {
+                            const el = document.getElementById('exerciseRestSec');
+                            el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                        }
+                        if (useRound) {
+                            const el = document.getElementById('roundRestSec');
+                            el.value = Math.max(5, parseInt(el.value) + adjustPerSlot);
+                        }
+                    }
+                }
+
+                closeCalcModal();
+                generateScheduleData(true);
+                renderPreviewList();
+            }
+
+            function countFutureRestSteps(type) {
+                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+                const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+                let count = 0;
+                for (let r = 1; r <= rounds; r++) {
+                    for (let e = 1; e <= ex; e++) {
+                        for (let s = 1; s <= sts; s++) {
+                            let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true;
+                            if (isFuture) {
+                                const isLastSetOfWorkout = (r === rounds && e === ex && s === sts); const isLastSetOfRound = (e === ex && s === sts); const isLastSetOfExercise = (s === sts);
+                                if (!isLastSetOfWorkout) {
+                                    if (isLastSetOfRound) { if (type === 'roundRest') count++; }
+                                    else if (isLastSetOfExercise) { if (type === 'exerciseRest') count++; }
+                                    else { if (type === 'rest') count++; }
+                                }
                             }
                         }
                     }
                 }
+                return count;
             }
-            return count;
-        }
 
-        function applyCalc(targetType) {
-            const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
-            const currentW = workTimeSec;
-            const diffPerSet = targetW - currentW;
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; } } }
-            const totalWorkDiff = diffPerSet * countSets;
+            function applyCalc(targetType) {
+                const targetW = parseInt(document.getElementById('target-work-sec').value) || 0;
+                const currentW = workTimeSec;
+                const diffPerSet = targetW - currentW;
+                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+                const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+                let countSets = 0; for (let r = 1; r <= rounds; r++) { for (let e = 1; e <= ex; e++) { for (let s = 1; s <= sts; s++) { let isFuture = false; if (r > startRound) isFuture = true; else if (r === startRound && e > startEx) isFuture = true; else if (r === startRound && e === startEx && s >= startSet) isFuture = true; if (isFuture) countSets++; } } }
+                const totalWorkDiff = diffPerSet * countSets;
 
-            if (targetType === 'duration') {
-                const totalAddSec = totalWorkDiff;
-                const addMin = Math.ceil(totalAddSec / 60);
-                const el = document.getElementById('endTimeValue'); const [h, m] = el.value.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
-                d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-                syncTime('endtime');
-            } else {
-                const steps = countFutureRestSteps(targetType);
-                let elementId = '';
-                if (targetType === 'rest') elementId = 'restSec';
-                if (targetType === 'exerciseRest') elementId = 'exerciseRestSec';
-                if (targetType === 'roundRest') elementId = 'roundRestSec';
-                const currentRest = parseInt(document.getElementById(elementId).value);
-                const reductionPerStep = Math.ceil(totalWorkDiff / steps);
-                const newVal = currentRest - reductionPerStep;
-                const sel = document.getElementById(elementId);
-                let exists = false; for (let i = 0; i < sel.options.length; i++) { if (parseInt(sel.options[i].value) === newVal) exists = true; }
-                if (!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal + "s"; sel.appendChild(opt); }
-                sel.value = newVal;
-            }
-            calculateRealTime(); saveToLocal(); closeCalcModal();
-        }
-
-        function generateScheduleData(applyResumeFilter) {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
-            const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
-            const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
-
-            totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
-            schedule = []; schedule.push({ type: 'prep', time: 15, label: "Voorbereiden", initialTime: 15, info: { round: 1, exercise: 1, set: 1, maxRounds: rounds, maxEx: ex, maxSets: sts } });
-
-            // Using global getBonusData helper now
-
-            // WARMUP BONUS (Check all 3)
-            for (let b = 1; b <= 3; b++) {
-                const bonus = getBonusData(b);
-                if (bonus.min > 0 && bonus.freq === 'warmup') {
-                    if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
-                        addBonusStep(0, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
-                    }
+                if (targetType === 'duration') {
+                    const totalAddSec = totalWorkDiff;
+                    const addMin = Math.ceil(totalAddSec / 60);
+                    const el = document.getElementById('endTimeValue'); const [h, m] = el.value.split(':'); const d = new Date(); d.setHours(h, m, 0, 0);
+                    d.setMinutes(d.getMinutes() + addMin); el.value = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                    syncTime('endtime');
+                } else {
+                    const steps = countFutureRestSteps(targetType);
+                    let elementId = '';
+                    if (targetType === 'rest') elementId = 'restSec';
+                    if (targetType === 'exerciseRest') elementId = 'exerciseRestSec';
+                    if (targetType === 'roundRest') elementId = 'roundRestSec';
+                    const currentRest = parseInt(document.getElementById(elementId).value);
+                    const reductionPerStep = Math.ceil(totalWorkDiff / steps);
+                    const newVal = currentRest - reductionPerStep;
+                    const sel = document.getElementById(elementId);
+                    let exists = false; for (let i = 0; i < sel.options.length; i++) { if (parseInt(sel.options[i].value) === newVal) exists = true; }
+                    if (!exists) { const opt = document.createElement('option'); opt.value = newVal; opt.text = newVal + "s"; sel.appendChild(opt); }
+                    sel.value = newVal;
                 }
+                calculateRealTime(); saveToLocal(); closeCalcModal();
             }
 
-            let globalExCount = 0;
+            function generateScheduleData(applyResumeFilter) {
+                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sts = parseInt(document.getElementById('sets').value);
+                const startRound = parseInt(document.getElementById('start-round').value); const startEx = parseInt(document.getElementById('start-ex').value); const startSet = parseInt(document.getElementById('start-set').value);
+                const exerciseRestSec = parseInt(document.getElementById('exerciseRestSec').value);
 
-            for (let r = 1; r <= rounds; r++) {
+                totalWorkSetsGlobal = rounds * ex * sts; let currentSetGlobal = 0;
+                schedule = []; schedule.push({ type: 'prep', time: 15, label: "Voorbereiden", initialTime: 15, info: { round: 1, exercise: 1, set: 1, maxRounds: rounds, maxEx: ex, maxSets: sts } });
 
-                // START ROUND BONUS
+                // Using global getBonusData helper now
+
+                // WARMUP BONUS (Check all 3)
                 for (let b = 1; b <= 3; b++) {
                     const bonus = getBonusData(b);
-                    if (bonus.min > 0 && bonus.freq === 'start_round') {
-                        let include = true;
-                        if (applyResumeFilter) {
-                            if (r < startRound) include = false;
-                            else if (r === startRound && (startEx > 1 || startSet > 1)) include = false;
+                    if (bonus.min > 0 && bonus.freq === 'warmup') {
+                        if (!applyResumeFilter || (startRound === 1 && startEx === 1 && startSet === 1)) {
+                            addBonusStep(0, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
                         }
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
                     }
                 }
 
-                for (let e = 1; e <= ex; e++) {
-                    globalExCount++;
+                let globalExCount = 0;
 
-                    // INTERVAL BONUS
+                for (let r = 1; r <= rounds; r++) {
+
+                    // START ROUND BONUS
                     for (let b = 1; b <= 3; b++) {
                         const bonus = getBonusData(b);
-                        if (bonus.min > 0 && !isNaN(bonus.freq) && (globalExCount % parseInt(bonus.freq) === 0)) {
+                        if (bonus.min > 0 && bonus.freq === 'start_round') {
                             let include = true;
-                            if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
-
+                            if (applyResumeFilter) {
+                                if (r < startRound) include = false;
+                                else if (r === startRound && (startEx > 1 || startSet > 1)) include = false;
+                            }
                             if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
                         }
                     }
 
-                    for (let s = 1; s <= sts; s++) {
-                        currentSetGlobal++; let include = true;
-                        if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
-                        if (include) {
-                            // CHECK FOR CUSTOM NAME
-                            // Hierarchy: Specific Set > Round Exercise > All Round Exercise (handled by apply)
-                            let label = `Oefening ${e}.${s}`;
-                            const keySet = `r${r}-e${e}-s${s}`;
-                            const keyRound = `r${r}-e${e}`;
+                    for (let e = 1; e <= ex; e++) {
+                        globalExCount++;
 
-                            if (customNames[keySet]) label = customNames[keySet];
-                            else if (customNames[keyRound]) label = customNames[keyRound];
+                        // INTERVAL BONUS
+                        for (let b = 1; b <= 3; b++) {
+                            const bonus = getBonusData(b);
+                            if (bonus.min > 0 && !isNaN(bonus.freq) && (globalExCount % parseInt(bonus.freq) === 0)) {
+                                let include = true;
+                                if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && sts < startSet) include = false; }
 
-                            schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: label, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
-                            const isLastSetOfWorkout = (r === rounds && e === ex && s === sts); const isLastSetOfRound = (e === ex && s === sts); const isLastSetOfExercise = (s === sts);
-                            if (!isLastSetOfWorkout) {
-                                let restLabel = "RUST"; let infoText = "";
-                                if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
-                                else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e + 1 : 1}`; }
-                                else { infoText = "Even ontspannen"; }
-                                let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
-                                schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
+                                if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
+                            }
+                        }
+
+                        for (let s = 1; s <= sts; s++) {
+                            currentSetGlobal++; let include = true;
+                            if (applyResumeFilter) { if (r < startRound) include = false; else if (r === startRound && e < startEx) include = false; else if (r === startRound && e === startEx && s < startSet) include = false; }
+                            if (include) {
+                                // CHECK FOR CUSTOM NAME
+                                // Hierarchy: Specific Set > Round Exercise > All Round Exercise (handled by apply)
+                                let label = `Oefening ${e}.${s}`;
+                                const keySet = `r${r}-e${e}-s${s}`;
+                                const keyRound = `r${r}-e${e}`;
+
+                                if (customNames[keySet]) label = customNames[keySet];
+                                else if (customNames[keyRound]) label = customNames[keyRound];
+
+                                schedule.push({ type: 'work', time: workTimeSec, initialTime: workTimeSec, label: label, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal } });
+                                const isLastSetOfWorkout = (r === rounds && e === ex && s === sts); const isLastSetOfRound = (e === ex && s === sts); const isLastSetOfExercise = (s === sts);
+                                if (!isLastSetOfWorkout) {
+                                    let restLabel = "RUST"; let infoText = "";
+                                    if (isLastSetOfRound) { restLabel = "RONDE PAUZE"; infoText = "Even bijkomen..."; }
+                                    else if (isLastSetOfExercise) { restLabel = "WISSEL OEFENING"; infoText = `Op naar oefening ${e < ex ? e + 1 : 1}`; }
+                                    else { infoText = "Even ontspannen"; }
+                                    let type = isLastSetOfRound ? 'rest-long' : (isLastSetOfExercise ? 'rest-exercise' : 'rest');
+                                    schedule.push({ type: type, time: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), initialTime: (isLastSetOfRound ? roundRestSec : (isLastSetOfExercise ? exerciseRestSec : restTimeSec)), label: restLabel, info: { round: r, exercise: e, set: s, maxRounds: rounds, maxEx: ex, maxSets: sts, text: infoText } });
+                                }
                             }
                         }
                     }
+
+                    // END ROUND BONUS
+                    for (let b = 1; b <= 3; b++) {
+                        const bonus = getBonusData(b);
+                        if (bonus.min > 0 && bonus.freq === 'end_round') {
+                            let include = true;
+                            if (applyResumeFilter && r < startRound) include = false;
+                            if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
+                        }
+                    }
                 }
 
-                // END ROUND BONUS
+                // TOETJE BONUS
                 for (let b = 1; b <= 3; b++) {
                     const bonus = getBonusData(b);
-                    if (bonus.min > 0 && bonus.freq === 'end_round') {
-                        let include = true;
-                        if (applyResumeFilter && r < startRound) include = false;
-                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exerciseRestSec, bonus.id);
-                    }
-                }
-            }
-
-            // TOETJE BONUS
-            for (let b = 1; b <= 3; b++) {
-                const bonus = getBonusData(b);
-                if (bonus.min > 0 && bonus.freq === 'end_session') {
-                    // TOETJE has NO rest/switch after!
-                    schedule.push({
-                        type: 'work',
-                        time: bonus.min * 60,
-                        initialTime: bonus.min * 60,
-                        label: bonus.name.toUpperCase(),
-                        info: { round: 0, exercise: 0, set: 0, globalSet: 0, bonusId: bonus.id }
-                    });
-                }
-            }
-
-            if (schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
-        }
-
-        function playMp3WebAudio(url, key) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-            // Check Cache
-            if (audioCache[url]) {
-                logAudioDebug(`✅ WebAudio Cache: ${key}`);
-                playBuffer(audioCache[url]);
-                return;
-            }
-
-            // Fetch
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error("404");
-                    return response.arrayBuffer();
-                })
-                .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
-                .then(audioBuffer => {
-                    audioCache[url] = audioBuffer;
-                    logAudioDebug(`✅ WebAudio Play: ${key}`);
-                    playBuffer(audioBuffer);
-                })
-                .catch(e => {
-                    failedAudioKeys.add(key);
-                    logAudioDebug(`❌ WebAudio Fail: ${key}`);
-                    console.error("WebAudio Error", e);
-                });
-        }
-
-        function playBuffer(buffer) {
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-
-            // VOLUME BOOST (for Mix Mode)
-            // Since we cannot "duck" (lower) the background music on iOS,
-            // we digitally boost the voice volume to 250% to cut through.
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 2.5;
-
-            source.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            source.start(0);
-        }
-
-        function addBonusStep(r, label, time, rest, bId) {
-            schedule.push({
-                type: 'work',
-                time: time,
-                initialTime: time,
-                label: label,
-                info: { round: r, exercise: 0, set: 0, globalSet: 0, bonusId: bId } // 0 indicates bonus
-            });
-            schedule.push({
-                type: 'rest-exercise',
-                time: rest,
-                initialTime: rest,
-                label: "WISSEL",
-                info: { round: r, exercise: 0, set: 0, text: "Klaarmaken..." }
-            });
-        }
-
-        function renderPreviewList() {
-            const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
-            schedule.forEach((item) => {
-                if (item.type === 'finish') return;
-                let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                runningDate.setSeconds(runningDate.getSeconds() + item.time);
-                const div = document.createElement('div'); div.className = `schedule-item`;
-                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
-                let desc = item.label; if (item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
-                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
-                list.appendChild(div);
-            });
-        }
-
-        function triggerAudio(key, fallbackText, extraInfo = "") {
-            if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
-
-            // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
-            const coachId = document.getElementById('coach-preset').value || 'tabataman';
-
-            // Check Enable/Disable Toggle provided by user
-            if (speechSettings[key] && speechSettings[key].enabled === false) {
-                logAudioDebug(`🔇 Silenced by user setting: ${key}`);
-                return;
-            }
-
-            if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
-                logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
-                const mp3Path = `coaches/${coachId}/${key}.mp3`;
-
-                // OPTIONAL MIX MODE (iOS Web Audio)
-                if (iosMixMode) {
-                    playMp3WebAudio(mp3Path, key);
-                    return;
-                }
-
-                // Standard HTML5 Audio (Single Global Object)
-                globalCoachAudio.src = mp3Path;
-
-                const playPromise = globalCoachAudio.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        logAudioDebug(`✅ Playing MP3: ${key}`);
-                    })
-                        .catch(error => {
-                            failedAudioKeys.add(key); // Mark as missing/broken
-                            logAudioDebug(`❌ MP3 Failed: ${key}`);
+                    if (bonus.min > 0 && bonus.freq === 'end_session') {
+                        // TOETJE has NO rest/switch after!
+                        schedule.push({
+                            type: 'work',
+                            time: bonus.min * 60,
+                            initialTime: bonus.min * 60,
+                            label: bonus.name.toUpperCase(),
+                            info: { round: 0, exercise: 0, set: 0, globalSet: 0, bonusId: bonus.id }
                         });
+                    }
                 }
-                return;
-            }
-        }
 
-        function logAudioDebug(msg) {
-            const loginfo = document.getElementById('audio-debug-log');
-            if (loginfo) {
-                const line = document.createElement('div');
-                const time = new Date().toLocaleTimeString('nl-NL', { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-                line.innerText = `[${time}] ${msg}`;
-                loginfo.prepend(line);
-                // Keep only last 20 lines
-                while (loginfo.children.length > 20) {
-                    loginfo.removeChild(loginfo.lastChild);
+                if (schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
+            }
+
+            function playMp3WebAudio(url, key) {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Check Cache
+                if (audioCache[url]) {
+                    logAudioDebug(`✅ WebAudio Cache: ${key}`);
+                    playBuffer(audioCache[url]);
+                    return;
                 }
+
+                // Fetch
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error("404");
+                        return response.arrayBuffer();
+                    })
+                    .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
+                    .then(audioBuffer => {
+                        audioCache[url] = audioBuffer;
+                        logAudioDebug(`✅ WebAudio Play: ${key}`);
+                        playBuffer(audioBuffer);
+                    })
+                    .catch(e => {
+                        failedAudioKeys.add(key);
+                        logAudioDebug(`❌ WebAudio Fail: ${key}`);
+                        console.error("WebAudio Error", e);
+                    });
             }
-        }
 
-        function playBeep(f, t) { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value = f; o.type = 'sine'; const n = audioCtx.currentTime; if (t === 'tick') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.1); } else if (t === 'win') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.2); setTimeout(() => playBeep(1200, 'tick'), 300); } else { g.gain.setValueAtTime(0.3, n); o.start(n); o.stop(n + 0.5); } }
+            function playBuffer(buffer) {
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
 
-        let preWorkoutInterval = null;
+                // VOLUME BOOST (for Mix Mode)
+                // Since we cannot "duck" (lower) the background music on iOS,
+                // we digitally boost the voice volume to 250% to cut through.
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 2.5;
 
-        function startWorkout() {
-            // Audio Context for Beep Mode (Ensure resumed)
-            if (audioMode === 'beep') { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); }
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
 
-            const startStr = document.getElementById('startTimeValue').value;
-            if (startStr) {
-                const now = new Date();
-                const [h, m] = startStr.split(':');
-                const targetStart = new Date();
-                targetStart.setHours(h, m, 0, 0);
+                source.start(0);
+            }
 
-                if (targetStart > now) {
-                    // Show Countdown Overlay
-                    const overlay = document.getElementById('pre-workout-overlay');
-                    const timerEl = document.getElementById('pre-workout-timer');
-                    const startInfoEl = document.getElementById('pre-workout-start-time'); // NEW
+            function addBonusStep(r, label, time, rest, bId) {
+                schedule.push({
+                    type: 'work',
+                    time: time,
+                    initialTime: time,
+                    label: label,
+                    info: { round: r, exercise: 0, set: 0, globalSet: 0, bonusId: bId } // 0 indicates bonus
+                });
+                schedule.push({
+                    type: 'rest-exercise',
+                    time: rest,
+                    initialTime: rest,
+                    label: "WISSEL",
+                    info: { round: r, exercise: 0, set: 0, text: "Klaarmaken..." }
+                });
+            }
 
-                    overlay.style.display = 'flex';
-                    if (startInfoEl) startInfoEl.innerText = `STARTTIJD: ${startStr}`;
+            function renderPreviewList() {
+                const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
+                schedule.forEach((item) => {
+                    if (item.type === 'finish') return;
+                    let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    runningDate.setSeconds(runningDate.getSeconds() + item.time);
+                    const div = document.createElement('div'); div.className = `schedule-item`;
+                    let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
+                    let desc = item.label; if (item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
+                    div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
+                    list.appendChild(div);
+                });
+            }
 
-                    // Initial wake lock attempt (user interaction context)
-                    if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+            function triggerAudio(key, fallbackText, extraInfo = "") {
+                if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
 
-                    clearInterval(preWorkoutInterval);
+                // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
+                const coachId = document.getElementById('coach-preset').value || 'tabataman';
 
-                    const updateTimer = () => {
-                        const currentNow = new Date();
-                        const diffMs = targetStart - currentNow;
+                // Check Enable/Disable Toggle provided by user
+                if (speechSettings[key] && speechSettings[key].enabled === false) {
+                    logAudioDebug(`🔇 Silenced by user setting: ${key}`);
+                    return;
+                }
 
-                        if (diffMs <= 0) {
-                            clearInterval(preWorkoutInterval);
-                            overlay.style.display = 'none';
-                            performStart();
-                            return;
-                        }
+                if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
+                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
+                    const mp3Path = `coaches/${coachId}/${key}.mp3`;
 
-                        // Format MM:SS
-                        const totalSec = Math.ceil(diffMs / 1000);
-                        const mins = Math.floor(totalSec / 60);
-                        const secs = totalSec % 60;
-                        timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                    };
+                    // OPTIONAL MIX MODE (iOS Web Audio)
+                    if (iosMixMode) {
+                        playMp3WebAudio(mp3Path, key);
+                        return;
+                    }
 
-                    updateTimer(); // Immediate update
-                    preWorkoutInterval = setInterval(updateTimer, 1000);
+                    // Standard HTML5 Audio (Single Global Object)
+                    globalCoachAudio.src = mp3Path;
+
+                    const playPromise = globalCoachAudio.play();
+
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            logAudioDebug(`✅ Playing MP3: ${key}`);
+                        })
+                            .catch(error => {
+                                failedAudioKeys.add(key); // Mark as missing/broken
+                                logAudioDebug(`❌ MP3 Failed: ${key}`);
+                            });
+                    }
                     return;
                 }
             }
-            // No delay needed
-            performStart();
-        }
 
-        function performStart() {
-            // Hide overlay if manual skip was triggered
-            document.getElementById('pre-workout-overlay').style.display = 'none';
-            if (preWorkoutInterval) clearInterval(preWorkoutInterval);
-            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
-            if (audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if (window.speechSynthesis) window.speechSynthesis.cancel(); }
-
-            clearInterval(timerInterval); // Ensure no previous timer is running
-
-            // Ensure times are fresh
-            calculateRealTime();
-            generateScheduleData(true);
-            populateJumpMenus();
-
-            document.getElementById('setup-screen').classList.add('hidden');
-            // Scroll Fix v1.9: Use block display for reliable scrolling
-            // Reset style completely to remove !important inline hider
-            const ts = document.getElementById('timer-screen');
-            ts.style.cssText = '';
-            ts.style.display = 'block';
-
-            workoutStartTime = new Date();
-            const [h, m] = document.getElementById('endTimeValue').value.split(':');
-            targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
-            if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
-
-            updateEndTimeDisplay();
-            currentIndex = 0;
-            // speechPlaylists = {}; // REMOVED v1.15
-            failedAudioKeys.clear(); // Reset MP3 failures on new workout start
-            stepEndTime = Date.now() + (schedule[0].time * 1000);
-
-            // NEW: Render Live Schedule
-            renderLiveSchedule();
-
-            runStep();
-        }
-
-        function populateJumpMenus() {
-            const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sets = parseInt(document.getElementById('sets').value);
-            const rSel = document.getElementById('jump-round'); const eSel = document.getElementById('jump-exercise'); const sSel = document.getElementById('jump-set');
-            rSel.innerHTML = ""; eSel.innerHTML = ""; sSel.innerHTML = "";
-            for (let i = 1; i <= rounds; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt); }
-            for (let i = 1; i <= ex; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt); }
-            for (let i = 1; i <= sets; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt); }
-        }
-
-        function handleJump() {
-            const r = parseInt(document.getElementById('jump-round').value); const e = parseInt(document.getElementById('jump-exercise').value); const s = parseInt(document.getElementById('jump-set').value);
-            const newIndex = schedule.findIndex(step => { return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s; });
-            if (newIndex > -1) {
-                currentIndex = newIndex;
-                triggerAudio('manual_override', "Springen naar ronde " + r);
-                stepEndTime = Date.now();
-                // Reset played flags when jumping
-                schedule.forEach(s => delete s.hasPlayedEntry);
-                runStep();
-                recalculateForFixedEnd();
-            }
-        }
-
-        function runStep() {
-            if (currentIndex >= schedule.length) return;
-            const step = schedule[currentIndex];
-            const nextStep = schedule[currentIndex + 1];
-            const totalRounds = parseInt(document.getElementById('rounds').value);
-            const totalEx = document.getElementById('exercises').value;
-
-            const body = document.body; body.className = '';
-            const titleEl = document.getElementById('gym-phase-title'); const nextEl = document.getElementById('gym-next-info');
-
-            if (step.info && step.info.maxRounds) {
-                document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
-                // Only show exercise/set if not 0 (extra phase)
-                if (step.info.exercise > 0) {
-                    document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
-                    document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
-                    document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
-                } else {
-                    document.getElementById('val-exercise').innerText = "-";
-                    document.getElementById('val-set').innerText = "-";
-                }
-                document.getElementById('gym-stats-container').style.opacity = 1;
-            } else { document.getElementById('gym-stats-container').style.opacity = 0.5; }
-
-            // NEW: Update Live Schedule Highlight
-            updateLiveScheduleHighlight();
-
-            // Dynamic Inner Ring Color (based on NEXT step)
-            let nextColor = '#30D158'; // Default Green (Work)
-            let nextGlow = 'rgba(48, 209, 88, 0.6)';
-            if (nextStep) {
-                if (nextStep.type === 'work') { nextColor = '#30D158'; nextGlow = 'rgba(48, 209, 88, 0.6)'; }
-                else if (nextStep.type === 'rest') { nextColor = '#FF9F0A'; nextGlow = 'rgba(255, 159, 10, 0.6)'; }
-                else if (nextStep.type === 'rest-exercise') { nextColor = '#BF5AF2'; nextGlow = 'rgba(191, 90, 242, 0.6)'; }
-                else if (nextStep.type === 'rest-long') { nextColor = '#0A84FF'; nextGlow = 'rgba(10, 132, 255, 0.6)'; }
-                else if (nextStep.type === 'finish') { nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)'; }
-                else if (nextStep.type === 'prep') { nextColor = '#3a3a3c'; nextGlow = 'rgba(58, 58, 60, 0.6)'; }
-            } else {
-                nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)';
-            }
-
-            const ringStep = document.getElementById('ring-step');
-            if (ringStep) {
-                ringStep.style.stroke = nextColor;
-                ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`;
-            }
-
-            titleEl.innerText = step.label;
-            titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') {
-                // Make huge text for main work phases (including custom extra name)
-                titleEl.classList.add('huge-text');
-            }
-
-            let nextText = "Hierna: Klaar";
-            if (nextStep) { nextText = "Hierna: " + nextStep.label; if (nextStep.type === 'work' && nextStep.info && nextStep.info.exercise > 0) nextText += ` (Oef ${nextStep.info.exercise})`; }
-            nextEl.innerText = nextText;
-
-            if (!step.hasPlayedEntry) {
-                step.hasPlayedEntry = true;
-                if (step.type === 'work') {
-                    body.classList.add('mode-work');
-                    // Standard work audio triggers
-                    if (step.info.exercise > 0) {
-                        if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
-                        else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
-                        else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                        else if (step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
-                        else triggerAudio('work_start', "Start");
-                    } else {
-                        // Custom Extra Start Audio
-                        triggerAudio('work_start', `Start ${step.label}`);
-                    }
-                }
-                else if (step.type === 'rest') {
-                    body.classList.add('mode-rest');
-                    let info = ""; if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random() * tips.length)]; }
-                    triggerAudio('rest_set_start', "Rust", info);
-                }
-                else if (step.type === 'rest-exercise') {
-                    body.classList.add('mode-switch');
-                    let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
-                    triggerAudio('rest_switch_start', "Wissel", info);
-                }
-                else if (step.type === 'rest-long') {
-                    body.classList.add('mode-long');
-                    let info = ""; if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
-                    triggerAudio('rest_round_start', "Grote pauze", info);
-                }
-                else if (step.type === 'prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
-                else { finish(); return; }
-            } else {
-                // Ensure class is correct valid even if we didn't play audio
-                if (step.type === 'work') body.classList.add('mode-work');
-                else if (step.type === 'rest') body.classList.add('mode-rest');
-                else if (step.type === 'rest-exercise') body.classList.add('mode-switch');
-                else if (step.type === 'rest-long') body.classList.add('mode-long');
-                else if (step.type === 'prep') body.classList.add('mode-prep');
-            }
-
-            stepEndTime = Date.now() + (step.time * 1000);
-            document.getElementById('countdown').innerText = step.time;
-
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!isPaused) {
-                    const now = Date.now();
-                    const remainingMs = stepEndTime - now;
-                    let remainingSec = Math.ceil(remainingMs / 1000);
-
-                    if (remainingSec < 0) {
-                        while (remainingSec < 0) {
-                            currentIndex++; if (currentIndex >= schedule.length) { finish(); return; }
-                            const skippedStep = schedule[currentIndex];
-                            stepEndTime += (skippedStep.time * 1000);
-                            remainingSec = Math.ceil((stepEndTime - Date.now()) / 1000);
-                        }
-                        runStep(); return;
-                    }
-
-                    step.time = remainingSec;
-                    document.getElementById('countdown').innerText = step.time;
-                    updateProgressRings(step.time, step.initialTime);
-
-                    const totalDiff = targetEndTimeDate - now;
-                    if (totalDiff > 0) {
-                        const m = Math.floor(totalDiff / 60000); const s = Math.floor((totalDiff % 60000) / 1000);
-                        document.getElementById('val-remaining').innerText = `${m}m ${s}s`;
-                    } else { document.getElementById('val-remaining').innerText = "0m 0s"; }
-
-                    const init = step.initialTime;
-                    if (step.type === 'work') {
-                        let audioTriggered = false;
-                        if (step.time === Math.floor(init / 2) && init >= 30) {
-                            triggerAudio('work_halfway', "Halverwege");
-                            audioTriggered = true;
-                        }
-                        if (!audioTriggered && step.time === 30 && init > 40) {
-                            triggerAudio('work_30s', "30 seconden");
-                            audioTriggered = true;
-                        }
-                        if (!audioTriggered && step.time === 10 && init > 15) {
-                            triggerAudio('work_10s', "10 seconden");
-                        }
-                    }
-                    if (step.type === 'rest-long' && step.time === 15 && init > 20) triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
-                    if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
-
-                    if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); }
-                    else if (step.time <= 3) {
-                        if (speechSettings.use_mp3) {
-                            // MP3 Mode: Trigger prep_countdown once at 3s. Silence at 2s/1s.
-                            if (step.time === 3) triggerAudio('prep_countdown', "3 2 1");
-                        } else {
-                            // TTS Mode: Individual ticks
-                            triggerAudio('tick', step.time.toString());
-                        }
-                    }
-                } else {
-                    // Do nothing while paused
-                }
-            }, 1000);
-        }
-
-        function triggerEndTimeEdit() {
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            const input = document.getElementById('hidden-endtime-input'); input.value = timeStr;
-            if ('showPicker' in HTMLInputElement.prototype) { try { input.showPicker(); } catch (e) { input.click(); } } else { input.click(); }
-        }
-
-        function handleNewEndTime(newVal) {
-            if (!newVal) return;
-            const [h, m] = newVal.split(':'); const newDate = new Date(); newDate.setHours(h, m, 0, 0);
-            const now = new Date();
-            if (newDate < now) { if (newDate.getTime() < now.getTime() - 12 * 3600 * 1000) { newDate.setDate(newDate.getDate() + 1); } }
-
-            targetEndTimeDate = newDate;
-            updateEndTimeDisplay(); recalculateForFixedEnd();
-            renderLiveSchedule(); // Re-render to show updated times if needed
-            triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
-        }
-
-        function recalculateForFixedEnd() {
-            const now = new Date();
-            const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
-            let workStepsLeft = 0; let fixedRest = 0;
-            for (let i = currentIndex; i < schedule.length; i++) {
-                if (schedule[i].type === 'finish') continue;
-                if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time;
-                else if (schedule[i].type === 'work') {
-                    // Check if it's a regular exercise or extra start
-                    // We only adjust regular exercises.
-                    // Extra start is considered fixed time (like rest).
-                    if (schedule[i].info && schedule[i].info.exercise > 0) {
-                        workStepsLeft++;
-                    } else {
-                        fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
-                    }
-                }
-                else if (schedule[i].type === 'prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
-            }
-
-            if (workStepsLeft > 0) {
-                const availableForWork = secsRemaining - fixedRest;
-                let newWork = Math.floor(availableForWork / workStepsLeft);
-                if (newWork < 5) newWork = 5;
-
-                const currentIsWork = (schedule[currentIndex].type === 'work' && schedule[currentIndex].info.exercise > 0);
-                const oldWorkVal = schedule[currentIndex].initialTime;
-
-                for (let i = currentIndex; i < schedule.length; i++) {
-                    if (schedule[i].type === 'work' && schedule[i].info.exercise > 0) {
-                        schedule[i].time = newWork; schedule[i].initialTime = newWork;
-                    }
-                }
-                if (currentIsWork) {
-                    const diff = newWork - oldWorkVal;
-                    stepEndTime += (diff * 1000);
-                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now()) / 1000);
-                }
-            }
-        }
-
-        function handlePauseClick() {
-            const btn = document.getElementById('btn-pause');
-            if (!isPaused) {
-                isPaused = true;
-                pauseStartTime = Date.now();
-                btn.innerText = "▶️"; // Show Play icon to resume
-
-                document.body.classList.add('mode-pause');
-                document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
-                triggerAudio('manual_override', "Gepauzeerd");
-            } else {
-                previewPauseOptions(); // Calculate BEFORE showing modal
-                document.getElementById('pause-modal').style.display = 'flex';
-            }
-        }
-
-        // --- NEW PAUSE RESOLUTION LOGIC ---
-        function previewPauseOptions() {
-            const now = Date.now();
-            currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
-            document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
-
-            // 1. Push Endtime (Always possible)
-            const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
-            const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            const newEndStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            const extraMin = Math.ceil(currentPauseDuration / 60);
-            document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
-
-            // 2. Catch up Work
-            const workSteps = countRemainingSteps('work');
-            const btnWork = document.getElementById('btn-catch-work');
-            if (workSteps > 0) {
-                const deduction = Math.ceil(currentPauseDuration / workSteps);
-                const currentWork = getFirstStepTime('work');
-                const newWork = currentWork - deduction;
-                if (newWork >= 5) {
-                    btnWork.disabled = false; btnWork.style.opacity = 1;
-                    document.getElementById('btn-text-work').innerText = `Werk: ${currentWork}s -> ${newWork}s`;
-                } else {
-                    btnWork.disabled = true; btnWork.style.opacity = 0.5;
-                    document.getElementById('btn-text-work').innerText = `Niet mogelijk (Werk wordt < 5s)`;
-                }
-            } else {
-                btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
-            }
-
-            // 3. Catch up Rest (Set)
-            updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
-            // 4. Catch up Switch
-            updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
-            // 5. Catch up Round
-            updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
-        }
-
-        function updateCatchUpButton(type, btnId, textId, label) {
-            const steps = countRemainingSteps(type);
-            const btn = document.getElementById(btnId);
-            if (steps > 0) {
-                const deduction = Math.ceil(currentPauseDuration / steps);
-                const currentVal = getFirstStepTime(type);
-                const newVal = currentVal - deduction;
-                if (newVal >= 5) {
-                    btn.disabled = false; btn.style.opacity = 1;
-                    document.getElementById(textId).innerText = `${label}: ${currentVal}s -> ${newVal}s`;
-                } else {
-                    btn.disabled = true; btn.style.opacity = 0.5;
-                    document.getElementById(textId).innerText = `Niet mogelijk (${newVal}s < 5s)`;
-                }
-            } else {
-                btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
-            }
-        }
-
-        function countRemainingSteps(type) {
-            let count = 0;
-            // Only count regular work steps, not fixed extra steps for adjustment
-            for (let i = currentIndex; i < schedule.length; i++) {
-                if (schedule[i].type === type) {
-                    if (type === 'work') {
-                        if (schedule[i].info && schedule[i].info.exercise > 0) count++;
-                    } else {
-                        count++;
+            function logAudioDebug(msg) {
+                const loginfo = document.getElementById('audio-debug-log');
+                if (loginfo) {
+                    const line = document.createElement('div');
+                    const time = new Date().toLocaleTimeString('nl-NL', { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    line.innerText = `[${time}] ${msg}`;
+                    loginfo.prepend(line);
+                    // Keep only last 20 lines
+                    while (loginfo.children.length > 20) {
+                        loginfo.removeChild(loginfo.lastChild);
                     }
                 }
             }
-            return count;
-        }
 
-        function getFirstStepTime(type) {
-            for (let i = currentIndex; i < schedule.length; i++) { if (schedule[i].type === type) return schedule[i].time; }
-            return 0;
-        }
+            function playBeep(f, t) { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value = f; o.type = 'sine'; const n = audioCtx.currentTime; if (t === 'tick') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.1); } else if (t === 'win') { g.gain.setValueAtTime(0.1, n); o.start(n); o.stop(n + 0.2); setTimeout(() => playBeep(1200, 'tick'), 300); } else { g.gain.setValueAtTime(0.3, n); o.start(n); o.stop(n + 0.5); } }
 
-        function resolvePause(choice) {
-            document.getElementById('pause-modal').style.display = 'none';
-            const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
-            isPaused = false;
+            let preWorkoutInterval = null;
 
-            document.body.classList.remove('mode-pause');
+            function startWorkout() {
+                // Audio Context for Beep Mode (Ensure resumed)
+                if (audioMode === 'beep') { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); }
 
-            // Apply Logic
-            if (choice === 'push') {
-                targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
+                const startStr = document.getElementById('startTimeValue').value;
+                if (startStr) {
+                    const now = new Date();
+                    const [h, m] = startStr.split(':');
+                    const targetStart = new Date();
+                    targetStart.setHours(h, m, 0, 0);
+
+                    if (targetStart > now) {
+                        // Show Countdown Overlay
+                        const overlay = document.getElementById('pre-workout-overlay');
+                        const timerEl = document.getElementById('pre-workout-timer');
+                        const startInfoEl = document.getElementById('pre-workout-start-time'); // NEW
+
+                        overlay.style.display = 'flex';
+                        if (startInfoEl) startInfoEl.innerText = `STARTTIJD: ${startStr}`;
+
+                        // Initial wake lock attempt (user interaction context)
+                        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+
+                        clearInterval(preWorkoutInterval);
+
+                        const updateTimer = () => {
+                            const currentNow = new Date();
+                            const diffMs = targetStart - currentNow;
+
+                            if (diffMs <= 0) {
+                                clearInterval(preWorkoutInterval);
+                                overlay.style.display = 'none';
+                                performStart();
+                                return;
+                            }
+
+                            // Format MM:SS
+                            const totalSec = Math.ceil(diffMs / 1000);
+                            const mins = Math.floor(totalSec / 60);
+                            const secs = totalSec % 60;
+                            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                        };
+
+                        updateTimer(); // Immediate update
+                        preWorkoutInterval = setInterval(updateTimer, 1000);
+                        return;
+                    }
+                }
+                // No delay needed
+                performStart();
+            }
+
+            function performStart() {
+                // Hide overlay if manual skip was triggered
+                document.getElementById('pre-workout-overlay').style.display = 'none';
+                if (preWorkoutInterval) clearInterval(preWorkoutInterval);
+                if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+                if (audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } else { if (window.speechSynthesis) window.speechSynthesis.cancel(); }
+
+                clearInterval(timerInterval); // Ensure no previous timer is running
+
+                // Ensure times are fresh
+                calculateRealTime();
+                generateScheduleData(true);
+                populateJumpMenus();
+
+                document.getElementById('setup-screen').classList.add('hidden');
+                // Scroll Fix v1.9: Use block display for reliable scrolling
+                // Reset style completely to remove !important inline hider
+                const ts = document.getElementById('timer-screen');
+                ts.style.cssText = '';
+                ts.style.display = 'block';
+
+                workoutStartTime = new Date();
+                const [h, m] = document.getElementById('endTimeValue').value.split(':');
+                targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
+                if (targetEndTimeDate < workoutStartTime) targetEndTimeDate.setDate(targetEndTimeDate.getDate() + 1);
+
                 updateEndTimeDisplay();
-                stepEndTime += (currentPauseDuration * 1000);
-            } else {
-                stepEndTime += (currentPauseDuration * 1000);
+                currentIndex = 0;
+                // speechPlaylists = {}; // REMOVED v1.15
+                failedAudioKeys.clear(); // Reset MP3 failures on new workout start
+                stepEndTime = Date.now() + (schedule[0].time * 1000);
 
-                // Now Reduce
-                let typeToReduce = '';
-                if (choice === 'work') typeToReduce = 'work';
-                else if (choice === 'rest') typeToReduce = 'rest';
-                else if (choice === 'switch') typeToReduce = 'rest-exercise';
-                else if (choice === 'round') typeToReduce = 'rest-long';
+                // NEW: Render Live Schedule
+                renderLiveSchedule();
 
-                const steps = countRemainingSteps(typeToReduce);
-                const deduction = Math.ceil(currentPauseDuration / steps);
+                runStep();
+            }
 
-                // Apply deduction
-                let currentStepReduced = false;
+            function populateJumpMenus() {
+                const rounds = parseInt(document.getElementById('rounds').value); const ex = parseInt(document.getElementById('exercises').value); const sets = parseInt(document.getElementById('sets').value);
+                const rSel = document.getElementById('jump-round'); const eSel = document.getElementById('jump-exercise'); const sSel = document.getElementById('jump-set');
+                rSel.innerHTML = ""; eSel.innerHTML = ""; sSel.innerHTML = "";
+                for (let i = 1; i <= rounds; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Ronde " + i; rSel.appendChild(opt); }
+                for (let i = 1; i <= ex; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Oef " + i; eSel.appendChild(opt); }
+                for (let i = 1; i <= sets; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = "Set " + i; sSel.appendChild(opt); }
+            }
+
+            function handleJump() {
+                const r = parseInt(document.getElementById('jump-round').value); const e = parseInt(document.getElementById('jump-exercise').value); const s = parseInt(document.getElementById('jump-set').value);
+                const newIndex = schedule.findIndex(step => { return step.type === 'work' && step.info && step.info.round === r && step.info.exercise === e && step.info.set === s; });
+                if (newIndex > -1) {
+                    currentIndex = newIndex;
+                    triggerAudio('manual_override', "Springen naar ronde " + r);
+                    stepEndTime = Date.now();
+                    // Reset played flags when jumping
+                    schedule.forEach(s => delete s.hasPlayedEntry);
+                    runStep();
+                    recalculateForFixedEnd();
+                }
+            }
+
+            function runStep() {
+                if (currentIndex >= schedule.length) return;
+                const step = schedule[currentIndex];
+                const nextStep = schedule[currentIndex + 1];
+                const totalRounds = parseInt(document.getElementById('rounds').value);
+                const totalEx = document.getElementById('exercises').value;
+
+                const body = document.body; body.className = '';
+                const titleEl = document.getElementById('gym-phase-title'); const nextEl = document.getElementById('gym-next-info');
+
+                if (step.info && step.info.maxRounds) {
+                    document.getElementById('val-round').innerText = `${step.info.round}/${step.info.maxRounds}`;
+                    // Only show exercise/set if not 0 (extra phase)
+                    if (step.info.exercise > 0) {
+                        document.getElementById('val-exercise').innerText = `${step.info.exercise}/${step.info.maxEx}`;
+                        document.getElementById('val-set').innerText = `${step.info.set}/${step.info.maxSets}`;
+                        document.getElementById('jump-round').value = step.info.round; document.getElementById('jump-exercise').value = step.info.exercise; document.getElementById('jump-set').value = step.info.set;
+                    } else {
+                        document.getElementById('val-exercise').innerText = "-";
+                        document.getElementById('val-set').innerText = "-";
+                    }
+                    document.getElementById('gym-stats-container').style.opacity = 1;
+                } else { document.getElementById('gym-stats-container').style.opacity = 0.5; }
+
+                // NEW: Update Live Schedule Highlight
+                updateLiveScheduleHighlight();
+
+                // Dynamic Inner Ring Color (based on NEXT step)
+                let nextColor = '#30D158'; // Default Green (Work)
+                let nextGlow = 'rgba(48, 209, 88, 0.6)';
+                if (nextStep) {
+                    if (nextStep.type === 'work') { nextColor = '#30D158'; nextGlow = 'rgba(48, 209, 88, 0.6)'; }
+                    else if (nextStep.type === 'rest') { nextColor = '#FF9F0A'; nextGlow = 'rgba(255, 159, 10, 0.6)'; }
+                    else if (nextStep.type === 'rest-exercise') { nextColor = '#BF5AF2'; nextGlow = 'rgba(191, 90, 242, 0.6)'; }
+                    else if (nextStep.type === 'rest-long') { nextColor = '#0A84FF'; nextGlow = 'rgba(10, 132, 255, 0.6)'; }
+                    else if (nextStep.type === 'finish') { nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)'; }
+                    else if (nextStep.type === 'prep') { nextColor = '#3a3a3c'; nextGlow = 'rgba(58, 58, 60, 0.6)'; }
+                } else {
+                    nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)';
+                }
+
+                const ringStep = document.getElementById('ring-step');
+                if (ringStep) {
+                    ringStep.style.stroke = nextColor;
+                    ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`;
+                }
+
+                titleEl.innerText = step.label;
+                titleEl.className = 'gym-phase-title';
+                if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') {
+                    // Make huge text for main work phases (including custom extra name)
+                    titleEl.classList.add('huge-text');
+                }
+
+                let nextText = "Hierna: Klaar";
+                if (nextStep) { nextText = "Hierna: " + nextStep.label; if (nextStep.type === 'work' && nextStep.info && nextStep.info.exercise > 0) nextText += ` (Oef ${nextStep.info.exercise})`; }
+                nextEl.innerText = nextText;
+
+                if (!step.hasPlayedEntry) {
+                    step.hasPlayedEntry = true;
+                    if (step.type === 'work') {
+                        body.classList.add('mode-work');
+                        // Standard work audio triggers
+                        if (step.info.exercise > 0) {
+                            if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
+                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
+                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
+                            else if (step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
+                            else triggerAudio('work_start', "Start");
+                        } else {
+                            // Custom Extra Start Audio
+                            triggerAudio('work_start', `Start ${step.label}`);
+                        }
+                    }
+                    else if (step.type === 'rest') {
+                        body.classList.add('mode-rest');
+                        let info = ""; if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random() * tips.length)]; }
+                        triggerAudio('rest_set_start', "Rust", info);
+                    }
+                    else if (step.type === 'rest-exercise') {
+                        body.classList.add('mode-switch');
+                        let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
+                        triggerAudio('rest_switch_start', "Wissel", info);
+                    }
+                    else if (step.type === 'rest-long') {
+                        body.classList.add('mode-long');
+                        let info = ""; if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
+                        triggerAudio('rest_round_start', "Grote pauze", info);
+                    }
+                    else if (step.type === 'prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
+                    else { finish(); return; }
+                } else {
+                    // Ensure class is correct valid even if we didn't play audio
+                    if (step.type === 'work') body.classList.add('mode-work');
+                    else if (step.type === 'rest') body.classList.add('mode-rest');
+                    else if (step.type === 'rest-exercise') body.classList.add('mode-switch');
+                    else if (step.type === 'rest-long') body.classList.add('mode-long');
+                    else if (step.type === 'prep') body.classList.add('mode-prep');
+                }
+
+                stepEndTime = Date.now() + (step.time * 1000);
+                document.getElementById('countdown').innerText = step.time;
+
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    if (!isPaused) {
+                        const now = Date.now();
+                        const remainingMs = stepEndTime - now;
+                        let remainingSec = Math.ceil(remainingMs / 1000);
+
+                        if (remainingSec < 0) {
+                            while (remainingSec < 0) {
+                                currentIndex++; if (currentIndex >= schedule.length) { finish(); return; }
+                                const skippedStep = schedule[currentIndex];
+                                stepEndTime += (skippedStep.time * 1000);
+                                remainingSec = Math.ceil((stepEndTime - Date.now()) / 1000);
+                            }
+                            runStep(); return;
+                        }
+
+                        step.time = remainingSec;
+                        document.getElementById('countdown').innerText = step.time;
+                        updateProgressRings(step.time, step.initialTime);
+
+                        const totalDiff = targetEndTimeDate - now;
+                        if (totalDiff > 0) {
+                            const m = Math.floor(totalDiff / 60000); const s = Math.floor((totalDiff % 60000) / 1000);
+                            document.getElementById('val-remaining').innerText = `${m}m ${s}s`;
+                        } else { document.getElementById('val-remaining').innerText = "0m 0s"; }
+
+                        const init = step.initialTime;
+                        if (step.type === 'work') {
+                            let audioTriggered = false;
+                            if (step.time === Math.floor(init / 2) && init >= 30) {
+                                triggerAudio('work_halfway', "Halverwege");
+                                audioTriggered = true;
+                            }
+                            if (!audioTriggered && step.time === 30 && init > 40) {
+                                triggerAudio('work_30s', "30 seconden");
+                                audioTriggered = true;
+                            }
+                            if (!audioTriggered && step.time === 10 && init > 15) {
+                                triggerAudio('work_10s', "10 seconden");
+                            }
+                        }
+                        if (step.type === 'rest-long' && step.time === 15 && init > 20) triggerAudio('rest_round_15s', "Nog 15 seconden, ga naar je oefening");
+                        if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
+
+                        if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); }
+                        else if (step.time <= 3) {
+                            if (speechSettings.use_mp3) {
+                                // MP3 Mode: Trigger prep_countdown once at 3s. Silence at 2s/1s.
+                                if (step.time === 3) triggerAudio('prep_countdown', "3 2 1");
+                            } else {
+                                // TTS Mode: Individual ticks
+                                triggerAudio('tick', step.time.toString());
+                            }
+                        }
+                    } else {
+                        // Do nothing while paused
+                    }
+                }, 1000);
+            }
+
+            function triggerEndTimeEdit() {
+                const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                const input = document.getElementById('hidden-endtime-input'); input.value = timeStr;
+                if ('showPicker' in HTMLInputElement.prototype) { try { input.showPicker(); } catch (e) { input.click(); } } else { input.click(); }
+            }
+
+            function handleNewEndTime(newVal) {
+                if (!newVal) return;
+                const [h, m] = newVal.split(':'); const newDate = new Date(); newDate.setHours(h, m, 0, 0);
+                const now = new Date();
+                if (newDate < now) { if (newDate.getTime() < now.getTime() - 12 * 3600 * 1000) { newDate.setDate(newDate.getDate() + 1); } }
+
+                targetEndTimeDate = newDate;
+                updateEndTimeDisplay(); recalculateForFixedEnd();
+                renderLiveSchedule(); // Re-render to show updated times if needed
+                triggerAudio('manual_override', "Eindtijd aangepast, schema herberekend");
+            }
+
+            function recalculateForFixedEnd() {
+                const now = new Date();
+                const secsRemaining = Math.floor((targetEndTimeDate - now) / 1000);
+                let workStepsLeft = 0; let fixedRest = 0;
                 for (let i = currentIndex; i < schedule.length; i++) {
-                    if (schedule[i].type === typeToReduce) {
-                        // Protect Extra Work from reduction if mode is 'work'
-                        if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
+                    if (schedule[i].type === 'finish') continue;
+                    if (schedule[i].type.includes('rest')) fixedRest += schedule[i].time;
+                    else if (schedule[i].type === 'work') {
+                        // Check if it's a regular exercise or extra start
+                        // We only adjust regular exercises.
+                        // Extra start is considered fixed time (like rest).
+                        if (schedule[i].info && schedule[i].info.exercise > 0) {
+                            workStepsLeft++;
+                        } else {
+                            fixedRest += schedule[i].time; // Treat extra work as fixed rest time for calc purposes
+                        }
+                    }
+                    else if (schedule[i].type === 'prep') workStepsLeft++; // Prep usually 10s fixed, but kept logic same
+                }
 
-                        schedule[i].time = Math.max(5, schedule[i].time - deduction);
-                        schedule[i].initialTime = schedule[i].time;
-                        if (i === currentIndex) currentStepReduced = true;
+                if (workStepsLeft > 0) {
+                    const availableForWork = secsRemaining - fixedRest;
+                    let newWork = Math.floor(availableForWork / workStepsLeft);
+                    if (newWork < 5) newWork = 5;
+
+                    const currentIsWork = (schedule[currentIndex].type === 'work' && schedule[currentIndex].info.exercise > 0);
+                    const oldWorkVal = schedule[currentIndex].initialTime;
+
+                    for (let i = currentIndex; i < schedule.length; i++) {
+                        if (schedule[i].type === 'work' && schedule[i].info.exercise > 0) {
+                            schedule[i].time = newWork; schedule[i].initialTime = newWork;
+                        }
+                    }
+                    if (currentIsWork) {
+                        const diff = newWork - oldWorkVal;
+                        stepEndTime += (diff * 1000);
+                        document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now()) / 1000);
+                    }
+                }
+            }
+
+            function handlePauseClick() {
+                const btn = document.getElementById('btn-pause');
+                if (!isPaused) {
+                    isPaused = true;
+                    pauseStartTime = Date.now();
+                    btn.innerText = "▶️"; // Show Play icon to resume
+
+                    document.body.classList.add('mode-pause');
+                    document.getElementById('gym-phase-title').innerText = "GEPAUZEERD";
+                    triggerAudio('manual_override', "Gepauzeerd");
+                } else {
+                    previewPauseOptions(); // Calculate BEFORE showing modal
+                    document.getElementById('pause-modal').style.display = 'flex';
+                }
+            }
+
+            // --- NEW PAUSE RESOLUTION LOGIC ---
+            function previewPauseOptions() {
+                const now = Date.now();
+                currentPauseDuration = Math.ceil((now - pauseStartTime) / 1000); // Seconds paused
+                document.getElementById('pause-duration-display').innerText = currentPauseDuration + "s";
+
+                // 1. Push Endtime (Always possible)
+                const newEndDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
+                const oldEndStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                const newEndStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                const extraMin = Math.ceil(currentPauseDuration / 60);
+                document.getElementById('btn-text-push').innerText = `Van ${oldEndStr} naar ${newEndStr} (+${extraMin}m)`;
+
+                // 2. Catch up Work
+                const workSteps = countRemainingSteps('work');
+                const btnWork = document.getElementById('btn-catch-work');
+                if (workSteps > 0) {
+                    const deduction = Math.ceil(currentPauseDuration / workSteps);
+                    const currentWork = getFirstStepTime('work');
+                    const newWork = currentWork - deduction;
+                    if (newWork >= 5) {
+                        btnWork.disabled = false; btnWork.style.opacity = 1;
+                        document.getElementById('btn-text-work').innerText = `Werk: ${currentWork}s -> ${newWork}s`;
+                    } else {
+                        btnWork.disabled = true; btnWork.style.opacity = 0.5;
+                        document.getElementById('btn-text-work').innerText = `Niet mogelijk (Werk wordt < 5s)`;
+                    }
+                } else {
+                    btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "Geen werksets meer";
+                }
+
+                // 3. Catch up Rest (Set)
+                updateCatchUpButton('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
+                // 4. Catch up Switch
+                updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
+                // 5. Catch up Round
+                updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
+            }
+
+            function updateCatchUpButton(type, btnId, textId, label) {
+                const steps = countRemainingSteps(type);
+                const btn = document.getElementById(btnId);
+                if (steps > 0) {
+                    const deduction = Math.ceil(currentPauseDuration / steps);
+                    const currentVal = getFirstStepTime(type);
+                    const newVal = currentVal - deduction;
+                    if (newVal >= 5) {
+                        btn.disabled = false; btn.style.opacity = 1;
+                        document.getElementById(textId).innerText = `${label}: ${currentVal}s -> ${newVal}s`;
+                    } else {
+                        btn.disabled = true; btn.style.opacity = 0.5;
+                        document.getElementById(textId).innerText = `Niet mogelijk (${newVal}s < 5s)`;
+                    }
+                } else {
+                    btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(textId).innerText = "Niet van toepassing";
+                }
+            }
+
+            function countRemainingSteps(type) {
+                let count = 0;
+                // Only count regular work steps, not fixed extra steps for adjustment
+                for (let i = currentIndex; i < schedule.length; i++) {
+                    if (schedule[i].type === type) {
+                        if (type === 'work') {
+                            if (schedule[i].info && schedule[i].info.exercise > 0) count++;
+                        } else {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            }
+
+            function getFirstStepTime(type) {
+                for (let i = currentIndex; i < schedule.length; i++) { if (schedule[i].type === type) return schedule[i].time; }
+                return 0;
+            }
+
+            function resolvePause(choice) {
+                document.getElementById('pause-modal').style.display = 'none';
+                const btn = document.getElementById('btn-pause');
+                btn.innerText = "⏸"; btn.classList.remove('paused');
+                isPaused = false;
+
+                document.body.classList.remove('mode-pause');
+
+                // Apply Logic
+                if (choice === 'push') {
+                    targetEndTimeDate = new Date(targetEndTimeDate.getTime() + (currentPauseDuration * 1000));
+                    updateEndTimeDisplay();
+                    stepEndTime += (currentPauseDuration * 1000);
+                } else {
+                    stepEndTime += (currentPauseDuration * 1000);
+
+                    // Now Reduce
+                    let typeToReduce = '';
+                    if (choice === 'work') typeToReduce = 'work';
+                    else if (choice === 'rest') typeToReduce = 'rest';
+                    else if (choice === 'switch') typeToReduce = 'rest-exercise';
+                    else if (choice === 'round') typeToReduce = 'rest-long';
+
+                    const steps = countRemainingSteps(typeToReduce);
+                    const deduction = Math.ceil(currentPauseDuration / steps);
+
+                    // Apply deduction
+                    let currentStepReduced = false;
+                    for (let i = currentIndex; i < schedule.length; i++) {
+                        if (schedule[i].type === typeToReduce) {
+                            // Protect Extra Work from reduction if mode is 'work'
+                            if (typeToReduce === 'work' && schedule[i].info.exercise === 0) continue;
+
+                            schedule[i].time = Math.max(5, schedule[i].time - deduction);
+                            schedule[i].initialTime = schedule[i].time;
+                            if (i === currentIndex) currentStepReduced = true;
+                        }
+                    }
+
+                    if (currentStepReduced) {
+                        stepEndTime -= (deduction * 1000);
+                        document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now()) / 1000);
                     }
                 }
 
-                if (currentStepReduced) {
-                    stepEndTime -= (deduction * 1000);
-                    document.getElementById('countdown').innerText = Math.ceil((stepEndTime - Date.now()) / 1000);
-                }
+                // UI Restore
+                const step = schedule[currentIndex];
+                if (step.type === 'work') document.body.classList.add('mode-work');
+                else if (step.type === 'rest') document.body.classList.add('mode-rest');
+                else if (step.type === 'rest-exercise') document.body.classList.add('mode-switch');
+                else if (step.type === 'rest-long') document.body.classList.add('mode-long');
+
+                triggerAudio('manual_override', "We gaan weer door");
+                document.getElementById('gym-phase-title').innerText = step.label;
+
+                const titleEl = document.getElementById('gym-phase-title');
+                titleEl.className = 'gym-phase-title';
+                if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
             }
 
-            // UI Restore
-            const step = schedule[currentIndex];
-            if (step.type === 'work') document.body.classList.add('mode-work');
-            else if (step.type === 'rest') document.body.classList.add('mode-rest');
-            else if (step.type === 'rest-exercise') document.body.classList.add('mode-switch');
-            else if (step.type === 'rest-long') document.body.classList.add('mode-long');
-
-            triggerAudio('manual_override', "We gaan weer door");
-            document.getElementById('gym-phase-title').innerText = step.label;
-
-            const titleEl = document.getElementById('gym-phase-title');
-            titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
-        }
-
-        function updateEndTimeDisplay() {
-            const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('val-endtime').innerText = timeStr;
-            document.getElementById('live-endtime-input').value = timeStr;
-        }
-
-
-        function updateProgressRings(currentSec, totalSec) {
-            // Inner Ring (Step) uses REVERSE logic (starts full, goes to empty)
-            const ringStep = document.getElementById('ring-step');
-            if (ringStep && totalSec > 0) {
-                const totalC = 251.3; // 2 * pi * 40
-                // pct is % LEFT
-                let pct = currentSec / totalSec;
-                if (pct > 1) pct = 1; if (pct < 0) pct = 0;
-
-                // stroke-dashoffset: 0 = full, totalC = empty
-                // We want full at start, empty at end.
-                // So offset = totalC * (1 - pct)
-                const offset = totalC * (1 - pct);
-                ringStep.style.strokeDashoffset = offset;
-
-
-            } else {
-                console.log("Ring update failed", totalSec);
+            function updateEndTimeDisplay() {
+                const timeStr = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('val-endtime').innerText = timeStr;
+                document.getElementById('live-endtime-input').value = timeStr;
             }
 
-            // Outer Ring (Total)
-            const ringTotal = document.getElementById('ring-total');
-            if (ringTotal) {
-                const now = new Date();
-                const totalMs = targetEndTimeDate - workoutStartTime;
-                if (totalMs > 0) {
-                    const elapsed = now - workoutStartTime;
-                    let pct = elapsed / totalMs;
+
+            function updateProgressRings(currentSec, totalSec) {
+                // Inner Ring (Step) uses REVERSE logic (starts full, goes to empty)
+                const ringStep = document.getElementById('ring-step');
+                if (ringStep && totalSec > 0) {
+                    const totalC = 251.3; // 2 * pi * 40
+                    // pct is % LEFT
+                    let pct = currentSec / totalSec;
                     if (pct > 1) pct = 1; if (pct < 0) pct = 0;
 
-                    const totalC = 301.6; // 2 * pi * 48
-                    // Here we fill UP: 0 = empty ?? No, svg dasharray logic usually: 0=full.
-                    // Let's say we want to START empty and FILL up.
-                    // offset = totalC * (1 - pct)
+                    // stroke-dashoffset: 0 = full, totalC = empty
+                    // We want full at start, empty at end.
+                    // So offset = totalC * (1 - pct)
                     const offset = totalC * (1 - pct);
-                    ringTotal.style.strokeDashoffset = offset;
+                    ringStep.style.strokeDashoffset = offset;
+
+
+                } else {
+                    console.log("Ring update failed", totalSec);
+                }
+
+                // Outer Ring (Total)
+                const ringTotal = document.getElementById('ring-total');
+                if (ringTotal) {
+                    const now = new Date();
+                    const totalMs = targetEndTimeDate - workoutStartTime;
+                    if (totalMs > 0) {
+                        const elapsed = now - workoutStartTime;
+                        let pct = elapsed / totalMs;
+                        if (pct > 1) pct = 1; if (pct < 0) pct = 0;
+
+                        const totalC = 301.6; // 2 * pi * 48
+                        // Here we fill UP: 0 = empty ?? No, svg dasharray logic usually: 0=full.
+                        // Let's say we want to START empty and FILL up.
+                        // offset = totalC * (1 - pct)
+                        const offset = totalC * (1 - pct);
+                        ringTotal.style.strokeDashoffset = offset;
+                    }
                 }
             }
-        }
 
-        function finish() {
-            document.body.className = 'mode-finish';
-            document.getElementById('gym-phase-title').innerText = "KLAAR!";
-            document.getElementById('gym-phase-title').classList.remove('huge-text');
-            document.getElementById('countdown').innerText = "🎉";
-            document.getElementById('gym-stats-container').style.display = 'none';
-            document.getElementById('btn-pause').style.display = 'none';
-            clearInterval(timerInterval);
-            triggerAudio('finish', "Training klaar");
-        }
-
-        function resetApp() {
-            clearInterval(timerInterval);
-            // Force Tabataman on reset (User Request)
-            try {
-                let s = JSON.parse(localStorage.getItem('fnh_settings_v8') || "{}");
-                s.coachPreset = 'tabataman';
-                localStorage.setItem('fnh_settings_v8', JSON.stringify(s));
-            } catch (e) { console.error("Reset pref fail", e); }
-            location.reload();
-        }
-
-        function confirmStop() { if (confirm("Weet je zeker dat je de training wilt stoppen?")) { resetApp(); } }
-
-        // --- NEW FEATURES: LIVE SCHEDULE & NAVIGATION ---
-
-        function renderLiveSchedule() {
-            const tbody = document.getElementById('live-table-body');
-            tbody.innerHTML = "";
-
-            let runningDate = new Date(); // Start from "now" (or workout start)
-            // Ideally we want to show absolute times based on workout start.
-            // If workout hasn't started, assume now.
-            if (workoutStartTime) {
-                // If we are mid-workout, we need to reconstruct the timeline
-                // But for simplicity, let's just render the list with relative durations 
-                // and maybe approximate start times based on "now" for future steps?
-                // Better: Just use the same logic as preview but anchored to workoutStartTime.
-                runningDate = new Date(workoutStartTime);
+            function finish() {
+                document.body.className = 'mode-finish';
+                document.getElementById('gym-phase-title').innerText = "KLAAR!";
+                document.getElementById('gym-phase-title').classList.remove('huge-text');
+                document.getElementById('countdown').innerText = "🎉";
+                document.getElementById('gym-stats-container').style.display = 'none';
+                document.getElementById('btn-pause').style.display = 'none';
+                clearInterval(timerInterval);
+                triggerAudio('finish', "Training klaar");
             }
 
-            // Re-calculate running times based on current schedule
-            // Logic: elapsed time is fixed, future is projected.
+            function resetApp() {
+                clearInterval(timerInterval);
+                // Force Tabataman on reset (User Request)
+                try {
+                    let s = JSON.parse(localStorage.getItem('fnh_settings_v8') || "{}");
+                    s.coachPreset = 'tabataman';
+                    localStorage.setItem('fnh_settings_v8', JSON.stringify(s));
+                } catch (e) { console.error("Reset pref fail", e); }
+                location.reload();
+            }
 
-            // Simplification: Just list them. We highlight the current one.
-            let tempDate = new Date(workoutStartTime || Date.now());
+            function confirmStop() { if (confirm("Weet je zeker dat je de training wilt stoppen?")) { resetApp(); } }
 
-            schedule.forEach((item, index) => {
-                if (item.type === 'finish') return;
+            // --- NEW FEATURES: LIVE SCHEDULE & NAVIGATION ---
 
-                const tr = document.createElement('tr');
-                tr.id = `sched-row-${index}`;
-                tr.onclick = () => jumpToStep(index);
+            function renderLiveSchedule() {
+                const tbody = document.getElementById('live-table-body');
+                tbody.innerHTML = "";
 
-                // Determine status
-                if (index < currentIndex) tr.className = "past-row";
-                else if (index === currentIndex) tr.className = "active-row";
-                else tr.className = "future-row";
-
-                const showTime = tempDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-
-                // Add Duration to tempDate
-                // NOTE: For the current step, the duration in 'item.time' is changing in real-time!
-                // So we should use initialTime for the projection of FUTURE steps.
-                let dur = item.initialTime;
-
-                const tdTime = document.createElement('td');
-                tdTime.innerText = showTime;
-
-                const tdName = document.createElement('td');
-                let desc = item.label;
-                if (item.info && item.info.round && item.info.exercise > 0) desc += ` <span style='color:#888; font-size:11px;'>(R${item.info.round}/E${item.info.exercise}/S${item.info.set})</span>`;
-                tdName.innerHTML = desc; /* Allow HTML for span */
-
-                const tdDur = document.createElement('td');
-                tdDur.style.textAlign = "right";
-                tdDur.innerText = dur + "s";
-
-                tr.appendChild(tdTime);
-                tr.appendChild(tdName);
-                tr.appendChild(tdDur);
-                tbody.appendChild(tr);
-
-                tempDate.setSeconds(tempDate.getSeconds() + dur);
-            });
-        }
-
-        function updateLiveScheduleHighlight() {
-            // Remove old highlight
-            const rows = document.querySelectorAll('.live-table tr');
-            rows.forEach((r, idx) => {
-                if (idx < currentIndex) r.className = "past-row";
-                else if (idx === currentIndex) {
-                    r.className = "active-row";
-                    // Scroll disabled to keep focus on top of page
+                let runningDate = new Date(); // Start from "now" (or workout start)
+                // Ideally we want to show absolute times based on workout start.
+                // If workout hasn't started, assume now.
+                if (workoutStartTime) {
+                    // If we are mid-workout, we need to reconstruct the timeline
+                    // But for simplicity, let's just render the list with relative durations 
+                    // and maybe approximate start times based on "now" for future steps?
+                    // Better: Just use the same logic as preview but anchored to workoutStartTime.
+                    runningDate = new Date(workoutStartTime);
                 }
-                else r.className = "future-row";
-            });
-        }
 
-        function handleNextClick() {
-            if (currentIndex < schedule.length - 1) {
-                currentIndex++;
-                schedule.forEach(s => delete s.hasPlayedEntry); // Allow audio to play for new step
-                stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
-                triggerAudio('manual_override', "Volgende");
-                renderLiveSchedule(); // Update times potentially?
-                runStep();
-            } else {
-                finish();
+                // Re-calculate running times based on current schedule
+                // Logic: elapsed time is fixed, future is projected.
+
+                // Simplification: Just list them. We highlight the current one.
+                let tempDate = new Date(workoutStartTime || Date.now());
+
+                schedule.forEach((item, index) => {
+                    if (item.type === 'finish') return;
+
+                    const tr = document.createElement('tr');
+                    tr.id = `sched-row-${index}`;
+                    tr.onclick = () => jumpToStep(index);
+
+                    // Determine status
+                    if (index < currentIndex) tr.className = "past-row";
+                    else if (index === currentIndex) tr.className = "active-row";
+                    else tr.className = "future-row";
+
+                    const showTime = tempDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+                    // Add Duration to tempDate
+                    // NOTE: For the current step, the duration in 'item.time' is changing in real-time!
+                    // So we should use initialTime for the projection of FUTURE steps.
+                    let dur = item.initialTime;
+
+                    const tdTime = document.createElement('td');
+                    tdTime.innerText = showTime;
+
+                    const tdName = document.createElement('td');
+                    let desc = item.label;
+                    if (item.info && item.info.round && item.info.exercise > 0) desc += ` <span style='color:#888; font-size:11px;'>(R${item.info.round}/E${item.info.exercise}/S${item.info.set})</span>`;
+                    tdName.innerHTML = desc; /* Allow HTML for span */
+
+                    const tdDur = document.createElement('td');
+                    tdDur.style.textAlign = "right";
+                    tdDur.innerText = dur + "s";
+
+                    tr.appendChild(tdTime);
+                    tr.appendChild(tdName);
+                    tr.appendChild(tdDur);
+                    tbody.appendChild(tr);
+
+                    tempDate.setSeconds(tempDate.getSeconds() + dur);
+                });
             }
-        }
 
-        function handlePrevClick() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                schedule.forEach(s => delete s.hasPlayedEntry); // Allow audio to play for previous step
-                // Restore time for the step we are going BACK to (full duration)
-                schedule[currentIndex].time = schedule[currentIndex].initialTime;
-                stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
-                triggerAudio('manual_override', "Vorige");
-                renderLiveSchedule();
-                runStep();
+            function updateLiveScheduleHighlight() {
+                // Remove old highlight
+                const rows = document.querySelectorAll('.live-table tr');
+                rows.forEach((r, idx) => {
+                    if (idx < currentIndex) r.className = "past-row";
+                    else if (idx === currentIndex) {
+                        r.className = "active-row";
+                        // Scroll disabled to keep focus on top of page
+                    }
+                    else r.className = "future-row";
+                });
             }
-        }
 
-        function jumpToStep(index) {
-            if (index >= 0 && index < schedule.length) {
-                if (confirm(`Wil je springen naar: ${schedule[index].label}?`)) {
-                    currentIndex = index;
-                    // Reset time to full initial duration for that step
+            function handleNextClick() {
+                if (currentIndex < schedule.length - 1) {
+                    currentIndex++;
+                    schedule.forEach(s => delete s.hasPlayedEntry); // Allow audio to play for new step
+                    stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
+                    triggerAudio('manual_override', "Volgende");
+                    renderLiveSchedule(); // Update times potentially?
+                    runStep();
+                } else {
+                    finish();
+                }
+            }
+
+            function handlePrevClick() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    schedule.forEach(s => delete s.hasPlayedEntry); // Allow audio to play for previous step
+                    // Restore time for the step we are going BACK to (full duration)
                     schedule[currentIndex].time = schedule[currentIndex].initialTime;
                     stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
-
-                    triggerAudio('manual_override', "Springen naar selectie");
+                    triggerAudio('manual_override', "Vorige");
                     renderLiveSchedule();
                     runStep();
                 }
             }
-        }
+
+            function jumpToStep(index) {
+                if (index >= 0 && index < schedule.length) {
+                    if (confirm(`Wil je springen naar: ${schedule[index].label}?`)) {
+                        currentIndex = index;
+                        // Reset time to full initial duration for that step
+                        schedule[currentIndex].time = schedule[currentIndex].initialTime;
+                        stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
+
+                        triggerAudio('manual_override', "Springen naar selectie");
+                        renderLiveSchedule();
+                        runStep();
+                    }
+                }
+            }
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
         style="display:none; flex-direction:column; justify-content:center; align-items:center; background:black; color:white;">
