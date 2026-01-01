@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.38</title>
+    <title>Friday-night-hawk-s Timer v1.31.40</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1694,11 +1694,52 @@
             </div>
         </div>
 
-        <div class="info-bar">
+        <div class="info-bar" onclick="openSetupWorkAdjustment()" style="cursor:pointer;">
             <div style="font-size:12px; color:#888;">WERKTIJD PER SET</div>
             <div style="font-size:30px; font-weight:bold; color:#30D158;" id="live-calc-result">--</div>
+            <div style="font-size:10px; color:#666; position:absolute; right:10px; top:10px;">✏️</div>
 
             <div id="live-calc-error" style="color:#FF453A; display:none; font-size:12px;">Onmogelijk schema!</div>
+        </div>
+
+        <div id="setup-work-adjust-modal" class="modal-overlay"
+            style="display:none; align-items:center; justify-content:center;">
+            <div class="modal-content" style="width:90%; max-width:400px; text-align:center;">
+                <h2 style="margin-top:0;">Werktijd (Setup)</h2>
+                <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Pas de werktijd aan en kies wat er moet
+                    veranderen.</p>
+
+                <div style="background:#2c2c2e; padding:15px; border-radius:10px; margin-bottom:20px;">
+                    <div style="font-size:12px; color:#888;">Nieuwe Werktijd</div>
+                    <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <button class="modal-btn" style="width:40px; height:40px; padding:0; background:#444;"
+                            onclick="adjustSetupWorkInput(-5)">-5</button>
+                        <input type="number" id="setup-work-input" value="45"
+                            style="font-size:32px; background:transparent; border:none; color:white; font-weight:bold; text-align:center; width:80px; font-family: 'Outfit', sans-serif;"
+                            onchange="calcSetupWorkDiff()">
+                        <button class="modal-btn" style="width:40px; height:40px; padding:0; background:#444;"
+                            onclick="adjustSetupWorkInput(5)">+5</button>
+                    </div>
+                    <div id="setup-work-diff" style="margin-top:5px; font-weight:bold; color:#0A84FF;">+0s per set</div>
+                </div>
+
+                <button class="modal-btn" id="btn-setup-duration" style="background: #0A84FF; color: white;"
+                    onclick="applySetupWorkAdjustment('duration')">
+                    🗓️ Pas Duur Aan
+                    <span class="btn-subtext" id="sub-setup-duration">Totale tijd verandert</span>
+                </button>
+
+                <button class="modal-btn" id="btn-setup-rest" style="background: #FF9F0A; color: black;"
+                    onclick="applySetupWorkAdjustment('rest')">
+                    💤 Pas Rust Aan
+                    <span class="btn-subtext" id="sub-setup-rest">Rust wordt korter/langer</span>
+                </button>
+
+                <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                    onclick="closeSetupWorkAdjustment()">
+                    ❌ Annuleren
+                </button>
+            </div>
         </div>
 
         <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
@@ -4691,8 +4732,223 @@
             renderLiveSchedule(true);
         }
 
+
+        // --- SETUP WORK ADJUSTMENT LOGIC ---
+        function openSetupWorkAdjustment() {
+            // Ensure we have the latest calculation
+            calculateRealTime();
+
+            // Check if we have a valid work time
+            if (workTimeSec <= 0) {
+                alert("Er is nog geen geldig schema berekend. Vul eerst de instellingen in.");
+                return;
+            }
+
+            document.getElementById('setup-work-input').value = workTimeSec;
+            calcSetupWorkDiff();
+            document.getElementById('setup-work-adjust-modal').style.display = 'flex';
+        }
+
+        function closeSetupWorkAdjustment() {
+            document.getElementById('setup-work-adjust-modal').style.display = 'none';
+        }
+
+        function adjustSetupWorkInput(delta) {
+            const inp = document.getElementById('setup-work-input');
+            let val = parseInt(inp.value) || 0;
+            val += delta;
+            if (val < 5) val = 5;
+            inp.value = val;
+            calcSetupWorkDiff();
+        }
+
+        function calcSetupWorkDiff() {
+            const val = parseInt(document.getElementById('setup-work-input').value) || 0;
+            const diff = val - workTimeSec;
+            const txt = document.getElementById('setup-work-diff');
+
+            if (diff > 0) { txt.innerText = `+${diff}s per set`; txt.style.color = "#30D158"; }
+            else if (diff < 0) { txt.innerText = `${diff}s per set`; txt.style.color = "#FF453A"; }
+            else { txt.innerText = "Geen wijziging"; txt.style.color = "#888"; }
+
+            // Update Buttons Text
+            const btnDur = document.getElementById('btn-setup-duration');
+            const subDur = document.getElementById('sub-setup-duration');
+            const btnRest = document.getElementById('btn-setup-rest');
+            const subRest = document.getElementById('sub-setup-rest');
+
+            // 1. Duration Impact
+            // Delta * Total Work Sets
+            const totalWorkSets = parseInt(document.getElementById('rounds').value) *
+                parseInt(document.getElementById('exercises').value) *
+                parseInt(document.getElementById('sets').value);
+            const totalImpactSec = diff * totalWorkSets;
+            const valDur = Math.ceil(Math.abs(totalImpactSec) / 60);
+
+            if (totalImpactSec !== 0) {
+                subDur.innerText = `Totale tijd ${totalImpactSec > 0 ? '+' : '-'}${valDur} min`;
+                btnDur.disabled = false; btnDur.style.opacity = 1;
+            } else {
+                subDur.innerText = "Geen verandering";
+                btnDur.disabled = true; btnDur.style.opacity = 0.5;
+            }
+
+            // 2. Rest Impact
+            // We need to absorb 'totalImpactSec' using Rest.
+            // If Work increases (+100s), Rest must decrease (-100s).
+            // We start by cutting Set Rest, then Switch Rest? Or just evenly?
+            // Simplest: Distribute across Set Rest & Switch Rest (weighted?)
+            // Let's perform a dry run calc
+
+            // Get current Rests
+            const curRest = parseInt(document.getElementById('restSec').value);
+            const curSwitch = parseInt(document.getElementById('exerciseRestSec').value);
+
+            // Count slots
+            const rounds = parseInt(document.getElementById('rounds').value);
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sets = parseInt(document.getElementById('sets').value);
+
+            // Total slots approximation (ignoring exact bonus logic for setup preview)
+            // Set Rests = (Sets - 1) * Ex * Rounds
+            const slotsRest = (sets - 1) * ex * rounds;
+            // Switch Rests = (Ex - 1) * Rounds
+            const slotsSwitch = (ex - 1) * rounds;
+
+            const totalSlots = slotsRest + slotsSwitch;
+
+            if (totalSlots > 0 && totalImpactSec !== 0) {
+                // We need to REMOVE totalImpactSec from the rest pool.
+                const reducePerSlot = Math.round(totalImpactSec / totalSlots);
+                // If Work + (diff > 0), totalImpact > 0. reducePerSlot > 0.
+                // New Rest = Old Rest - reducePerSlot.
+
+                const newRest = curRest - reducePerSlot;
+                const newSwitch = curSwitch - reducePerSlot;
+
+                if (newRest < 5 || newSwitch < 5) {
+                    subRest.innerText = "Niet mogelijk (Rust wordt < 5s)";
+                    btnRest.disabled = true; btnRest.style.opacity = 0.5;
+                } else {
+                    subRest.innerText = `Rust & Wissel: ${reducePerSlot > 0 ? '-' : '+'}${Math.abs(reducePerSlot)}s`;
+                    btnRest.disabled = false; btnRest.style.opacity = 1;
+                }
+            } else {
+                subRest.innerText = "Geen relevant aantal rustmomenten";
+                btnRest.disabled = true; btnRest.style.opacity = 0.5;
+            }
+        }
+
+        function applySetupWorkAdjustment(mode) {
+            const newVal = parseInt(document.getElementById('setup-work-input').value) || 0;
+            const diff = newVal - workTimeSec;
+            if (diff === 0) { closeSetupWorkAdjustment(); return; }
+
+            if (mode === 'duration') {
+                // Change Total Duration
+                // We have totalImpactSec calculated above
+                const rounds = parseInt(document.getElementById('rounds').value);
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sets = parseInt(document.getElementById('sets').value);
+                const totalWorkSets = rounds * ex * sets;
+                const totalImpactSec = diff * totalWorkSets;
+
+                // Update Duration Input (minutes)
+                // Start with current selected duration
+                // Actually, "Total Min" dropdown is the master controller usually.
+                // But we might be in start/end mode.
+                // Let's modify the End Time primarily? Or Total Duration?
+                // Modifying Duration is safer for "Duration" mode.
+
+                // Get current duration in seconds (based on current calculation budget)
+                // We can grab it from startTime vs endTime
+                const st = document.getElementById('startTimeValue').value;
+                const et = document.getElementById('endTimeValue').value;
+                // Helper to parse
+                const d1 = new Date("1970-01-01T" + st);
+                const d2 = new Date("1970-01-01T" + et);
+                if (d2 < d1) d2.setDate(d2.getDate() + 1);
+                let curDurSec = (d2 - d1) / 1000;
+
+                let newDurSec = curDurSec + totalImpactSec;
+                let newDurMin = Math.round(newDurSec / 60);
+
+                // Update input and trigger sync
+                // We need to update the Total Min dropdown IF it exists there, or add custom?
+                // The app usually snaps to 5m increments.
+                // But let's try updating End Time to match exact seconds?
+                // Updating End Time is most flexible.
+
+                const newEndDate = new Date(d1.getTime() + (newDurSec * 1000));
+                const endStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('endTimeValue').value = endStr;
+
+                // Also try to update TotalMin visual if close
+                // Check if valid option exists?
+                // document.getElementById('totalMin').value = newDurMin; // Might fail if not in options
+                // Let's invoke syncTime('endtime') to cascade changes
+                syncTime('endtime');
+                saveToLocal();
+
+            } else if (mode === 'rest') {
+                // Change Rest Times to absorb diff
+                const curRest = parseInt(document.getElementById('restSec').value);
+                const curSwitch = parseInt(document.getElementById('exerciseRestSec').value);
+
+                const rounds = parseInt(document.getElementById('rounds').value);
+                const ex = parseInt(document.getElementById('exercises').value);
+                const sets = parseInt(document.getElementById('sets').value);
+
+                const slotsRest = (sets - 1) * ex * rounds;
+                const slotsSwitch = (ex - 1) * rounds;
+                const totalSlots = slotsRest + slotsSwitch;
+                const totalWorkSets = rounds * ex * sets;
+                const totalImpactSec = diff * totalWorkSets;
+
+                if (totalSlots > 0) {
+                    const reducePerSlot = Math.round(totalImpactSec / totalSlots);
+                    let newRest = curRest - reducePerSlot;
+                    let newSwitch = curSwitch - reducePerSlot;
+
+                    if (newRest < 5) newRest = 5;
+                    if (newSwitch < 5) newSwitch = 5;
+
+                    // Update Selects (Create option if not exists)
+                    setSelectValue('restSec', newRest);
+                    setSelectValue('exerciseRestSec', newSwitch);
+
+                    // Trigger Recalc
+                    calculateRealTime();
+                    saveToLocal();
+                }
+            }
+
+            closeSetupWorkAdjustment();
+        }
+
+        // Helper to force set value in select (adding if missing)
+        function setSelectValue(id, val) {
+            const sel = document.getElementById(id);
+            let found = false;
+            for (let i = 0; i < sel.options.length; i++) {
+                if (parseInt(sel.options[i].value) === val) {
+                    sel.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.innerText = val + "s";
+                sel.add(opt);
+                sel.value = val;
+            }
+        }
+
         // --- LIVE WORK ADJUSTMENT ---
         let liveBaseWorkTime = 0;
+
 
         function openLiveWorkAdjustment() {
             try { if (!isPaused) handlePauseClick(); } catch (e) { isPaused = true; }
