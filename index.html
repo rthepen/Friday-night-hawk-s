@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.04</title>
+    <title>Friday-night-hawk-s Timer v1.31.05</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.04</span>
+                FNH Timer <span class="version-tag">v1.31.05</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3505,7 +3505,14 @@
                         for (const key in data.speechSettings) {
                             if (!speechSettings[key]) speechSettings[key] = data.speechSettings[key];
                         }
+
+                        // FIX: Ensure critical keys exist to prevent 'undefined' errors
+                        const requiredKeys = ['rest_set_tips', 'rest_switch_info', 'rest_round_info'];
+                        requiredKeys.forEach(k => {
+                            if (!speechSettings[k]) speechSettings[k] = { enabled: true };
+                        });
                     }
+
                 } catch (e) { console.log("Error loading settings", e); }
             }
         }
@@ -4079,17 +4086,17 @@
                     }
                     else if (step.type === 'rest') {
                         body.classList.add('mode-rest');
-                        let info = ""; if (speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random() * tips.length)]; }
+                        let info = ""; if (speechSettings.rest_set_tips && speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random() * tips.length)]; }
                         triggerAudio('rest_set_start', "Rust", info);
                     }
                     else if (step.type === 'rest-exercise') {
                         body.classList.add('mode-switch');
-                        let info = ""; if (speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
+                        let info = ""; if (speechSettings.rest_switch_info && speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
                         triggerAudio('rest_switch_start', "Wissel", info);
                     }
                     else if (step.type === 'rest-long') {
                         body.classList.add('mode-long');
-                        let info = ""; if (speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
+                        let info = ""; if (speechSettings.rest_round_info && speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
                         triggerAudio('rest_round_start', "Grote pauze", info);
                     }
                     else if (step.type === 'prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
