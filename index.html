@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.27</title>
+    <title>Friday-night-hawk-s Timer v1.31.28</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.27</span>
+                FNH Timer <span class="version-tag">v1.31.28</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2815,22 +2815,18 @@
                         matDesc = details.material_description || '-';
                         instr = details.instructions || '-';
 
-                        const vidUrl = details.video_search_url || "";
+                        let videoLink = "";
+                        if (details.video_search_url) {
+                            videoLink = details.video_search_url;
+                        } else {
+                            videoLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(step.label + " shorts")}`;
+                        }
 
-                        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(exName + " shorts")}`;
-                        const finalUrl = vidUrl ? vidUrl : searchUrl;
-                        const shortsUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(exName + " " + matName + " workout shorts")}`;
-
+                        // Buttons HTML
                         videoBtnHtml = `
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn-video" onclick="window.open('${finalUrl}', '_blank')" style="flex:1;">
-                                    ▶ Video
-                                </button>
-                                <button class="btn-video" onclick="window.open('${shortsUrl}', '_blank')" style="flex:1; background-color:#FF3B30;">
-                                    📱 Shorts
-                                </button>
-                            </div>
-                        `;
+                        <div style="margin-top:5px; display:flex; gap:5px;">
+                             <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">▶ Video</a>
+                        </div>`;
                     }
 
                     // New Labeled Structure
