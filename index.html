@@ -4430,6 +4430,10 @@
                 if (choice === 'push') {
                     // Option 1: Shift End Time Earlier (Remove Surplus)
                     targetEndTimeDate = new Date(targetEndTimeDate.getTime() - (surplus * 1000));
+                    // FIX: Also adjust start time so total progress % allows us to jump forward visually!
+                    // If we don't do this, we "lose" elapsed time and the bar drops back.
+                    workoutStartTime = new Date(workoutStartTime.getTime() - (surplus * 1000));
+
                     updateEndTimeDisplay();
                     recalculateForFixedEnd();
                     // recalculate sees reduced duration -> shrinks Work back to original.
@@ -4588,6 +4592,11 @@
             document.getElementById('countdown').innerText = "🎉";
             document.getElementById('gym-stats-container').style.display = 'none';
             document.getElementById('btn-pause').style.display = 'none';
+            // Force 100% progress
+            updateProgressRings(0, 1);
+            const ringTotal = document.getElementById('ring-total');
+            if (ringTotal) ringTotal.style.strokeDashoffset = 0; // Ensure full
+
             clearInterval(timerInterval);
             triggerAudio('finish', "Training klaar");
         }
