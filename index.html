@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.48</title>
+    <title>Friday-night-hawk-s Timer v1.31.49</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.48</span>
+                FNH Timer <span class="version-tag">v1.31.49</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2412,7 +2412,6 @@
             { id: "mile_half", label: "50% (Helft)", type: "text" },
             { id: "mile_end", label: "75% (Eindsprint)", type: "text" },
             { id: "mile_lastround", label: "Start laatste ronde", type: "text" },
-            ```
             { id: "finish", label: "Einde training", type: "text" }
         ];
 
@@ -2446,9 +2445,9 @@
         // HELPER: Get Bonus Data
         function getBonusData(i) {
             return {
-                name: document.getElementById(`bonus${ i } - name`).value || `Bonus ${ i }`,
-                min: parseInt(document.getElementById(`bonus${ i } - duration`).value) || 0,
-                freq: document.getElementById(`bonus${ i } - freq`).value,
+                name: document.getElementById(`bonus${i} - name`).value || `Bonus ${i}`,
+                min: parseInt(document.getElementById(`bonus${i} - duration`).value) || 0,
+                freq: document.getElementById(`bonus${i} - freq`).value,
                 id: i
             };
         }
@@ -2536,9 +2535,9 @@
             if (appDefaults.bonuses) {
                 for (let i = 0; i < 3; i++) {
                     if (appDefaults.bonuses[i]) {
-                        document.getElementById(`bonus${ i + 1}-name`).value = appDefaults.bonuses[i].name;
-                        document.getElementById(`bonus${ i + 1 } -duration`).value = appDefaults.bonuses[i].duration;
-                        document.getElementById(`bonus${ i + 1 } -freq`).value = appDefaults.bonuses[i].freq;
+                        document.getElementById(`bonus${i + 1}-name`).value = appDefaults.bonuses[i].name;
+                        document.getElementById(`bonus${i + 1} -duration`).value = appDefaults.bonuses[i].duration;
+                        document.getElementById(`bonus${i + 1} -freq`).value = appDefaults.bonuses[i].freq;
                     }
                 }
             }
@@ -2696,14 +2695,14 @@
                 const grp = document.createElement('optgroup'); grp.label = "── INTERVALLEN ──"; sel.appendChild(grp);
 
                 for (let i = 1; i <= 12; i++) {
-                    const opt = document.createElement('option'); opt.value = i; opt.text = `Om de ${ i } oefeningen`; sel.appendChild(opt);
+                    const opt = document.createElement('option'); opt.value = i; opt.text = `Om de ${i} oefeningen`; sel.appendChild(opt);
                 }
             };
 
             // Loop for 3 bonuses
             for (let i = 1; i <= 3; i++) {
-                fillBonusDuration(`bonus${ i } -duration`);
-                fillBonusFreq(`bonus${ i } -freq`);
+                fillBonusDuration(`bonus${i} -duration`);
+                fillBonusFreq(`bonus${i} -freq`);
             }
         }
 
@@ -2806,35 +2805,35 @@
             // Check in chunks to not overload (optional, but Promise.all is usually fine for ~20 files)
             const checks = expectedKeys.map(async (key) => {
                 try {
-                    const path = `coaches / ${ coachId }/${key}.mp3`;
-        const resp = await fetch(path, { method: 'HEAD' });
-        if (!resp.ok) return key;
-        return null;
+                    const path = `coaches / ${coachId}/${key}.mp3`;
+                    const resp = await fetch(path, { method: 'HEAD' });
+                    if (!resp.ok) return key;
+                    return null;
                 } catch (e) {
-            return key; // Error means missing or network issue
-        }
+                    return key; // Error means missing or network issue
+                }
             });
 
-        const results = await Promise.all(checks);
-        results.forEach(res => {
-            if (res) missing.push(res);
-        });
-
-        if (missing.length > 0) {
-            status.innerText = `Er ontbreken ${missing.length} bestanden:`;
-            status.style.color = "#ff453a";
-            missing.forEach(key => {
-                const li = document.createElement('li');
-                li.innerText = `${key}.mp3`;
-                list.appendChild(li);
+            const results = await Promise.all(checks);
+            results.forEach(res => {
+                if (res) missing.push(res);
             });
-        } else {
-            status.innerText = "Alle audio bestanden zijn aanwezig! ✅";
-            status.style.color = "#30D158";
-            setTimeout(() => {
-                if (modal.style.display === 'flex') modal.style.display = 'none';
-            }, 1500);
-        }
+
+            if (missing.length > 0) {
+                status.innerText = `Er ontbreken ${missing.length} bestanden:`;
+                status.style.color = "#ff453a";
+                missing.forEach(key => {
+                    const li = document.createElement('li');
+                    li.innerText = `${key}.mp3`;
+                    list.appendChild(li);
+                });
+            } else {
+                status.innerText = "Alle audio bestanden zijn aanwezig! ✅";
+                status.style.color = "#30D158";
+                setTimeout(() => {
+                    if (modal.style.display === 'flex') modal.style.display = 'none';
+                }, 1500);
+            }
         }
 
 
