@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.30</title>
-    <script src="workout_data.js"></script>
+    <title>Friday-night-hawk-s Timer v1.31.31</title>
+    <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.30</span>
+                FNH Timer <span class="version-tag">v1.31.31</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2359,11 +2359,22 @@
             { id: "finish", label: "Einde training", type: "text" }
         ];
 
+        // GLOBAL STATE
+        let WORKOUT_DB = []; // Will be loaded from JSON
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
         let currentIndex = 0;
         let timerInterval;
         let isPaused = false;
+
+        // Load Database
+        fetch('workoutdatabase.json')
+            .then(response => response.json())
+            .then(data => {
+                WORKOUT_DB = data;
+                console.log("Workout Database Loaded:", WORKOUT_DB.length, "items");
+            })
+            .catch(err => console.error("Failed to load workout database:", err));
         let pauseStartTime = 0;
         let workoutStartTime, targetEndTimeDate;
         let totalWorkSetsGlobal = 0;
