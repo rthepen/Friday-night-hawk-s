@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.29.01</title>
+    <title>Friday-night-hawk-s Timer v1.29.02</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.29.01</span>
+                FNH Timer <span class="version-tag">v1.29.02</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4053,7 +4053,8 @@
                         if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
                         else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
                         else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                        else if (step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
+                        else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
+                        else if (totalRounds > 1 && step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
                         else triggerAudio('work_start', "Start");
                     } else {
                         // Custom Extra Start Audio
@@ -4119,7 +4120,7 @@
                     const init = step.initialTime;
                     if (step.type === 'work') {
                         let audioTriggered = false;
-                        if (step.time === Math.floor(init / 2) && init >= 30) {
+                        if (step.time === Math.floor(init / 2) && init >= 20) {
                             triggerAudio('work_halfway', "Halverwege");
                             audioTriggered = true;
                         }
@@ -4127,7 +4128,7 @@
                             triggerAudio('work_30s', "30 seconden");
                             audioTriggered = true;
                         }
-                        if (!audioTriggered && step.time === 10 && init > 15) {
+                        if (!audioTriggered && step.time === 10 && init > 20) {
                             triggerAudio('work_10s', "10 seconden");
                         }
                     }
