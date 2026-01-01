@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.12</title>
+    <title>Friday-night-hawk-s Timer v1.31.13</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.12</span>
+                FNH Timer <span class="version-tag">v1.31.13</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1830,7 +1830,7 @@
                     </div>
                 </div>
                 <div class="stats-row-2">
-                    <div class="stat-box editable" onclick="handlePauseClick()" style="cursor:pointer;">
+                    <div class="stat-box editable" onclick="handleForcePauseMenu()" style="cursor:pointer;">
                         <div class="edit-icon">✏️</div>
                         <div class="stat-label">Einde (Klik!)</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
@@ -4260,6 +4260,19 @@
                 previewPauseOptions(); // Calculate BEFORE showing modal
                 document.getElementById('pause-modal').style.display = 'flex';
             }
+        }
+
+        function handleForcePauseMenu() {
+            // Called by "Einde (Klik!)"
+            // Goal: Pause app (if running) AND immediately show the menu.
+
+            if (!isPaused) {
+                handlePauseClick(); // This pauses the app, sets isPaused=true
+            }
+
+            // Explicitly show the modal now (handlePauseClick only does this if ALREADY paused)
+            previewPauseOptions();
+            document.getElementById('pause-modal').style.display = 'flex';
         }
 
         // --- NEW PAUSE RESOLUTION LOGIC ---
