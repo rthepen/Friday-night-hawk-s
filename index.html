@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.44</title>
+    <title>Friday-night-hawk-s Timer v1.31.45</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.44</span>
+                FNH Timer <span class="version-tag">v1.31.45</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2362,7 +2362,20 @@
         };
 
         const coachPresets = {
-            'tabataman': { use_mp3: true },
+            'tabataman': {
+                use_mp3: true,
+                variants: {
+                    'prep_countdown': 4,
+                    'finish': 1,
+                    'mile_end': 1, 'mile_half': 1, 'mile_lastround': 1, 'mile_start': 1,
+                    'prep_intro': 1,
+                    'rest_round_15s': 1, 'rest_round_start': 1,
+                    'rest_set_start': 1, 'rest_set_tips': 1,
+                    'rest_switch_10s': 1, 'rest_switch_start': 1,
+                    'work_start': 1, 'work_halfway': 1,
+                    'work_30s': 1, 'work_10s': 1, 'work_5s': 1
+                }
+            },
             'nl_female': { use_mp3: true },
             'nl_male': { use_mp3: true }
         };
@@ -2402,10 +2415,7 @@
         ];
 
         // GLOBAL STATE
-        const AUDIO_VARIANTS = {
-            'prep_countdown': 4, // Example: prep_countdown_1.mp3 to _4.mp3
-            // Add others here if they exist, e.g. 'work_start': 3
-        };
+        // AUDIO_VARIANTS moved to coachPresets
         let audioPlaylists = {}; // Stores the shuffled queue per key: { 'prep_countdown': [2, 4, 1, 3] }
 
         let WORKOUT_DB = []; // Will be loaded from JSON
@@ -4071,29 +4081,28 @@
                 if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
                     let finalKey = key;
 
-                    // --- VARIANT LOGIC (Random Shuffle Loop - Fixed Sequence) ---
-                    if (AUDIO_VARIANTS[key] && AUDIO_VARIANTS[key] > 1) {
-                        const count = AUDIO_VARIANTS[key];
+                    // Retrieve variants config for this coach
+                    const preset = coachPresets[coachId];
+                    const variantsMap = preset ? (preset.variants || {}) : {};
+
+                    // --- VARIANT LOGIC (Random Shuffle Loop) ---
+                    // If variants defined for this key (count >= 1), use suffix logic _1, _2...
+                    if (variantsMap[key] && variantsMap[key] >= 1) {
+                        const count = variantsMap[key];
 
                         // Initialize playlist if needed
                         if (!audioPlaylists[key]) {
-                            // Generate [1, 2, ... count]
                             const arr = Array.from({ length: count }, (_, i) => i + 1);
                             // Fisher-Yates Shuffle
                             for (let i = arr.length - 1; i > 0; i--) {
                                 const j = Math.floor(Math.random() * (i + 1));
                                 [arr[i], arr[j]] = [arr[j], arr[i]];
                             }
-                            // Store as { tracks: [...], ptr: 0 }
                             audioPlaylists[key] = { tracks: arr, ptr: 0 };
-                            // logAudioDebug(`🔀 New Sequence for ${key}: [${arr.join(', ')}]`);
                         }
 
-                        // Get next from fixed sequence (Circular)
                         const pl = audioPlaylists[key];
                         const variantId = pl.tracks[pl.ptr];
-
-                        // Advance pointer, wrap around
                         pl.ptr = (pl.ptr + 1) % pl.tracks.length;
 
                         finalKey = `${key}_${variantId}`;
