@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.14</title>
+    <title>Friday-night-hawk-s Timer v1.31.15</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.14</span>
+                FNH Timer <span class="version-tag">v1.31.15</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1830,7 +1830,7 @@
                     </div>
                 </div>
                 <div class="stats-row-2">
-                    <div class="stat-box editable" onclick="handleForcePauseMenu()" style="cursor:pointer;">
+                    <div class="stat-box editable" onclick="openLiveEndAdjustment()" style="cursor:pointer;">
                         <div class="edit-icon">✏️</div>
                         <div class="stat-label">Einde (Klik!)</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
@@ -4327,6 +4327,174 @@
             updateCatchUpButton('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
             // 5. Catch up Round
             updateCatchUpButton('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
+        }
+
+        // --- LIVE END TIME ADJUSTMENT LOGIC ---
+        let liveBaseEndTime = null; // The projected end time BEFORE adjustment starts
+
+        function openLiveEndAdjustment() {
+            // 1. Pause App similar to handleForcePauseMenu
+            try {
+                if (!isPaused) {
+                    handlePauseClick();
+                }
+            } catch (e) { console.error(e); isPaused = true; }
+
+            // 2. Hide standard pause modal (if open)
+            document.getElementById('pause-modal').style.display = 'none';
+
+            // 3. Calc projected end time based on CURRENT schedule
+            // We use the renderLiveSchedule() return value as the source of truth
+            const projected = renderLiveSchedule(false) || targetEndTimeDate;
+            liveBaseEndTime = new Date(projected);
+
+            // 4. Set Input
+            const timeStr = liveBaseEndTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('live-adjust-input').value = timeStr;
+
+            // 5. Reset Diff UI
+            calcLiveEndDiff();
+
+            // 6. Show Modal
+            document.getElementById('live-end-adjust-modal').style.display = 'flex';
+        }
+
+        function cancelLiveAdjustment() {
+            document.getElementById('live-end-adjust-modal').style.display = 'none';
+            // Return to standard pause menu
+            document.getElementById('pause-modal').style.display = 'flex';
+        }
+
+        function calcLiveEndDiff() {
+            const val = document.getElementById('live-adjust-input').value;
+            if (!val) return;
+
+            const [h, m] = val.split(':');
+            const newDate = new Date();
+            newDate.setHours(h, m, 0, 0);
+            // Fix day wrapping
+            const now = new Date();
+            if (newDate < now && (now.getTime() - newDate.getTime() > 12 * 3600 * 1000)) {
+                newDate.setDate(newDate.getDate() + 1);
+            }
+
+            const diffMs = newDate - liveBaseEndTime;
+            const diffSec = Math.round(diffMs / 1000);
+
+            const txt = document.getElementById('live-adjust-diff');
+            if (diffSec > 0) {
+                txt.innerText = `+${Math.floor(diffSec / 60)}m ${diffSec % 60}s`;
+                txt.style.color = "#30D158";
+            } else if (diffSec < 0) {
+                txt.innerText = `-${Math.floor(Math.abs(diffSec) / 60)}m ${Math.abs(diffSec) % 60}s`;
+                txt.style.color = "#FF453A";
+            } else {
+                txt.innerText = "Geen verschil";
+                txt.style.color = "#888";
+            }
+
+            // Update buttons with projected effect
+            updateLiveEffect('work', diffSec, 'btn-live-work', 'sub-live-work');
+            updateLiveEffect('rest', diffSec, 'btn-live-rest', 'sub-live-rest');
+            updateLiveEffect('switch', diffSec, 'btn-live-switch', 'sub-live-switch');
+        }
+
+        function updateLiveEffect(typeKey, totalDiffSec, btnId, subId) {
+            const btn = document.getElementById(btnId);
+            const sub = document.getElementById(subId);
+
+            // Count remaining steps of this type
+            // typeKey mapping: 'work'->'work', 'rest'->'rest', 'switch'->'rest-exercise' (roughly)
+            let internalTypes = [];
+            if (typeKey === 'work') internalTypes = ['work'];
+            if (typeKey === 'rest') internalTypes = ['rest'];
+            if (typeKey === 'switch') internalTypes = ['rest-exercise'];
+
+            let count = 0;
+            // Count ONLY future steps
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (internalTypes.includes(schedule[i].type)) count++;
+            }
+
+            if (count === 0) {
+                btn.disabled = true;
+                btn.style.opacity = 0.5;
+                sub.innerText = "Niet beschikbaar (geen stappen)";
+                return;
+            }
+
+            btn.disabled = false;
+            btn.style.opacity = 1;
+            const perStep = Math.round(totalDiffSec / count);
+            const sign = perStep > 0 ? "+" : "";
+            sub.innerText = `Effect: ${sign}${perStep}s per stap (${count}x)`;
+        }
+
+        function applyLiveEndAdjustment(typeKey) {
+            const val = document.getElementById('live-adjust-input').value;
+            if (!val) return;
+
+            // Calc Diff
+            const [h, m] = val.split(':');
+            const newDate = new Date(); newDate.setHours(h, m, 0, 0);
+            const now = new Date();
+            if (newDate < now && (now.getTime() - newDate.getTime() > 12 * 3600 * 1000)) {
+                newDate.setDate(newDate.getDate() + 1);
+            }
+            const diffMs = newDate - liveBaseEndTime;
+            const diffSec = Math.round(diffMs / 1000);
+
+            if (diffSec === 0) { cancelLiveAdjustment(); return; }
+
+            // Map type
+            let internalTypes = [];
+            if (typeKey === 'work') internalTypes = ['work'];
+            if (typeKey === 'rest') internalTypes = ['rest'];
+            if (typeKey === 'switch') internalTypes = ['rest-exercise'];
+
+            // Distribute
+            let count = 0;
+            let indices = [];
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (internalTypes.includes(schedule[i].type)) {
+                    count++;
+                    indices.push(i);
+                }
+            }
+
+            if (count > 0) {
+                const perStep = Math.floor(diffSec / count);
+                let remainder = diffSec % count;
+
+                indices.forEach(idx => {
+                    let add = perStep;
+                    if (remainder !== 0) {
+                        // Distribute remainder 1 by 1
+                        if (remainder > 0) { add++; remainder--; }
+                        else { add--; remainder++; }
+                    }
+
+                    // Check minimum bounds? (e.g. don't go below 5s)
+                    let newVal = schedule[idx].initialTime + add;
+                    if (newVal < 5) newVal = 5; // Safety floor
+
+                    schedule[idx].initialTime = newVal;
+                    schedule[idx].time = newVal; // Update current state if it hasn't run yet? 
+                    // Actually 'time' is active state. For future steps, time == initialTime usually.
+                });
+
+                triggerAudio('manual_override', "Schema aangepast");
+            }
+
+            // Close and Resume
+            document.getElementById('live-end-adjust-modal').style.display = 'none';
+            isPaused = false;
+            document.body.classList.remove('mode-pause');
+            const btn = document.getElementById('btn-pause');
+            if (btn) btn.innerText = "⏸";
+
+            // Re-render
+            renderLiveSchedule(true);
         }
 
         function updateCatchUpButton(type, btnId, textId, label) {
