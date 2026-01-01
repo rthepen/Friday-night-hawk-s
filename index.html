@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.31</title>
+    <title>Friday-night-hawk-s Timer v1.31.32</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.31</span>
+                FNH Timer <span class="version-tag">v1.31.32</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2121,14 +2121,15 @@
             <div id="ex-list-view" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
 
                 <!-- Filters -->
-                <div style="padding:10px 10px 0 10px; background:#000; flex-shrink:0; display:flex; gap:10px;">
+                <div
+                    style="padding:10px 10px 0 10px; background:#000; flex-shrink:0; display:flex; flex-direction:column; gap:10px;">
                     <select id="filter-category"
-                        style="flex:1; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
+                        style="width:100%; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
                         onchange="filterExercises()">
                         <option value="">Alle Categorieën</option>
                     </select>
                     <select id="filter-material"
-                        style="flex:1; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
+                        style="width:100%; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
                         onchange="filterExercises()">
                         <option value="">Alle Materialen</option>
                     </select>
@@ -2926,7 +2927,7 @@
 
             // Filters Sets
             const categories = new Set();
-            const materials = new Set();
+            const materials = new Map(); // Name -> Description
 
             // Add "Custom" option at top
             const customLi = document.createElement('li');
@@ -2951,9 +2952,12 @@
                     // Metadata for filtering
                     const cat = item.category || "Other";
                     const mat = item.material_name || "None";
+                    const matDesc = item.material_description || "";
 
                     categories.add(cat);
-                    materials.add(mat);
+                    if (!materials.has(mat)) {
+                        materials.set(mat, matDesc);
+                    }
 
                     li.dataset.search = (item.exercise_name + " " + cat + " " + item.id).toLowerCase();
                     li.dataset.cat = cat;
@@ -2982,10 +2986,24 @@
 
             const matSelect = document.getElementById('filter-material');
             matSelect.innerHTML = '<option value="">Alle Materialen</option>';
-            Array.from(materials).sort().forEach(m => {
+
+            // Sort materials by Name
+            const sortedMats = Array.from(materials.keys()).sort();
+
+            sortedMats.forEach(m => {
+                const desc = materials.get(m);
                 const opt = document.createElement('option');
                 opt.value = m;
-                opt.innerText = m;
+                // Show "Name (Description)" or just "Name" if no desc
+                // Shorten desc if too long? No, user asked for it. 
+                // Maybe limit length for UI sanity.
+                let displayText = m;
+                if (desc && desc.length > 1) {
+                    // Check if desc is not just "-"
+                    const shortDesc = desc.length > 50 ? desc.substring(0, 47) + "..." : desc;
+                    displayText += ` - ${shortDesc}`;
+                }
+                opt.innerText = displayText;
                 matSelect.appendChild(opt);
             });
 
