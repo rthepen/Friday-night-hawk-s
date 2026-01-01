@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.42</title>
+    <title>Friday-night-hawk-s Timer v1.31.43</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.42</span>
+                FNH Timer <span class="version-tag">v1.31.43</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2402,6 +2402,12 @@
         ];
 
         // GLOBAL STATE
+        const AUDIO_VARIANTS = {
+            'prep_countdown': 4, // Example: prep_countdown_1.mp3 to _4.mp3
+            // Add others here if they exist, e.g. 'work_start': 3
+        };
+        let audioPlaylists = {}; // Stores the shuffled queue per key: { 'prep_countdown': [2, 4, 1, 3] }
+
         let WORKOUT_DB = []; // Will be loaded from JSON
         let schedule = [];
         let workTimeSec = 0, restTimeSec = 0, exerciseRestSec = 0, roundRestSec = 0;
@@ -4063,8 +4069,43 @@
                 }
 
                 if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
-                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
-                    const mp3Path = `coaches/${coachId}/${key}.mp3`;
+                    let finalKey = key;
+
+                    // --- VARIANT LOGIC (Random Shuffle Loop) ---
+                    if (AUDIO_VARIANTS[key] && AUDIO_VARIANTS[key] > 1) {
+                        const count = AUDIO_VARIANTS[key];
+
+                        // Initialize playlist if needed
+                        if (!audioPlaylists[key] || audioPlaylists[key].length === 0) {
+                            // Generate [1, 2, ... count]
+                            const arr = Array.from({ length: count }, (_, i) => i + 1);
+                            // Fisher-Yates Shuffle
+                            for (let i = arr.length - 1; i > 0; i--) {
+                                const j = Math.floor(Math.random() * (i + 1));
+                                [arr[i], arr[j]] = [arr[j], arr[i]];
+                            }
+                            audioPlaylists[key] = arr;
+                            // logAudioDebug(`🔀 New Shuffle for ${key}: [${arr.join(', ')}]`);
+                        }
+
+                        // Get next variant (Round Robin from shuffled list)
+                        // We use shift() to take from front. If we wanted to keep the sequence persistent across workouts, we'd need more state.
+                        // But user wants "random every time you start a workout", so reset on start is handled.
+                        // "sequence remains ... as long as workout runs" -> handled by queue.
+                        // "cycling" -> handled by re-generating if empty.
+
+                        // Wait, "loops": if queue is empty, regenerate? 
+                        // Actually, if we just popped all, we can regenerate. 
+                        // But simpler: just shift().
+
+                        const variantId = audioPlaylists[key].shift();
+                        finalKey = `${key}_${variantId}`;
+
+                        // If empty now, next call will regenerate.
+                    }
+
+                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${finalKey}.mp3`);
+                    const mp3Path = `coaches/${coachId}/${finalKey}.mp3`;
 
                     // OPTIONAL MIX MODE (iOS Web Audio)
                     if (iosMixMode) {
@@ -4192,7 +4233,7 @@
 
             updateEndTimeDisplay();
             currentIndex = 0;
-            // speechPlaylists = {}; // REMOVED v1.15
+            audioPlaylists = {}; // Reset Shuffle Queues
             failedAudioKeys.clear(); // Reset MP3 failures on new workout start
             stepEndTime = Date.now() + (schedule[0].time * 1000);
 
