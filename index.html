@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.07</title>
+    <title>Friday-night-hawk-s Timer v1.31.08</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.07</span>
+                FNH Timer <span class="version-tag">v1.31.08</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4704,7 +4704,11 @@
 
         function updateLiveScheduleHighlight() {
             // Remove old highlight
-            const rows = document.querySelectorAll('.live-table tr');
+            // FIX: Selector was '.live-table tr' which INCLUDED the <thead> row!
+            // This caused index 0 to target the Header, and Index 1 to target the first body row.
+            // Result: Highlight was always 1 step behind (OFFSET BY 1).
+            const rows = document.querySelectorAll('#live-table-body tr');
+
             rows.forEach((r, idx) => {
                 if (idx < currentIndex) r.className = "past-row";
                 else if (idx === currentIndex) {
