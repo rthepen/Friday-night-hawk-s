@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.18</title>
+    <title>Friday-night-hawk-s Timer v1.31.19</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.18</span>
+                FNH Timer <span class="version-tag">v1.31.19</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1845,6 +1845,27 @@
                         <div class="stat-value" id="val-remaining">--m</div>
                     </div>
                 </div>
+
+                <div class="stats-row-3" style="display:flex; justify-content:space-between; margin-top:10px; gap:8px;">
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">💤</div>
+                        <div class="stat-label">Rust</div>
+                        <div class="stat-value" id="val-rest">--s</div>
+                    </div>
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-exercise')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">🔀</div>
+                        <div class="stat-label">Wissel</div>
+                        <div class="stat-value" id="val-switch">--s</div>
+                    </div>
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-long')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">☕</div>
+                        <div class="stat-label">Pauze</div>
+                        <div class="stat-value" id="val-round">--s</div>
+                    </div>
+                </div>
             </div>
 
             <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
@@ -2006,6 +2027,46 @@
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
                 onclick="cancelLiveWorkAdjustment()">
+                ❌ Annuleren
+            </button>
+        </div>
+    </div>
+
+    <div id="live-rest-adjust-modal" class="modal-overlay"
+        style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="width:90%; max-width:400px; text-align:center;">
+            <h2 style="margin-top:0;"><span id="live-rest-type-label">Rust</span> Aanpassen</h2>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Pas de tijd aan en kies hoe het verschil
+                verrekend wordt.</p>
+
+            <div style="background:#2c2c2e; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <div style="font-size:12px; color:#888;">Nieuwe Tijd</div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <button class="modal-btn" style="width:40px; height:40px; padding:0; background:#444;"
+                        onclick="adjustLiveRestInput(-5)">-5</button>
+                    <input type="number" id="live-rest-input" value="10"
+                        style="font-size:32px; background:transparent; border:none; color:white; font-weight:bold; text-align:center; width:80px; font-family: 'Outfit', sans-serif;"
+                        onchange="calcLiveRestDiff()">
+                    <button class="modal-btn" style="width:40px; height:40px; padding:0; background:#444;"
+                        onclick="adjustLiveRestInput(5)">+5</button>
+                </div>
+                <div id="live-rest-diff" style="margin-top:5px; font-weight:bold; color:#0A84FF;">+0s per keer</div>
+            </div>
+
+            <button class="modal-btn" id="btn-rest-push" style="background: #0A84FF; color: white;"
+                onclick="applyLiveRestAdjustment('push')">
+                🗓️ Verzet Eindtijd
+                <span class="btn-subtext" id="sub-rest-push">Eindtijd schuift op met Xm</span>
+            </button>
+
+            <button class="modal-btn" id="btn-rest-work" style="background: #FF9F0A; color: black;"
+                onclick="applyLiveRestAdjustment('work')">
+                💪 Compenseer met Werk
+                <span class="btn-subtext" id="sub-rest-work">Werk wordt X seconden</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelLiveRestAdjustment()">
                 ❌ Annuleren
             </button>
         </div>
@@ -4754,6 +4815,133 @@
             renderLiveSchedule(true);
         }
 
+        // --- LIVE REST/SWITCH/ROUND ADJUSTMENT ---
+        let liveBaseRestTime = 0;
+        let liveRestType = 'rest'; // 'rest', 'rest-exercise', 'rest-long'
+
+        function openLiveRestAdjustment(type) {
+            liveRestType = type;
+            // 1. Label
+            const lbl = document.getElementById('live-rest-type-label');
+            if (type === 'rest') lbl.innerText = "Rust (Set)";
+            else if (type === 'rest-exercise') lbl.innerText = "Wissel";
+            else if (type === 'rest-long') lbl.innerText = "Pauze (Ronde)";
+
+            // 2. Pause
+            try { if (!isPaused) handlePauseClick(); } catch (e) { isPaused = true; }
+            document.getElementById('pause-modal').style.display = 'none';
+
+            // 3. Find current value
+            let found = schedule.find((s, i) => i >= currentIndex && s.type === type);
+            if (!found) {
+                // Fallback or alert if none exist
+                found = { initialTime: (type === 'rest' ? 15 : (type === 'rest-exercise' ? 30 : 60)) };
+            }
+
+            liveBaseRestTime = found.initialTime;
+            document.getElementById('live-rest-input').value = liveBaseRestTime;
+
+            calcLiveRestDiff();
+            document.getElementById('live-rest-adjust-modal').style.display = 'flex';
+        }
+
+        function cancelLiveRestAdjustment() {
+            document.getElementById('live-rest-adjust-modal').style.display = 'none';
+            document.getElementById('pause-modal').style.display = 'flex';
+        }
+
+        function adjustLiveRestInput(delta) {
+            const inp = document.getElementById('live-rest-input');
+            let val = parseInt(inp.value) || 0;
+            val += delta;
+            if (val < 5) val = 5;
+            inp.value = val;
+            calcLiveRestDiff();
+        }
+
+        function calcLiveRestDiff() {
+            const val = parseInt(document.getElementById('live-rest-input').value) || 0;
+            const diff = val - liveBaseRestTime;
+
+            const txt = document.getElementById('live-rest-diff');
+            if (diff > 0) { txt.innerText = `+${diff}s per keer`; txt.style.color = "#30D158"; }
+            else if (diff < 0) { txt.innerText = `${diff}s per keer`; txt.style.color = "#FF453A"; }
+            else { txt.innerText = "Geen wijziging"; txt.style.color = "#888"; }
+
+            // Count occurrences
+            let count = 0;
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].type === liveRestType) count++;
+            }
+            const totalImpact = diff * count;
+
+            // 1. Push
+            const subPush = document.getElementById('sub-rest-push');
+            subPush.innerText = `Totale impact: ${totalImpact > 0 ? '+' : ''}${totalImpact}s op eindtijd`;
+
+            // 2. Work (Trade)
+            // If we add Rest (+), we must subtract Work (-).
+            const btnWork = document.getElementById('btn-rest-work');
+            const subWork = document.getElementById('sub-rest-work');
+
+            updateCompensateButton('work', diff, count, btnWork, subWork, "Werk");
+        }
+
+        function applyLiveRestAdjustment(mode) {
+            const val = parseInt(document.getElementById('live-rest-input').value) || 0;
+            const diff = val - liveBaseRestTime;
+            if (diff === 0) { cancelLiveRestAdjustment(); return; }
+
+            // 1. Update all future steps of THIS type
+            let count = 0;
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].type === liveRestType) {
+                    schedule[i].initialTime = val;
+                    schedule[i].time = val;
+                    count++;
+                }
+            }
+
+            // 2. Handle Compensation with WORK
+            if (mode === 'work') {
+                const totalNeeded = diff * count; // +20s total rest means we need -20s total work
+
+                let workIndices = [];
+                for (let i = currentIndex + 1; i < schedule.length; i++) {
+                    if (schedule[i].type === 'work') workIndices.push(i);
+                }
+
+                if (workIndices.length > 0) {
+                    const deductionPerStep = Math.floor(totalNeeded / workIndices.length);
+                    let remainder = totalNeeded % workIndices.length;
+
+                    workIndices.forEach(idx => {
+                        let deduct = deductionPerStep;
+                        if (remainder !== 0) {
+                            if (remainder > 0) { deduct++; remainder--; }
+                            else { deduct--; remainder++; }
+                        }
+
+                        let time = schedule[idx].initialTime - deduct;
+                        if (time < 5) time = 5;
+                        schedule[idx].initialTime = time;
+                        schedule[idx].time = time;
+                    });
+                }
+            }
+
+            triggerAudio('manual_override', "Tijden aangepast");
+
+            document.getElementById('live-rest-adjust-modal').style.display = 'none';
+            document.getElementById('pause-modal').style.display = 'none';
+            isPaused = false;
+            document.body.classList.remove('mode-pause');
+            const btn = document.getElementById('btn-pause');
+            if (btn) btn.innerText = "⏸";
+
+            renderLiveSchedule(true);
+        }
+
         function updateCatchUpButton(type, btnId, textId, label) {
             const steps = countRemainingSteps(type);
             const btn = document.getElementById(btnId);
@@ -5174,13 +5362,18 @@
             // Find first active or future 'work' step to show current setting
             let workStep = schedule.find((s, i) => i >= currentIndex && s.type === 'work');
             const workDisplay = document.getElementById('val-worktime');
-            if (workDisplay) {
-                if (workStep) {
-                    workDisplay.innerText = workStep.initialTime + "s";
-                } else {
-                    workDisplay.innerText = "-";
-                }
-            }
+            if (workDisplay) workDisplay.innerText = workStep ? (workStep.initialTime + "s") : "-";
+
+            // Update Rest/Switch/Round Displays
+            const updateStat = (type, id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const found = schedule.find((s, i) => i >= currentIndex && s.type === type);
+                el.innerText = found ? (found.initialTime + "s") : "-";
+            };
+            updateStat('rest', 'val-rest');
+            updateStat('rest-exercise', 'val-switch');
+            updateStat('rest-long', 'val-round');
 
             return tempDate; // Return the final calculated end time
         }
