@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.29.03</title>
+    <title>Friday-night-hawk-s Timer v1.30</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.29.03</span>
+                FNH Timer <span class="version-tag">v1.30</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1871,9 +1871,9 @@
 
     <div id="pause-modal" style="display:none;">
         <div class="modal-content">
-            <h2 style="margin-top:0;">Pauze voorbij</h2>
-            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span id="pause-duration-display"
-                    style="color:white; font-weight:bold;">0s</span> gepauzeerd. Hoe halen we dit in?</p>
+            <h2 id="pause-modal-title" style="margin-top:0;">PAUZE VOORBIJ</h2>
+            <p id="pause-msg-p" style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span
+                    id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd.</p>
 
             <button class="modal-btn" style="background: #333; color: white;" onclick="resolvePause('push')">
                 🐢 Eindtijd verzetten
@@ -4316,13 +4316,139 @@
             return 0;
         }
 
+        let pendingEarlyStartSec = 0;
+
+        function previewEarlyStartOptions() {
+            const startStr = document.getElementById('startTimeValue').value;
+            const now = new Date();
+            const [h, m] = startStr.split(':');
+            const targetStart = new Date();
+            targetStart.setHours(h, m, 0, 0);
+            if (targetStart < now) targetStart.setDate(targetStart.getDate() + 1);
+
+            // Calculate Surplus
+            const diffMs = targetStart - now;
+            if (diffMs <= 0) { performStart(); return; }
+
+            pendingEarlyStartSec = Math.ceil(diffMs / 1000);
+
+            // Show UI
+            document.getElementById('pause-modal').style.display = 'flex';
+            document.getElementById('pause-modal-title').innerText = "TE VROEG GESTART?";
+            document.getElementById('pause-msg-p').innerHTML = `Je start <span style="color:#30D158; font-weight:bold;">${pendingEarlyStartSec}s</span> eerder.`;
+
+            // 1. Shift End Time (Finish Early)
+            // Logic: EndTime = EndTime - Surplus
+            // Display: Old -> New
+            const oldEndStr = document.getElementById('endTimeValue').value;
+            // newEndDate isn't finalized until we performStart, but we can calc relative
+            // Actually targetEndTimeDate is current input.
+            const curEnd = targetEndTimeDate; // Should match input
+            const newEndDate = new Date(curEnd.getTime() - diffMs);
+            const newEndStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('btn-text-push').innerText = `Eindtijd: ${oldEndStr} -> ${newEndStr} (Klaar: Eerder)`;
+
+            // 2. Extra Work (Default behavior of performStart if we don't shift end)
+            // We just need to show what happens.
+            // Estimate new Work Time?
+            // Current Work Time (Plan) vs New Work Time.
+            // If we add surplus to duration, work increases.
+            // Approx: NewWork = OldWork + (Surplus / WorkSteps)
+            const workSteps = countRemainingSteps('work'); // This looks at current schedule (generated). OK.
+            const btnWork = document.getElementById('btn-catch-work');
+            if (workSteps > 0) {
+                const currentWork = getFirstStepTime('work');
+                const added = Math.floor(pendingEarlyStartSec / workSteps);
+                const newWork = currentWork + added;
+                btnWork.disabled = false; btnWork.style.opacity = 1;
+                document.getElementById('btn-text-work').innerText = `Werk: ${currentWork}s -> ${newWork}s`;
+            } else {
+                btnWork.disabled = true; btnWork.style.opacity = 0.5; document.getElementById('btn-text-work').innerText = "-";
+            }
+
+            // 3/4/5. Extra Rest
+            // btn-text-rest etc.
+            const updateEarlyBtn = (type, btnId, txtId, label) => {
+                const steps = countRemainingSteps(type);
+                const btn = document.getElementById(btnId);
+                if (steps > 0) {
+                    const currentVal = getFirstStepTime(type);
+                    const added = Math.floor(pendingEarlyStartSec / steps);
+                    const newVal = currentVal + added;
+                    btn.disabled = false; btn.style.opacity = 1;
+                    document.getElementById(txtId).innerText = `${label}: ${currentVal}s -> ${newVal}s`;
+                } else {
+                    btn.disabled = true; btn.style.opacity = 0.5; document.getElementById(txtId).innerText = "-";
+                }
+            };
+
+            updateEarlyBtn('rest', 'btn-catch-rest', 'btn-text-rest', "Rust");
+            updateEarlyBtn('rest-exercise', 'btn-catch-switch', 'btn-text-switch', "Wissel");
+            updateEarlyBtn('rest-long', 'btn-catch-round', 'btn-text-round', "Pauze");
+        }
+
         function resolvePause(choice) {
             document.getElementById('pause-modal').style.display = 'none';
+            // Restore Title default
+            document.getElementById('pause-modal-title').innerText = "PAUZE VOORBIJ";
+            document.getElementById('pause-msg-p').innerHTML = `Je hebt <span id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd.`;
+
+            if (pendingEarlyStartSec > 0) {
+                // EARLY START RESOLUTION
+                const surplus = pendingEarlyStartSec;
+                pendingEarlyStartSec = 0; // Reset
+
+                // 1. Start logic
+                performStart();
+                // Now workoutStartTime is NOW. targetEndTimeDate is based on OLD input (Late).
+                // So we have Surplus time available in the system.
+                // performStart -> generateScheduleData -> uses standard Rests -> puts ALL surplus into Work.
+
+                if (choice === 'push') {
+                    // Option 1: Shift End Time Earlier (Remove Surplus)
+                    targetEndTimeDate = new Date(targetEndTimeDate.getTime() - (surplus * 1000));
+                    updateEndTimeDisplay();
+                    recalculateForFixedEnd();
+                    // recalculate sees reduced duration -> shrinks Work back to original.
+                }
+                else if (choice === 'work') {
+                    // Option 2: Absorb into Work
+                    // Do nothing! performStart already put it in Work.
+                    triggerAudio('manual_override', "Extra werk tijd toegevoegd");
+                }
+                else {
+                    // Option 3: Absorb into Rest/Switch/Round
+                    // We need to move the surplus FROM Work TO Rest.
+                    let typeToIncrease = '';
+                    if (choice === 'rest') typeToIncrease = 'rest';
+                    else if (choice === 'switch') typeToIncrease = 'rest-exercise';
+                    else if (choice === 'round') typeToIncrease = 'rest-long';
+
+                    const steps = countRemainingSteps(typeToIncrease);
+                    const addition = Math.floor(surplus / steps);
+
+                    for (let i = currentIndex; i < schedule.length; i++) {
+                        if (schedule[i].type === typeToIncrease) {
+                            schedule[i].time += addition;
+                            schedule[i].initialTime += addition;
+                        }
+                    }
+                    // Now Rest is higher. Duration matches inputs (Wide).
+                    // We must recalculate work to shrink it (since we gave space to Rest).
+                    recalculateForFixedEnd();
+                    triggerAudio('manual_override', "Extra rust tijd toegevoegd");
+                }
+
+                return;
+            }
+
+            // STANDARD PAUSE RESOLUTION
             const btn = document.getElementById('btn-pause');
             btn.innerText = "⏸"; btn.classList.remove('paused');
             isPaused = false;
-
             document.body.classList.remove('mode-pause');
+            triggerAudio('manual_override', "We gaan weer door");
 
             // Apply Logic
             if (choice === 'push') {
@@ -4361,19 +4487,19 @@
                 }
             }
 
-            // UI Restore
+            // Restore UI Classes
             const step = schedule[currentIndex];
-            if (step.type === 'work') document.body.classList.add('mode-work');
-            else if (step.type === 'rest') document.body.classList.add('mode-rest');
-            else if (step.type === 'rest-exercise') document.body.classList.add('mode-switch');
-            else if (step.type === 'rest-long') document.body.classList.add('mode-long');
+            if (step) {
+                if (step.type === 'work') document.body.classList.add('mode-work');
+                else if (step.type === 'rest') document.body.classList.add('mode-rest');
+                else if (step.type === 'rest-exercise') document.body.classList.add('mode-switch');
+                else if (step.type === 'rest-long') document.body.classList.add('mode-long');
 
-            triggerAudio('manual_override', "We gaan weer door");
-            document.getElementById('gym-phase-title').innerText = step.label;
-
-            const titleEl = document.getElementById('gym-phase-title');
-            titleEl.className = 'gym-phase-title';
-            if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
+                document.getElementById('gym-phase-title').innerText = step.label;
+                const titleEl = document.getElementById('gym-phase-title');
+                titleEl.className = 'gym-phase-title';
+                if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
+            }
         }
 
         function updateEndTimeDisplay() {
@@ -4579,7 +4705,7 @@
             00:00
         </div>
 
-        <button onclick="performStart()" class="action-btn"
+        <button onclick="previewEarlyStartOptions()" class="action-btn"
             style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
             🚀 NU BEGINNEN (OVERSLAAN)
         </button>
