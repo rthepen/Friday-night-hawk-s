@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.49</title>
+    <title>Friday-night-hawk-s Timer v1.31.50</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.49</span>
+                FNH Timer <span class="version-tag">v1.31.50</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5696,6 +5696,69 @@
                     // Update Name (Static, but safe to refresh)
                     let desc = item.label;
                     if (item.info && item.info.round && item.info.exercise > 0) desc += ` <span style='color:#888; font-size:11px;'>(R${item.info.round}/E${item.info.exercise}/S${item.info.set})</span>`;
+
+                    // --- PREDICT AUDIO CUES ---
+                    let cues = [];
+                    const init = item.initialTime;
+                    const addCue = (offsetFromStart, key, labelSuffix = "") => {
+                        // Calculate absolute time of cue
+                        const cueTime = new Date(startTime.getTime() + (offsetFromStart * 1000));
+                        const cueTimeStr = cueTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + "." + cueTime.getMilliseconds().toString().padStart(3, '0');
+
+                        // Get Filename
+                        // Logic mimics triggerAudio lookup: presets[coach][key] -> variant -> filename
+                        let filename = "";
+                        try {
+                            const preset = coachPresets[schedule[0]?.info?.coach || 'tabataman']; // Default/fallback
+                            if (preset && preset.variants && preset.variants[key]) {
+                                // For visualization, just grab variation 1 or try to be smart? 
+                                // Actually, triggerAudio picks random. We can't predict random 100%. 
+                                // Let's just show "Var 1" or base filename.
+                                // Expected: coaches/tabataman/work_halfway_1.mp3
+                                const coachDir = (schedule[0]?.info?.coach || 'tabataman');
+                                filename = `${coachDir}/${key}_1.mp3`;
+                            }
+                        } catch (e) { }
+
+                        // Get Duration
+                        const dur = getAudioDuration(filename);
+                        const durStr = dur ? `(${dur.toFixed(1)}s)` : "";
+
+                        cues.push(`<div style="font-size:10px; color:#aaa; margin-top:2px; border-left: 2px solid #555; padding-left:4px;">
+                            <span style="color:#30D158">${cueTimeStr}</span>: 
+                            <span style="color:#fff">${key}</span> ${durStr}
+                            <div style="font-size:9px; color:#666; font-style:italic;">${filename}</div>
+                        </div>`);
+                    };
+
+                    // Logic from timer loop
+                    // Note: 'offsetFromStart' = init - triggerTime
+                    // e.g. init=45, trigger=20 (remaining). played at 45-20 = 25s elapsed.
+
+                    if (item.type === 'work') {
+                        addCue(0, 'work_start'); // Start
+
+                        if (init >= 20) addCue(init - Math.floor(init / 2), 'work_halfway');
+                        if (init > 40) addCue(init - 30, 'work_30s');
+                        if (init > 20) addCue(init - 10, 'work_10s');
+                        // 3,2,1 not shown to save space? Or show 'tick'? User asked for files.
+                    }
+                    else if (item.type === 'rest-long') {
+                        addCue(0, 'rest_round_start');
+                        if (init > 20) addCue(init - 15, 'rest_round_15s');
+                    }
+                    else if (item.type === 'rest-exercise') {
+                        addCue(0, 'rest_switch_start');
+                        if (init > 15) addCue(init - 10, 'rest_switch_10s');
+                    }
+                    else if (item.type === 'rest') {
+                        addCue(0, 'rest_set_start');
+                    }
+
+                    if (cues.length > 0) {
+                        desc += `<div style="margin-top:5px; background:rgba(0,0,0,0.3); padding:4px; border-radius:4px;">${cues.join('')}</div>`;
+                    }
+
                     tr.children[1].innerHTML = desc;
 
                     // Update Duration
