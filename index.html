@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.41</title>
+    <title>Friday-night-hawk-s Timer v1.31.42</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.41</span>
+                FNH Timer <span class="version-tag">v1.31.42</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4778,15 +4778,27 @@
             const subRest = document.getElementById('sub-setup-rest');
 
             // 1. Duration Impact
-            // Delta * Total Work Sets
-            const totalWorkSets = parseInt(document.getElementById('rounds').value) *
-                parseInt(document.getElementById('exercises').value) *
-                parseInt(document.getElementById('sets').value);
+            const rounds = parseInt(document.getElementById('rounds').value);
+            const ex = parseInt(document.getElementById('exercises').value);
+            const sets = parseInt(document.getElementById('sets').value);
+            const totalWorkSets = rounds * ex * sets;
+
+            // Current Duration Calculation
+            const st = document.getElementById('startTimeValue').value;
+            const et = document.getElementById('endTimeValue').value;
+            const d1 = new Date("1970-01-01T" + st);
+            const d2 = new Date("1970-01-01T" + et);
+            if (d2 < d1) d2.setDate(d2.getDate() + 1);
+            const curDurSec = (d2 - d1) / 1000;
+            const curDurMin = Math.round(curDurSec / 60);
+
             const totalImpactSec = diff * totalWorkSets;
-            const valDur = Math.ceil(Math.abs(totalImpactSec) / 60);
+            const newDurSec = curDurSec + totalImpactSec;
+            const newDurMin = Math.round(newDurSec / 60);
+            const diffMin = newDurMin - curDurMin;
 
             if (totalImpactSec !== 0) {
-                subDur.innerText = `Totale tijd ${totalImpactSec > 0 ? '+' : '-'}${valDur} min`;
+                subDur.innerText = `Duur: ${curDurMin}m -> ${newDurMin}m (${diffMin > 0 ? '+' : ''}${diffMin}m)`;
                 btnDur.disabled = false; btnDur.style.opacity = 1;
             } else {
                 subDur.innerText = "Geen verandering";
@@ -4794,34 +4806,19 @@
             }
 
             // 2. Rest Impact
-            // We need to absorb 'totalImpactSec' using Rest.
-            // If Work increases (+100s), Rest must decrease (-100s).
-            // We start by cutting Set Rest, then Switch Rest? Or just evenly?
-            // Simplest: Distribute across Set Rest & Switch Rest (weighted?)
-            // Let's perform a dry run calc
-
             // Get current Rests
             const curRest = parseInt(document.getElementById('restSec').value);
             const curSwitch = parseInt(document.getElementById('exerciseRestSec').value);
 
             // Count slots
-            const rounds = parseInt(document.getElementById('rounds').value);
-            const ex = parseInt(document.getElementById('exercises').value);
-            const sets = parseInt(document.getElementById('sets').value);
-
-            // Total slots approximation (ignoring exact bonus logic for setup preview)
-            // Set Rests = (Sets - 1) * Ex * Rounds
             const slotsRest = (sets - 1) * ex * rounds;
-            // Switch Rests = (Ex - 1) * Rounds
             const slotsSwitch = (ex - 1) * rounds;
-
             const totalSlots = slotsRest + slotsSwitch;
 
             if (totalSlots > 0 && totalImpactSec !== 0) {
                 // We need to REMOVE totalImpactSec from the rest pool.
+                // (Because if Work goes UP, Rest must go DOWN to keep duration same)
                 const reducePerSlot = Math.round(totalImpactSec / totalSlots);
-                // If Work + (diff > 0), totalImpact > 0. reducePerSlot > 0.
-                // New Rest = Old Rest - reducePerSlot.
 
                 const newRest = curRest - reducePerSlot;
                 const newSwitch = curSwitch - reducePerSlot;
@@ -4830,7 +4827,12 @@
                     subRest.innerText = "Niet mogelijk (Rust wordt < 5s)";
                     btnRest.disabled = true; btnRest.style.opacity = 0.5;
                 } else {
-                    subRest.innerText = `Rust & Wissel: ${reducePerSlot > 0 ? '-' : '+'}${Math.abs(reducePerSlot)}s`;
+                    subRest.innerText = `Rust: ${curRest}s -> ${newRest}s`;
+                    if (curSwitch !== curRest || newSwitch !== newRest) {
+                        // If switch is different, show it too, or simplified
+                        // Let's just show main "Rust" change as primary indicator
+                        // subRest.innerText += ` | Wissel: ${curSwitch}s -> ${newSwitch}s`;
+                    }
                     btnRest.disabled = false; btnRest.style.opacity = 1;
                 }
             } else {
