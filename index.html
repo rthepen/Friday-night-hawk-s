@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.30.01</title>
+    <title>Friday-night-hawk-s Timer v1.31</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.30.01</span>
+                FNH Timer <span class="version-tag">v1.31</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1898,10 +1898,13 @@
                 <span class="btn-subtext" id="btn-text-switch">...</span>
             </button>
 
-            <button class="modal-btn" id="btn-catch-round" style="background: #30D158; color: black;"
-                onclick="resolvePause('round')">
-                ☕ Inhalen via Ronde Rust
-                <span class="btn-subtext" id="btn-text-round">...</span>
+            ☕ Inhalen via Ronde Rust
+            <span class="btn-subtext" id="btn-text-round">...</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelPause()">
+                ❌ Annuleren (Terug)
             </button>
         </div>
     </div>
@@ -4393,6 +4396,13 @@
         }
 
         function resolvePause(choice) {
+            // Handle Jump Index First
+            if (pendingJumpIndex !== null) {
+                currentIndex = pendingJumpIndex;
+                triggerAudio('manual_override', "Springen naar selectie");
+                schedule[currentIndex].time = schedule[currentIndex].initialTime;
+            }
+
             document.getElementById('pause-modal').style.display = 'none';
             // Restore Title default
             document.getElementById('pause-modal-title').innerText = "PAUZE VOORBIJ";
@@ -4679,19 +4689,86 @@
             }
         }
 
-        function jumpToStep(index) {
-            if (index >= 0 && index < schedule.length) {
-                if (confirm(`Wil je springen naar: ${schedule[index].label}?`)) {
-                    currentIndex = index;
-                    // Reset time to full initial duration for that step
-                    schedule[currentIndex].time = schedule[currentIndex].initialTime;
-                    stepEndTime = Date.now() + (schedule[currentIndex].time * 1000);
+        // SMART JUMP LOGIC
+        let pendingJumpIndex = null;
 
-                    triggerAudio('manual_override', "Springen naar selectie");
-                    renderLiveSchedule();
-                    runStep();
-                }
+        function jumpToStep(index) {
+            if (index < 0 || index >= schedule.length) return;
+            if (index === currentIndex) return;
+
+            // 1. Pause App (to freeze state)
+            if (!isPaused) handlePauseClick();
+
+            // 2. Calculate Diff
+            const diff = calculateJumpDiff(index);
+            pendingJumpIndex = index;
+
+            // 3. Show Modal
+            document.getElementById('pause-modal').style.display = 'flex';
+
+            if (diff > 0) {
+                // SURPLUS (Skipping Forward) -> "Early Start" Logic
+                // We have gained time.
+                pendingEarlyStartSec = diff;
+                pendingPauseDur = 0;
+                document.getElementById('pause-modal-title').innerText = "SPRINGEN (OVERSLAAN)";
+                document.getElementById('pause-msg-p').innerHTML = `Je slaat <span style="color:#30D158; font-weight:bold;">${diff}s</span> over.`;
+            } else {
+                // DEFICIT (Going Back) -> "Pause" Logic
+                // We need more time.
+                pendingEarlyStartSec = 0;
+                pendingPauseDur = Math.abs(diff);
+                document.getElementById('pause-modal-title').innerText = "SPRINGEN (TERUG)";
+                document.getElementById('pause-msg-p').innerHTML = `Je voegt <span style="color:#FF9F0A; font-weight:bold;">${Math.abs(diff)}s</span> toe.`;
             }
+
+            // Update End Time Preview Button
+            const oldEndStr = document.getElementById('endTimeValue').value;
+            // Approximate new end time based on diff
+            // If diff > 0 (Surplus), new end is earlier (old - diff)
+            // If diff < 0 (Deficit), new end is later (old + abs(diff))
+            // Note: targetEndTimeDate is the reference.
+
+            const curEnd = targetEndTimeDate;
+            const newEndDate = new Date(curEnd.getTime() - (diff * 1000)); // diff is positive for surplus (earlier), negative for deficit (later)
+            const newEndStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+
+            document.getElementById('btn-text-push').innerText = `Eindtijd: ${oldEndStr} -> ${newEndStr}`;
+        }
+
+        function calculateJumpDiff(targetIdx) {
+            // Returns SECONDS difference.
+            // Positive = Surplus (Skipping / Early)
+            // Negative = Deficit (Adding / Late)
+
+            // 1. Current Remaining (Real)
+            // Time remaining in current step + full time of all future steps
+            let currentRem = 0;
+            if (stepEndTime > Date.now()) currentRem += (stepEndTime - Date.now()) / 1000;
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                currentRem += schedule[i].initialTime;
+            }
+
+            // 2. Target Remaining (Hypothetical)
+            // Full time of target step + full time of all steps AFTER target
+            let targetRem = schedule[targetIdx].initialTime;
+            for (let i = targetIdx + 1; i < schedule.length; i++) {
+                targetRem += schedule[i].initialTime;
+            }
+
+            // Diff = Current - Target
+            // Example: Current has 100s rem. Target has 20s rem.
+            // Diff = 80s (We have 80s extra "surplus" if we jump).
+            return Math.ceil(currentRem - targetRem);
+        }
+
+        function cancelPause() {
+            document.getElementById('pause-modal').style.display = 'none';
+            pendingJumpIndex = null;
+            pendingEarlyStartSec = 0;
+            pendingPauseDur = 0;
+            // Just resume
+            handlePauseClick();
         }
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
