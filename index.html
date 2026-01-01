@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.29.02</title>
+    <title>Friday-night-hawk-s Timer v1.29.03</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.29.02</span>
+                FNH Timer <span class="version-tag">v1.29.03</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3030,7 +3030,14 @@
             document.getElementById('sets').value = 1;
             document.getElementById('exerciseRestSec').value = 10;
 
-            // We don't touch Start Time or other Rests unless needed. 
+            document.getElementById('exerciseRestSec').value = 10;
+
+            // NEW: Set Start Time to NOW to prevent "Time in Past" legacy bugs
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('startTimeValue').value = timeStr;
+
+            // We don't touch other Rests unless needed. 
             // Standard Tabata usually implies short rests. 
             // But user only specified Switch Rest 10s.
 
@@ -3816,42 +3823,47 @@
         }
 
         function triggerAudio(key, fallbackText, extraInfo = "") {
-            if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
+            try {
+                if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
 
-            // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
-            const coachId = document.getElementById('coach-preset').value || 'tabataman';
+                // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
+                const coachId = document.getElementById('coach-preset').value || 'tabataman';
 
-            // Check Enable/Disable Toggle provided by user
-            if (speechSettings[key] && speechSettings[key].enabled === false) {
-                logAudioDebug(`🔇 Silenced by user setting: ${key}`);
-                return;
-            }
-
-            if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
-                logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
-                const mp3Path = `coaches/${coachId}/${key}.mp3`;
-
-                // OPTIONAL MIX MODE (iOS Web Audio)
-                if (iosMixMode) {
-                    playMp3WebAudio(mp3Path, key);
+                // Check Enable/Disable Toggle provided by user
+                if (speechSettings[key] && speechSettings[key].enabled === false) {
+                    logAudioDebug(`🔇 Silenced by user setting: ${key}`);
                     return;
                 }
 
-                // Standard HTML5 Audio (Single Global Object)
-                globalCoachAudio.src = mp3Path;
+                if (coachId && coachId !== 'loading' && !failedAudioKeys.has(key)) {
+                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${key}.mp3`);
+                    const mp3Path = `coaches/${coachId}/${key}.mp3`;
 
-                const playPromise = globalCoachAudio.play();
+                    // OPTIONAL MIX MODE (iOS Web Audio)
+                    if (iosMixMode) {
+                        playMp3WebAudio(mp3Path, key);
+                        return;
+                    }
 
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        logAudioDebug(`✅ Playing MP3: ${key}`);
-                    })
-                        .catch(error => {
-                            failedAudioKeys.add(key); // Mark as missing/broken
-                            logAudioDebug(`❌ MP3 Failed: ${key}`);
-                        });
+                    // Standard HTML5 Audio (Single Global Object)
+                    globalCoachAudio.src = mp3Path;
+
+                    const playPromise = globalCoachAudio.play();
+
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            logAudioDebug(`✅ Playing MP3: ${key}`);
+                        })
+                            .catch(error => {
+                                failedAudioKeys.add(key); // Mark as missing/broken
+                                logAudioDebug(`❌ MP3 Failed: ${key}`);
+                            });
+                    }
+                    return;
                 }
-                return;
+            } catch (e) {
+                console.error("Audio Trigger Error", e);
+                logAudioDebug(`⚠️ Audio Error: ${e.message}`);
             }
         }
 
