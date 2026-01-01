@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.01</title>
+    <title>Friday-night-hawk-s Timer v1.31.02</title>
     <script src="workout_data.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.01</span>
+                FNH Timer <span class="version-tag">v1.31.02</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4460,6 +4460,16 @@
                     // We must recalculate work to shrink it (since we gave space to Rest).
                     recalculateForFixedEnd();
                     triggerAudio('manual_override', "Extra rust tijd toegevoegd");
+                }
+
+                // FIX: If we skipped performStart (Jump Mode), we must manually Resume!
+                // Otherwise app stays paused.
+                const btn = document.getElementById('btn-pause');
+                if (btn.innerText === "▶️" || isPaused) {
+                    btn.innerText = "⏸"; btn.classList.remove('paused');
+                    isPaused = false;
+                    document.body.classList.remove('mode-pause');
+                    triggerAudio('manual_override', "We gaan weer door");
                 }
 
                 return;
