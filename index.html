@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.36</title>
+    <title>Friday-night-hawk-s Timer v1.31.38</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -4691,20 +4691,16 @@
             renderLiveSchedule(true);
         }
 
-        // --- LIVE WORK TIME ADJUSTMENT LOGIC ---
-        let liveBaseWorkTime = 0; // Current work duration per step
+        // --- LIVE WORK ADJUSTMENT ---
+        let liveBaseWorkTime = 0;
 
         function openLiveWorkAdjustment() {
-            // 1. Pause
             try { if (!isPaused) handlePauseClick(); } catch (e) { isPaused = true; }
-
-            // 2. Hide others
             document.getElementById('pause-modal').style.display = 'none';
 
-            // 3. Find current 'work' time (look ahead)
-            // Find the first future 'work' step to get the baseline
-            let found = schedule.find((s, i) => i >= currentIndex && s.type === 'work');
-            if (!found) found = { initialTime: 45 }; // Default fallback
+            // Find current Work Time (only regular exercises)
+            let found = schedule.find((s, i) => i >= currentIndex && s.type === 'work' && s.info && s.info.exercise > 0);
+            if (!found) found = { initialTime: 45 }; // Fallback
 
             liveBaseWorkTime = found.initialTime;
             document.getElementById('live-work-input').value = liveBaseWorkTime;
@@ -4736,79 +4732,78 @@
             else if (diff < 0) { txt.innerText = `${diff}s per set`; txt.style.color = "#FF453A"; }
             else { txt.innerText = "Geen wijziging"; txt.style.color = "#888"; }
 
-            // Count future work steps
+            // Count occurrences (Regular Sets Only)
             let workCount = 0;
             for (let i = currentIndex + 1; i < schedule.length; i++) {
-                if (schedule[i].type === 'work') workCount++;
+                if (schedule[i].type === 'work' && schedule[i].info && schedule[i].info.exercise > 0) workCount++;
             }
             const totalImpact = diff * workCount;
 
-            // 1. Push
+            // 1. Push - Visual Feedback
             const subPush = document.getElementById('sub-work-push');
             subPush.innerText = `Totale impact: ${totalImpact > 0 ? '+' : ''}${totalImpact}s op eindtijd`;
 
-            // 2. Rest
+            // 2. Compensate Rest
             const btnRest = document.getElementById('btn-work-rest');
             const subRest = document.getElementById('sub-work-rest');
+            // calcLiveRestDiff uses: updateCompensateButton('work', diff, count, btnWork, subWork, "Werk");
+            // Signature: (targetType, diffPerSource, sourceCount, btn, sub, label)
+            // For Work->Rest: target=Rest. diffPerSource=diff. sourceCount=workCount.
             updateCompensateButton('rest', diff, workCount, btnRest, subRest, "Rust");
 
-            // 3. Switch
+            // 3. Compensate Switch
             const btnSwitch = document.getElementById('btn-work-switch');
             const subSwitch = document.getElementById('sub-work-switch');
             updateCompensateButton('rest-exercise', diff, workCount, btnSwitch, subSwitch, "Wissel");
         }
 
-        function updateCompensateButton(targetType, diffPerWork, workCount, btn, sub, label) {
-            // We increased Work by diffPerWork. To compensate (keep end time same), we must REDUCE target by X.
-            // Total added = diffPerWork * workCount.
-            // We must subtract Total added from available Target steps.
-
-            // Count future target steps
+        // Shared helper for predicting compensation (Used by Work & Rest adjustment)
+        function updateCompensateButton(targetType, diffPerSource, sourceCount, btnEl, subEl, label) {
             let targetCount = 0;
-            let currentTargetTime = 0;
-            // Find the first future step of this type to see current duration
-            let first = schedule.find((s, i) => i >= currentIndex && s.type === targetType);
-            if (first) {
-                currentTargetTime = first.initialTime;
-                // Count occurrences
-                for (let i = currentIndex + 1; i < schedule.length; i++) {
-                    if (schedule[i].type === targetType) targetCount++;
+            let currentTargetVal = 0;
+            for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].type === targetType) {
+                    targetCount++;
+                    if (currentTargetVal === 0) currentTargetVal = schedule[i].initialTime;
                 }
             }
 
             if (targetCount === 0) {
-                btn.disabled = true; btn.style.opacity = 0.5;
-                sub.innerText = "Niet beschikbaar (geen stappen)";
+                btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                subEl.innerText = "Geen stappen meer";
                 return;
             }
 
-            const totalNeeded = diffPerWork * workCount; // If +100s work, we need -100s rest.
-            // required deduction per target step
-            const deductionPerStep = Math.round(totalNeeded / targetCount);
-            const newTargetTime = currentTargetTime - deductionPerStep;
+            const totalNeeded = diffPerSource * sourceCount;
+            // If Work +10s (diff=+10). Count=10. TotalNeeded=+100s.
+            // We need to REDUCE target by 100s.
+            // deduction = 100 / targetCount.
+            // new = current - deduction.
 
-            if (newTargetTime < 5) {
-                btn.disabled = true; btn.style.opacity = 0.5;
-                sub.innerText = `Niet mogelijk (${label} wordt < 5s)`;
+            const deductionPerStep = Math.floor(totalNeeded / targetCount);
+            const newVal = currentTargetVal - deductionPerStep;
+
+            if (newVal < 5) {
+                btnEl.disabled = true; btnEl.style.opacity = 0.5;
+                subEl.innerText = `Onmogelijk (${newVal}s < 5s)`;
             } else {
-                btn.disabled = false; btn.style.opacity = 1;
-                const sign = deductionPerStep > 0 ? "-" : "+"; // If we added work, we satisfy by subtracting rest
-                // Wait, if deductionPerStep is POSITIVE (we added work), we must subtract it.
-                // So new time is `old - deduction`.
-                // Text should say: "Rust wordt X seconden (-Y)"
-                sub.innerText = `${label} wordt ${newTargetTime}s (${sign}${Math.abs(deductionPerStep)}s)`;
+                btnEl.disabled = false; btnEl.style.opacity = 1;
+                // If deduction is positive (Work increased), we subtract. Sign is MINUS.
+                // If deduction is negative (Work decreased), we add. Sign is PLUS.
+                const sign = deductionPerStep > 0 ? '-' : '+';
+                subEl.innerText = `${label} wordt ${newVal}s (${sign}${Math.abs(deductionPerStep)}s)`;
             }
         }
 
         function applyLiveWorkAdjustment(mode) {
             const val = parseInt(document.getElementById('live-work-input').value) || 0;
-            const diff = val - liveBaseWorkTime; // e.g. +10
+            const diff = val - liveBaseWorkTime;
             if (diff === 0) { cancelLiveWorkAdjustment(); return; }
 
-            // 1. Update all future WORK steps
+            // 1. Update all future WORK steps (Sets only)
             let workCount = 0;
             for (let i = currentIndex + 1; i < schedule.length; i++) {
-                if (schedule[i].type === 'work') {
+                if (schedule[i].type === 'work' && schedule[i].info && schedule[i].info.exercise > 0) {
                     schedule[i].initialTime = val;
                     schedule[i].time = val;
                     workCount++;
@@ -4826,8 +4821,10 @@
                 }
 
                 if (targetIndices.length > 0) {
-                    const deductionPerStep = Math.floor(totalNeeded / targetIndices.length);
-                    let remainder = totalNeeded % targetIndices.length;
+                    // We want to REDUCE Rest by totalNeeded.
+                    const deductionTotal = totalNeeded;
+                    const deductionPerStep = Math.floor(deductionTotal / targetIndices.length);
+                    let remainder = deductionTotal % targetIndices.length;
 
                     targetIndices.forEach(idx => {
                         let deduct = deductionPerStep;
@@ -4843,7 +4840,6 @@
                     });
                 }
             }
-            // If mode == 'push', we just updated work, so end time naturally pushes out.
 
             triggerAudio('manual_override', "Werktijd aangepast");
 
