@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.61</title>
+    <title>Friday-night-hawk-s Timer v1.31.62</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.61</span>
+                FNH Timer <span class="version-tag">v1.31.62</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3646,15 +3646,22 @@
             const cleanUrl = window.location.origin + window.location.pathname;
             let text = "🦅 **FNH Timer: De enige timer die terugrekent!**\n\n";
             text += "🏁 **Jij kiest de eindtijd, de app doet de rest.**\n";
-            text += "Hij berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent. Nooit meer gokken of haasten aan het einde van de les.\n\n";
+            text += "Hij berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent. Nooit meer gokken of haasten.\n\n";
             text += "✅ **Waarom deze app?**\n";
+            text += "- ⏳ **Aftellen tot start:** Zie precies hoe lang je nog hebt voor uitleg of warming-up. De training start automatisch!\n";
+            text += "- 🍦 **Trainer Logica:** Snapt bonussen, 'toetjes' en onderscheidt rust vs. wisselen.\n";
+            text += "- 🤖 **AI Generator:** Maakt direct een training op basis van jouw materialen.\n";
+            text += "- 🗣️ **Kies je Coach:** Meerdere stijlen met natuurlijk klinkende en gevarieerde spraak.\n";
             text += "- 🛠️ Pas live tijden aan (zonder rekenen)\n";
-            text += "- 🎧 Muziek blijft aanstaan (Mix-mode)\n";
-            text += "- 🗣️ NL Spraakbegeleiding\n\n";
+            text += "- 🎧 Muziek blijft aanstaan (Mix-mode)\n\n";
             text += "👇 **Gebruik 'm hier (gratis):**";
 
             if (navigator.share) {
-                navigator.share({ title: "FNH Timer 🦅", text: text, url: cleanUrl }).catch(console.error);
+                navigator.share({
+                    title: "FNH Timer 🦅",
+                    text: text,
+                    url: cleanUrl
+                }).catch(console.error);
             } else {
                 navigator.clipboard.writeText(text + "\n" + cleanUrl).then(() => alert("Tekst en link gekopieerd!"));
             }
