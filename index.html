@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.60</title>
+    <title>Friday-night-hawk-s Timer v1.31.61</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.60</span>
+                FNH Timer <span class="version-tag">v1.31.61</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3644,18 +3644,20 @@
 
         function shareApp() {
             const cleanUrl = window.location.origin + window.location.pathname;
-            let text = "🦅 **Friday Night Hawks Timer**\n\n";
-            text += "🏆 **Uniek:** Jij bepaalt de EINDTIJD 🏁. De app berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent!\n\n";
-            text += "De ultieme trainingspartner voor de vrijdagavond! 🚴🏋️🏊\n";
-            text += "Sluit af met bitterballen & gezelligheid! 🍖\n\n";
-            text += "✅ **Wat kan deze app?**\n";
-            text += "- 🗣️ Volledige spraakbegeleiding (NL)\n";
-            text += "- ⏱️ Slimme tijd- & rustberekening\n";
-            text += "- 🔄 'Crash Recovery': Hervat direct na uitval\n";
-            text += "- 🎨 Volledig aanpasbare commando's\n\n";
-            text += "👇 Download/Gebruik de app hier (gratis):";
-            if (navigator.share) { navigator.share({ title: "Friday Night Hawks Timer 🦅", text: text, url: cleanUrl }).catch(console.error); }
-            else { navigator.clipboard.writeText(text + "\n" + cleanUrl).then(() => alert("Promotietekst en link gekopieerd!")); }
+            let text = "🦅 **FNH Timer: De enige timer die terugrekent!**\n\n";
+            text += "🏁 **Jij kiest de eindtijd, de app doet de rest.**\n";
+            text += "Hij berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent. Nooit meer gokken of haasten aan het einde van de les.\n\n";
+            text += "✅ **Waarom deze app?**\n";
+            text += "- 🛠️ Pas live tijden aan (zonder rekenen)\n";
+            text += "- 🎧 Muziek blijft aanstaan (Mix-mode)\n";
+            text += "- 🗣️ NL Spraakbegeleiding\n\n";
+            text += "👇 **Gebruik 'm hier (gratis):**";
+
+            if (navigator.share) {
+                navigator.share({ title: "FNH Timer 🦅", text: text, url: cleanUrl }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(text + "\n" + cleanUrl).then(() => alert("Tekst en link gekopieerd!"));
+            }
         }
 
         function shareSettings() {
