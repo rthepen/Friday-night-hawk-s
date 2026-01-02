@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.52</title>
+    <title>Friday-night-hawk-s Timer v1.31.53</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -3990,13 +3990,17 @@
             if (schedule.length > 1) schedule.push({ type: 'finish', time: 0, label: "KLAAR!", initialTime: 0, info: { text: "Goed gewerkt!" } }); else schedule = [];
         }
 
-        function playMp3WebAudio(url, key) {
+        // Global Audio State (Priority System)
+        let currentActiveSource = null;
+        let currentAudioPriority = 0; // 0=Idle, 1=Low, 2=High
+
+        function playMp3WebAudio(url, key, priority = 1) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
             // Check Cache
             if (audioCache[url]) {
-                logAudioDebug(`✅ WebAudio Cache: ${key}`);
-                playBuffer(audioCache[url]);
+                logAudioDebug(`✅ WebAudio Cache: ${key} (P${priority})`);
+                playBuffer(audioCache[url], priority);
                 return;
             }
 
@@ -4009,8 +4013,8 @@
                 .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
                 .then(audioBuffer => {
                     audioCache[url] = audioBuffer;
-                    logAudioDebug(`✅ WebAudio Play: ${key}`);
-                    playBuffer(audioBuffer);
+                    logAudioDebug(`✅ WebAudio Play: ${key} (P${priority})`);
+                    playBuffer(audioBuffer, priority);
                 })
                 .catch(e => {
                     failedAudioKeys.add(key);
@@ -4019,61 +4023,54 @@
                 });
         }
 
-        function playBuffer(buffer) {
+        function playBuffer(buffer, priority) {
+            // STOP previous active sound if it exists
+            if (currentActiveSource) {
+                try {
+                    currentActiveSource.stop();
+                    currentActiveSource = null;
+                } catch (e) { console.log("Stop error", e); }
+            }
+
             const source = audioCtx.createBufferSource();
             source.buffer = buffer;
 
             // VOLUME BOOST (for Mix Mode)
-            // Since we cannot "duck" (lower) the background music on iOS,
-            // we digitally boost the voice volume to 250% to cut through.
             const gainNode = audioCtx.createGain();
             gainNode.gain.value = 2.5;
 
             source.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
+            // Update State
+            currentActiveSource = source;
+            currentAudioPriority = priority;
+
+            source.onended = function () {
+                // Only reset if THIS was the active source
+                if (currentActiveSource === source) {
+                    currentAudioPriority = 0;
+                    currentActiveSource = null;
+                }
+            };
+
             source.start(0);
-        }
-
-        function addBonusStep(r, label, time, rest, bId) {
-            schedule.push({
-                type: 'work',
-                time: time,
-                initialTime: time,
-                label: label,
-                info: { round: r, exercise: 0, set: 0, globalSet: 0, bonusId: bId } // 0 indicates bonus
-            });
-            schedule.push({
-                type: 'rest-exercise',
-                time: rest,
-                initialTime: rest,
-                label: "WISSEL",
-                info: { round: r, exercise: 0, set: 0, text: "Klaarmaken..." }
-            });
-        }
-
-        function renderPreviewList() {
-            const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
-            schedule.forEach((item) => {
-                if (item.type === 'finish') return;
-                let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                runningDate.setSeconds(runningDate.getSeconds() + item.time);
-                const div = document.createElement('div'); div.className = `schedule-item`;
-                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
-                let desc = item.label; if (item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
-                div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
-                list.appendChild(div);
-            });
         }
 
         function triggerAudio(key, fallbackText, extraInfo = "") {
             try {
-                if (audioMode === 'beep') { if (key.includes('work')) playBeep(800, 'start'); else if (key.includes('rest')) playBeep(400, 'end'); else if (key === 'tick') playBeep(600, 'tick'); else if (key === 'finish') playBeep(1000, 'win'); return; }
+                if (audioMode === 'beep') {
+                    if (key.includes('work')) playBeep(800, 'start');
+                    else if (key.includes('rest')) playBeep(400, 'end');
+                    else if (key === 'tick') playBeep(600, 'tick');
+                    else if (key === 'finish') playBeep(1000, 'win');
+                    return;
+                }
 
-                // MP3 Support Logic (SIMPLIFIED v1.15 / TOGGLES v1.16)
+                // MP3 Support Logic
                 const coachId = document.getElementById('coach-preset').value || 'tabataman';
 
-                // Check Enable/Disable Toggle provided by user
+                // Check Enable/Disable Toggle
                 if (speechSettings[key] && speechSettings[key].enabled === false) {
                     logAudioDebug(`🔇 Silenced by user setting: ${key}`);
                     return;
@@ -4086,11 +4083,9 @@
                     const preset = coachPresets[coachId];
                     const variantsMap = preset ? (preset.variants || {}) : {};
 
-                    // --- VARIANT LOGIC (Random Shuffle Loop) ---
-                    // If variants defined for this key (count >= 1), use suffix logic _1, _2...
+                    // --- VARIANT LOGIC ---
                     if (variantsMap[key] && variantsMap[key] >= 1) {
                         const count = variantsMap[key];
-
                         // Initialize playlist if needed
                         if (!audioPlaylists[key]) {
                             const arr = Array.from({ length: count }, (_, i) => i + 1);
@@ -4101,34 +4096,53 @@
                             }
                             audioPlaylists[key] = { tracks: arr, ptr: 0 };
                         }
-
                         const pl = audioPlaylists[key];
                         const variantId = pl.tracks[pl.ptr];
                         pl.ptr = (pl.ptr + 1) % pl.tracks.length;
-
                         finalKey = `${key}_${variantId}`;
                     }
 
                     logAudioDebug(`🎵 Attempting MP3: ${coachId}/${finalKey}.mp3`);
                     const mp3Path = `coaches/${coachId}/${finalKey}.mp3`;
 
-                    // OPTIONAL MIX MODE (iOS Web Audio)
+                    // OPTIONAL MIX MODE (iOS Web Audio) with PRIORITY Logic
                     if (iosMixMode) {
-                        playMp3WebAudio(mp3Path, key);
+                        // DETERMINE PRIORITY
+                        // Priority 2 (High): Commands, Countdowns, Phase Changes
+                        // Priority 1 (Low): Milestones, Tips
+                        let priority = 1; // Default to Low
+                        const highPriorityKeys = [
+                            'work_start', 'rest_start',
+                            'rest_switch_start', 'rest_round_start', // Be specific about starts
+                            'prep_countdown', 'finish',
+                            'manual_override', 'work_complete', 'rest_complete',
+                            'tick'
+                        ];
+
+                        // If key is high priority
+                        if (highPriorityKeys.includes(key)) {
+                            priority = 2;
+                        }
+
+                        // PRIORITY RULE:
+                        // If P2 comes in -> Stop everything (handled in playBuffer) and Play.
+                        // If P1 comes in -> ONLY play if current is 0. If current is 2, IGNORE P1.
+                        if (priority === 1 && currentAudioPriority === 2) {
+                            logAudioDebug(`🚫 Skipped Low Priority: ${key} (Busy w/ High)`);
+                            return;
+                        }
+
+                        playMp3WebAudio(mp3Path, key, priority);
                         return;
                     }
 
                     // Standard HTML5 Audio (Single Global Object)
                     globalCoachAudio.src = mp3Path;
-
                     const playPromise = globalCoachAudio.play();
-
                     if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            logAudioDebug(`✅ Playing MP3: ${key}`);
-                        })
+                        playPromise.then(() => { logAudioDebug(`✅ Playing MP3: ${key}`); })
                             .catch(error => {
-                                failedAudioKeys.add(key); // Mark as missing/broken
+                                failedAudioKeys.add(key);
                                 logAudioDebug(`❌ MP3 Failed: ${key}`);
                             });
                     }
