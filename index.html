@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.53</title>
+    <title>Friday-night-hawk-s Timer v1.31.54</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -4381,12 +4381,25 @@
                         body.classList.add('mode-work');
                         // Standard work audio triggers
                         if (step.info.exercise > 0) {
-                            if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) triggerAudio('mile_start', "Goede start");
-                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) triggerAudio('mile_half', "Helft");
-                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) triggerAudio('mile_end', "Eindsprint");
-                            else if (totalRounds > 1 && step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) triggerAudio('mile_lastround', "Laatste ronde");
-                            else triggerAudio('work_start', "Start");
+                            // ALWAYS trigger "Start" (High Priority)
+                            triggerAudio('work_start', "Start");
+
+                            // Check for Milestones (Secondary - queue them to play AFTER Start)
+                            let mileKey = null;
+                            let mileText = "";
+
+                            if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.25)) { mileKey = 'mile_start'; mileText = "Goede start"; }
+                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.5)) { mileKey = 'mile_half'; mileText = "Helft"; }
+                            else if (step.info.globalSet === Math.ceil(totalWorkSetsGlobal * 0.75)) { mileKey = 'mile_end'; mileText = "Eindsprint"; }
+                            else if (totalRounds > 1 && step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) { mileKey = 'mile_lastround'; mileText = "Laatste ronde"; }
+
+                            if (mileKey) {
+                                // Delay milestone so 'Start' (Go) isn't interrupted
+                                setTimeout(() => {
+                                    triggerAudio(mileKey, mileText);
+                                }, 1500);
+                            }
+
                         } else {
                             // Custom Extra Start Audio
                             triggerAudio('work_start', `Start ${step.label}`);
