@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.73</title>
+    <title>Friday-night-hawk-s Timer v1.31.74</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.73</span>
+                FNH Timer <span class="version-tag">v1.31.74</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2419,7 +2419,7 @@
             { id: "mile_start", label: "25% (Goede start)", type: "text" },
             { id: "mile_half", label: "50% (Helft)", type: "text" },
             { id: "mile_end", label: "75% (Eindsprint)", type: "text" },
-            { id: "mile_lastround", label: "Start laatste ronde", type: "text" },
+            { id: "work_start_lastround", label: "Start laatste oefening", type: "text" },
             { id: "finish", label: "Einde training", type: "text" }
         ];
 
@@ -3297,7 +3297,7 @@
             syncTime('duration');
 
             // Disable Milestones for Tabata (User Request)
-            const mileKeys = ['mile_start', 'mile_half', 'mile_end', 'mile_lastround'];
+            const mileKeys = ['mile_start', 'mile_half', 'mile_end'];
             mileKeys.forEach(k => {
                 if (!speechSettings[k]) speechSettings[k] = {};
                 speechSettings[k].enabled = false;
@@ -4453,18 +4453,15 @@
                         // Standard work audio triggers
                         if (step.info.exercise > 0) {
                             // ALWAYS trigger "Start" (High Priority)
-                            triggerAudio('work_start', "Start");
-
-                            // Check for LAST ROUND Milestone (Still structure based)
-                            if (totalRounds > 1 && step.info.round === totalRounds && step.info.set === 1 && step.info.exercise === 1) {
-                                // Delay slightly to avoid clash with Start
-                                setTimeout(() => {
-                                    triggerAudio('mile_lastround', "Laatste ronde");
-                                }, 1500);
+                            // NEW: Check for First Set of Last Exercise (Last Round only? User said "Laatste Oefening" replacing "Laatste Ronde")
+                            // Assuming Last Round -> Last Exercise -> Set 1.
+                            if (step.info.round === step.info.maxRounds && step.info.exercise === step.info.maxEx && step.info.set === 1) {
+                                triggerAudio('work_start_lastround', "Start laatste oefening");
+                            } else {
+                                triggerAudio('work_start', "Start");
                             }
-                        } else {
-                            // Custom Extra Start Audio
-                            triggerAudio('work_start', `Start ${step.label}`);
+
+                            // Removed mile_lastround logic per request
                         }
                     }
                     else if (step.type === 'rest') {
