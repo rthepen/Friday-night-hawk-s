@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.82</title>
+    <title>Friday-night-hawk-s Timer v1.31.83</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2386,9 +2386,24 @@
                     'work_30s': 1, 'work_10s': 1, 'work_5s': 1
                 }
             },
-            'nl_female': { use_mp3: true },
-            'nl_male': { use_mp3: true }
+            'eva': {
+                use_mp3: true,
+                variants: {
+                    'prep_countdown': 1,
+                    'finish': 1,
+                    'mile_end': 1, 'mile_half': 1, 'mile_start': 1,
+                    'prep_intro': 1,
+                    'rest_round_15s': 1, 'rest_round_start': 1,
+                    'rest_set_start': 1, 'rest_set_tips': 1,
+                    'rest_switch_10s': 1, 'rest_switch_start': 1,
+                    'work_start': 4,
+                    'work_halfway': 1,
+                    'work_30s': 1, 'work_10s': 1, 'work_5s': 1,
+                    'work_start_lastround': 1
+                }
+            }
         };
+
 
         let currentCoachName = "Tabataman (Standaard)";
 
@@ -2493,8 +2508,7 @@
             for (const coachId in coachPresets) {
                 let displayName = coachId.charAt(0).toUpperCase() + coachId.slice(1);
                 if (coachId === 'tabataman') displayName = 'TabataMan (Actief)';
-                if (coachId === 'nl_female') displayName = 'Eva (Rustig)';
-                if (coachId === 'nl_male') displayName = 'Daan (Energiek)';
+                if (coachId === 'eva') displayName = 'Eva (Nederlands Energiek)';
                 addOption(coachId, displayName);
             }
 
