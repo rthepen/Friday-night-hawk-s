@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.69</title>
+    <title>Friday-night-hawk-s Timer v1.31.70</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.69</span>
+                FNH Timer <span class="version-tag">v1.31.70</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4234,7 +4234,16 @@
 
         function testMixModeSound() {
             logAudioDebug("🔊 Sound Check Triggered");
-            playMp3WebAudio('sound_check.mp3', 'sound_check', 2);
+
+            // Replicate triggerAudio logic regarding Mix Mode
+            if (iosMixMode) {
+                playMp3WebAudio('sound_check.mp3', 'sound_check', 2);
+            } else {
+                globalCoachAudio.src = 'sound_check.mp3';
+                globalCoachAudio.play()
+                    .then(() => logAudioDebug("✅ Standard Audio Check"))
+                    .catch(e => logAudioDebug("❌ Standard Audio Fail: " + e.message));
+            }
         }
 
         function logAudioDebug(msg) {
