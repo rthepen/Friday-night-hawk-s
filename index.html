@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.93</title>
+    <title>Friday-night-hawk-s Timer v1.31.94</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1599,7 +1599,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.93</span>
+                FNH Timer <span class="version-tag">v1.31.94</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3864,6 +3864,25 @@
 
                 } catch (e) { console.log("Error loading settings", e); }
             }
+        }
+
+        function applyCoachPreset(coachId) {
+            if (!coachPresets[coachId]) return;
+
+            // Load presets for this coach
+            // We want to preserve 'enabled' states if possible? 
+            // Actually, switching coaches usually resets to that coach's specific defaults primarily for 'variants' logic.
+            // But user might want to keep "Muted" toggles.
+            // Let's simple-load for now as per original logic intent.
+
+            const newSettings = JSON.parse(JSON.stringify(coachPresets[coachId]));
+
+            // OPTIONAL: Preserve existing 'enabled' flags if keys match?
+            // For now, full reset to coach defaults is safer to ensure 'variants' are correct.
+            speechSettings = newSettings;
+
+            renderAudioToggles();
+            saveToLocal();
         }
 
         function setAudioMode(newMode) {
