@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.79</title>
+    <title>Friday-night-hawk-s Timer v1.31.80</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.79</span>
+                FNH Timer <span class="version-tag">v1.31.80</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -6133,48 +6133,48 @@
             style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
             🚀 NU BEGINNEN (OVERSLAAN)
         </button>
-        // --- LOGGING ---
-        function getFingerprint() {
-        let fp = localStorage.getItem('fnh_fingerprint');
-        if (!fp) {
-        // Simple random UUID-like string
-        fp = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        localStorage.setItem('fnh_fingerprint', fp);
-        }
-        return fp;
-        }
+        <script>
+            // --- LOGGING ---
+            function getFingerprint() {
+                let fp = localStorage.getItem('fnh_fingerprint');
+                if (!fp) {
+                    // Simple random UUID-like string
+                    fp = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                    localStorage.setItem('fnh_fingerprint', fp);
+                }
+                return fp;
+            }
 
-        function logWorkoutToSheet() {
-        const url =
-        "https://script.google.com/macros/s/AKfycbzjwH5TfLJEinllUn3wYlQE17uno0DdnLoBaG1FmdMeVBUE0wd5-pf07TEoOg6jj2sF/exec";
+            function logWorkoutToSheet() {
+                const url =
+                    "https://script.google.com/macros/s/AKfycbzjwH5TfLJEinllUn3wYlQE17uno0DdnLoBaG1FmdMeVBUE0wd5-pf07TEoOg6jj2sF/exec";
 
-        // Safe Retrieval
-        const totalMinEl = document.getElementById('totalMin');
-        const totalMinText = totalMinEl && totalMinEl.options.length > 0 ?
-        totalMinEl.options[totalMinEl.selectedIndex].text : "Err";
+                // Safe Retrieval
+                const totalMinEl = document.getElementById('totalMin');
+                const totalMinText = totalMinEl && totalMinEl.options.length > 0 ?
+                    totalMinEl.options[totalMinEl.selectedIndex].text : "Err";
 
-        const payload = {
-        fingerprint: getFingerprint(),
-        rounds: document.getElementById('rounds').value,
-        exercises: document.getElementById('exercises').value,
-        sets: document.getElementById('sets').value,
-        totalMin: totalMinText,
-        coach: document.getElementById('coach-preset').value,
-        startTime: new Date().toLocaleTimeString('nl-NL', {hour: '2-digit', minute:'2-digit'})
-        };
+                const payload = {
+                    fingerprint: getFingerprint(),
+                    rounds: document.getElementById('rounds').value,
+                    exercises: document.getElementById('exercises').value,
+                    sets: document.getElementById('sets').value,
+                    totalMin: totalMinText,
+                    coach: document.getElementById('coach-preset').value,
+                    startTime: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+                };
 
-        console.log("Logging Payload:", payload);
+                console.log("Logging Payload:", payload);
 
-        // Fire and forget (no-cors prevents reading response but allows sending)
-        // Use text/plain to avoid CORS preflight (OPTIONS) which Apps Script doesn't handle
-        fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-        }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
-        }
-
+                // Fire and forget (no-cors prevents reading response but allows sending)
+                // Use text/plain to avoid CORS preflight (OPTIONS) which Apps Script doesn't handle
+                fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
+            }
         </script>
 </body>
 
