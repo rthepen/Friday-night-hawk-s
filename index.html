@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.101</title>
+    <title>Friday-night-hawk-s Timer v1.31.102</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1599,7 +1599,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.101</span>
+                FNH Timer <span class="version-tag">v1.31.102</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1744,8 +1744,7 @@
         </div>
 
         <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
-        <button class="action-btn" style="background: #BF5AF2; color: white; margin-bottom: 25px;"
-            onclick="openGeneratorModal()">🤖 AI Training Generator</button>
+
         <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
 
         <div class="resume-options">
@@ -2137,7 +2136,10 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="modal-btn"
+                style="background: #BF5AF2; color: white; margin-top:15px; width:100%; font-weight:bold;"
+                onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI TRAINING GENERATOR</button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="modal-btn" style="flex:1; background: #333; color: white; margin-top:0;"
                     onclick="closeScheduleModal()">Sluiten</button>
                 <button class="modal-btn" style="flex:1; background: #0A84FF; color: white; margin-top:0;"
