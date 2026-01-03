@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.65</title>
+    <title>Friday-night-hawk-s Timer v1.31.66</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.65</span>
+                FNH Timer <span class="version-tag">v1.31.66</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2455,6 +2455,18 @@
                 freq: document.getElementById(`bonus${i}-freq`).value,
                 id: i
             };
+        }
+
+        // HELPER: Detect iOS
+        function isIOS() {
+            return (
+                /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+            );
+        }
+
+        if (isIOS()) {
+            console.log("Dit is een iOS apparaat (iPhone of iPad)");
         }
 
         // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
@@ -3743,6 +3755,15 @@
                         if (sel.querySelector(`option[value="${data.coachPreset}"]`)) {
                             sel.value = data.coachPreset;
                         }
+                    }
+
+                    // Restore Mix Mode (or Auto-Detect)
+                    if (typeof data.iosMixMode !== 'undefined') {
+                        iosMixMode = data.iosMixMode;
+                    } else {
+                        // Default behavior: On for iOS, Off for others
+                        iosMixMode = isIOS();
+                        if (iosMixMode) console.log("Auto-enabled Mix Mode for iOS");
                     }
 
                     if (data.audioMode) setAudioMode(data.audioMode);
