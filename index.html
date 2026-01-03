@@ -3222,7 +3222,7 @@
 
             // Custom Reset Logic: Start Time + 5min, Duration 45min, Rest 15s
             const now = new Date();
-            const start = new Date(now.getTime() + 5 * 60000);
+            const start = new Date(now.getTime() + 1 * 60000);
             const startStr = start.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
 
             document.getElementById('startTimeValue').value = startStr;
@@ -6023,7 +6023,7 @@
 
             switch (type) {
                 case "ipad":
-                    title = "iPad Instellen";
+                    title = "Instellen";
                     icon = "📱";
                     msg = `
                         <b>1. Bedieningspaneel:</b> Veeg rechtsboven omlaag.<br>
@@ -6032,7 +6032,7 @@
                     `;
                     break;
                 case "action":
-                    title = "Nieuwe iPhone";
+                    title = "Instellen";
                     icon = "🔘";
                     msg = `
                         <b>Optie 1:</b> Houd de <b>Actieknop</b> (zijkant) ingedrukt tot 'Stille modus: Uit'.<br>
@@ -6040,7 +6040,7 @@
                     `;
                     break;
                 case "ambiguous":
-                    title = "Check je Geluid";
+                    title = "Instellen";
                     icon = "📱";
                     msg = `
                         <b>Heb je een Actieknop?</b><br> Houd ingedrukt tot Stille Modus UIT gaat.<br><br>
