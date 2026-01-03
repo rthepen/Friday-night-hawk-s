@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.67</title>
+    <title>Friday-night-hawk-s Timer v1.31.68</title>
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1598,7 +1598,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.67</span>
+                FNH Timer <span class="version-tag">v1.31.68</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5970,6 +5970,121 @@
             pendingPauseDur = 0;
             // Just resume
             handlePauseClick();
+        }
+
+        // --- iOS Audio Guide Popup ---
+        (function checkDeviceAndInstruct() {
+            // 1. Check of gebruiker dit permanent verborgen heeft
+            if (localStorage.getItem("fnh_hide_audio_guide") === "true") return;
+
+            // 2. Detecteer iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+            if (!isIOS) return;
+
+            // 3. Bepaal Model Type
+            const width = Math.min(window.screen.width, window.screen.height);
+            let deviceType = "switch";
+
+            if (navigator.userAgent.includes("iPad") || (navigator.userAgent.includes("Mac") && "ontouchend" in document)) {
+                deviceType = "ipad";
+            }
+            else if (width === 402 || width === 440) {
+                deviceType = "action"; // iPhone 16 Pro / Max
+            }
+            else if (width === 393 || width === 430) {
+                deviceType = "ambiguous"; // iPhone 14/15/16 mix
+            }
+
+            // 4. Toon Popup
+            // Wait slightly to ensure DOM is ready if script is at end of body
+            setTimeout(() => showAudioPopup(deviceType), 500);
+        })();
+
+        function showAudioPopup(type) {
+            if (sessionStorage.getItem("audio_popup_seen")) return;
+
+            let title = "🔈 Geluid Aanzetten";
+            let msg = "";
+            let icon = "";
+
+            switch (type) {
+                case "ipad":
+                    title = "iPad Instellen";
+                    icon = "📱";
+                    msg = `
+                        <b>1. Bedieningspaneel:</b> Veeg rechtsboven omlaag.<br>
+                        <b>2. Belletje:</b> Zorg dat het bel-icoon 🔔 AAN staat.<br>
+                        <b>3. Focus:</b> Zet 'Niet Storen' aan.
+                    `;
+                    break;
+                case "action":
+                    title = "Nieuwe iPhone";
+                    icon = "🔘";
+                    msg = `
+                        <b>Optie 1:</b> Houd de <b>Actieknop</b> (zijkant) ingedrukt tot 'Stille modus: Uit'.<br>
+                        <b>Optie 2:</b> Via Bedieningspaneel (belletje 🔔).
+                    `;
+                    break;
+                case "ambiguous":
+                    title = "Check je Geluid";
+                    icon = "📱";
+                    msg = `
+                        <b>Heb je een Actieknop?</b><br> Houd ingedrukt tot Stille Modus UIT gaat.<br><br>
+                        <b>Heb je een Schakelaar?</b><br> Zet het schuifje links omhoog.
+                    `;
+                    break;
+                default:
+                    title = "Zet Geluid Aan";
+                    icon = "🔕 ➡️ 🔔";
+                    msg = `
+                        <b>De fysieke schakelaar:</b><br>
+                        Zet het schuifje aan de linkerkant omhoog.<br>
+                        <i>(Geen oranje vlakje zichtbaar!)</i>
+                    `;
+                    break;
+            }
+
+            const div = document.createElement("div");
+            div.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(5px);";
+
+            div.innerHTML = `
+                <div style="background:#1c1c1e; color:white; padding:20px; border-radius:20px; max-width:340px; text-align:center; border:1px solid #333; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="font-size:35px; margin-bottom:10px;">${icon}</div>
+                    <h2 style="margin:0 0 10px 0; color:#30D158; font-size:20px;">${title}</h2>
+                    <div style="font-size:13px; color:#ccc; line-height:1.4; text-align:left; margin-bottom:15px;">${msg}</div>
+                    
+                    <div style="background:rgba(255, 214, 10, 0.1); border:1px solid rgba(255, 214, 10, 0.3); padding:10px; border-radius:8px; text-align:left; margin-bottom:15px;">
+                        <div style="font-size:12px; font-weight:bold; color:#FFD60A; margin-bottom:2px;">🔒 PRO TIP: Begeleide Toegang</div>
+                        <div style="font-size:11px; color:#ddd;">
+                            Voorkomt dat je de app wegveegt én blokkeert notificaties.
+                            <br><br>
+                            👉 <b>Druk 3x snel op de zijknop</b> om te starten.
+                        </div>
+                    </div>
+
+                    <label style="display:flex; align-items:center; justify-content:center; margin-bottom:15px; cursor:pointer; font-size:12px; color:#888;">
+                        <input type="checkbox" id="hide-future-popup" style="margin-right:8px; transform:scale(1.2); accent-color:#30D158;">
+                        Dit bericht niet meer tonen
+                    </label>
+
+                    <button id="btn-audio-ok" style="background:#0A84FF; color:white; border:none; padding:12px 30px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; width:100%;">
+                        Begrepen ✅
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(div);
+
+            document.getElementById("btn-audio-ok").onclick = () => {
+                if (document.getElementById("hide-future-popup").checked) {
+                    localStorage.setItem("fnh_hide_audio_guide", "true");
+                } else {
+                    sessionStorage.setItem("audio_popup_seen", "true");
+                }
+                div.remove();
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state !== 'running') ctx.resume();
+            };
         }
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
