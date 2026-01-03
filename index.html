@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.106</title>
+    <title>Friday-night-hawk-s Timer v1.31.107</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1608,7 +1608,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.106</span>
+                FNH Timer <span class="version-tag">v1.31.107</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2784,7 +2784,7 @@
             // Fill Bonus Duration Dropdown
             const fillBonusDuration = (id) => {
                 const sel = document.getElementById(id); sel.innerHTML = "";
-                const opt0 = document.createElement('option'); opt0.value = 0; opt0.text = "0 min (Uit)"; sel.appendChild(opt0);
+                const opt0 = document.createElement('option'); opt0.value = 0; opt0.text = "Uit"; sel.appendChild(opt0);
                 for (let i = 1; i <= 15; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = i + " min"; sel.appendChild(opt); }
             };
 
