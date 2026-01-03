@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.102</title>
+    <title>Friday-night-hawk-s Timer v1.31.103</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1078,7 +1078,11 @@
         }
 
         .gym-phase-title.huge-text {
-            font-size: 16vw;
+            font-size: 13vw;
+        }
+
+        .gym-phase-title.long-text {
+            font-size: 5vw;
         }
 
 
@@ -1599,7 +1603,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.102</span>
+                FNH Timer <span class="version-tag">v1.31.103</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4526,8 +4530,13 @@
                 titleEl.innerText = step.label;
                 titleEl.className = 'gym-phase-title';
                 if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') {
-                    // Make huge text for main work phases (including custom extra name)
-                    titleEl.classList.add('huge-text');
+                    // Dynamic Sizing based on character count
+                    if (step.label.length > 20) {
+                        titleEl.classList.add('long-text');
+                    } else if (step.label.length < 10) {
+                        titleEl.classList.add('huge-text');
+                    }
+                    // Else: Normal (8vw)
                 }
 
                 let nextText = "Hierna: Klaar";
@@ -5748,7 +5757,14 @@
                 document.getElementById('gym-phase-title').innerText = step.label;
                 const titleEl = document.getElementById('gym-phase-title');
                 titleEl.className = 'gym-phase-title';
-                if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') { titleEl.classList.add('huge-text'); }
+                if (step.label === 'WERKEN' || step.label === 'RUST' || step.type === 'work') {
+                    // Dynamic Sizing
+                    if (step.label.length > 20) {
+                        titleEl.classList.add('long-text');
+                    } else if (step.label.length < 10) {
+                        titleEl.classList.add('huge-text');
+                    }
+                }
             }
         }
 
