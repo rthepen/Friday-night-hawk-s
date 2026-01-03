@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.91</title>
+    <title>Friday-night-hawk-s Timer v1.31.92</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1599,7 +1599,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.91</span>
+                FNH Timer <span class="version-tag">v1.31.92</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2622,6 +2622,13 @@
                     document.getElementById(`bonus${i}-duration`).value = 0;
                 }
 
+                // Enable Milestones (Requirements: Logo & Reset = ON)
+                const mileKeys = ['mile_start', 'mile_half', 'mile_end'];
+                mileKeys.forEach(k => {
+                    if (!speechSettings[k]) speechSettings[k] = {};
+                    speechSettings[k].enabled = true;
+                });
+                renderAudioToggles();
                 syncTime('duration');
                 calculateRealTime();
                 saveToLocal();
@@ -3293,6 +3300,15 @@
             setAudioMode('speech');
             document.getElementById('coach-preset').value = 'tabataman';
 
+            // Reset settings (Except Audio Mode)
+            // Force Tabataman & Enable Milestones on Reset
+            // Enable Milestones in Global Settings
+            ['mile_start', 'mile_half', 'mile_end'].forEach(k => {
+                if (!speechSettings[k]) speechSettings[k] = {};
+                speechSettings[k].enabled = true;
+            });
+            renderAudioToggles();
+
             saveToLocal();
             calculateRealTime();
         }
@@ -3935,11 +3951,8 @@
                     const bonus = getBonusData(b);
                     if (bonus.min > 0 && bonus.freq === 'end_round') {
                         let include = true;
-                        if (r >= startRound) {
-                            if (r > startRound || (r === startRound)) { // Loose check for end of round
-                                remainingFixedRestTime += (bonus.min * 60) + exRst;
-                            }
-                        }
+                        if (applyResumeFilter && r < startRound) include = false;
+                        if (include) addBonusStep(r, bonus.name.toUpperCase(), bonus.min * 60, exRst, bonus.id);
                     }
                 }
             }
