@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.114</title>
+    <title>Friday-night-hawk-s Timer v1.31.115</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1634,7 +1634,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.114</span>
+                FNH Timer <span class="version-tag">v1.31.115</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="fullReset()">🔄 Reset</button>
@@ -3821,26 +3821,34 @@
             const rounds = document.getElementById('rounds').value; const exercises = document.getElementById('exercises').value; const sets = document.getElementById('sets').value;
             const restSec = document.getElementById('restSec').value; const exerciseRestSec = document.getElementById('exerciseRestSec').value; const roundRestSec = document.getElementById('roundRestSec').value;
             const totalMin = document.getElementById('totalMin').value;
-            
+
             // NEW: Capture additional settings
             const startTime = document.getElementById('startTimeValue').value;
             const coach = document.getElementById('coach-preset').value;
-            
+
             const params = new URLSearchParams();
             params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
             params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
-            
-            if(startTime) params.set('st', startTime);
-            if(coach) params.set('c', coach);
+
+            if (startTime) params.set('st', startTime);
+            if (coach) params.set('c', coach);
 
             // Bonus Settings
-            for(let i=1; i<=3; i++) {
+            for (let i = 1; i <= 3; i++) {
                 const name = document.getElementById(`bonus${i}-name`).value;
                 const dur = document.getElementById(`bonus${i}-duration`).value;
                 const freq = document.getElementById(`bonus${i}-freq`).value;
-                if(name) params.set(`b${i}n`, name);
-                if(dur) params.set(`b${i}d`, dur);
-                if(freq) params.set(`b${i}f`, freq);
+                if (name) params.set(`b${i}n`, name);
+                if (dur) params.set(`b${i}d`, dur);
+                if (freq) params.set(`b${i}f`, freq);
+            }
+
+            // Custom Names (Full Schedule)
+            if (Object.keys(customNames).length > 0) {
+                try {
+                    const cnStr = JSON.stringify(customNames);
+                    params.set('cn', encodeURIComponent(cnStr));
+                } catch (e) { console.error("Error serializing customNames", e); }
             }
 
             for (const [key, value] of Object.entries(speechSettings)) { if (value.text) { params.set(key, value.text); } }
@@ -3860,35 +3868,48 @@
 
             // Restore new settings
             if (params.has('st')) { document.getElementById('startTimeValue').value = params.get('st'); dataUpdated = true; }
-            
+
             if (params.has('c')) {
                 const coachVal = params.get('c');
                 const coachEl = document.getElementById('coach-preset');
                 if (coachEl && coachEl.querySelector(`option[value="${coachVal}"]`)) {
-                     coachEl.value = coachVal; 
-                     // We must trigger this to load audio/speech settings for the coach
-                     applyCoachPreset(coachVal);
-                     dataUpdated = true;
+                    coachEl.value = coachVal;
+                    // We must trigger this to load audio/speech settings for the coach
+                    applyCoachPreset(coachVal);
+                    dataUpdated = true;
                 }
             }
 
             // Restore Bonus Settings
-            for(let i=1; i<=3; i++) {
-                if(params.has(`b${i}n`)) { document.getElementById(`bonus${i}-name`).value = params.get(`b${i}n`); dataUpdated = true; }
-                if(params.has(`b${i}d`)) { document.getElementById(`bonus${i}-duration`).value = params.get(`b${i}d`); dataUpdated = true; }
-                if(params.has(`b${i}f`)) { document.getElementById(`bonus${i}-freq`).value = params.get(`b${i}f`); dataUpdated = true; }
+            for (let i = 1; i <= 3; i++) {
+                if (params.has(`b${i}n`)) { document.getElementById(`bonus${i}-name`).value = params.get(`b${i}n`); dataUpdated = true; }
+                if (params.has(`b${i}d`)) { document.getElementById(`bonus${i}-duration`).value = params.get(`b${i}d`); dataUpdated = true; }
+                if (params.has(`b${i}f`)) { document.getElementById(`bonus${i}-freq`).value = params.get(`b${i}f`); dataUpdated = true; }
+            }
+
+            // Restore Custom Names (Full Schedule)
+            if (params.has('cn')) {
+                try {
+                    const cnStr = decodeURIComponent(params.get('cn'));
+                    const parsed = JSON.parse(cnStr);
+                    // Merge or replace? Let's replace to ensure exact schedule replication
+                    if (parsed) {
+                        customNames = parsed;
+                        dataUpdated = true;
+                    }
+                } catch (e) { console.error("Failed to parse custom names", e); }
             }
 
             let speechUpdated = false;
             for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
             if (speechUpdated) { const dropdown = document.getElementById('coach-preset'); if (dropdown) { dropdown.value = 'custom'; dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } }
-            
-            if (dataUpdated) { 
+
+            if (dataUpdated) {
                 // Restore visibility of bonuses if needed
-                if(typeof updateBonusVisibility === 'function') updateBonusVisibility();
-                
-                syncTime('duration'); 
-                saveToLocal(); 
+                if (typeof updateBonusVisibility === 'function') updateBonusVisibility();
+
+                syncTime('duration');
+                saveToLocal();
             }
         }
 
