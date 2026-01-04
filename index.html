@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.115</title>
+    <title>Friday-night-hawk-s Timer v1.31.116</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -20,11 +20,16 @@
             --safe-bottom: env(safe-area-inset-bottom, 0px);
             --app-height: 100dvh;
 
-            /* Modern Sporty Palette */
+            /* Premium Sport Palette */
             --bg-main: #000000;
-            --bg-card: #1C1C1E;
-            --bg-glass: rgba(28, 28, 30, 0.85);
+            --bg-secondary: #0a0a0a;
 
+            /* Glassmorphism */
+            --bg-card: rgba(28, 28, 30, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-blur: 25px;
+
+            /* Accents */
             --accent-primary: #30D158;
             /* Neon Green */
             --accent-secondary: #0A84FF;
@@ -32,12 +37,19 @@
             --accent-danger: #FF453A;
             --accent-warm: #FF9F0A;
 
+            /* Text */
             --text-primary: #FFFFFF;
-            --text-secondary: #8E8E93;
+            --text-secondary: #98989d;
+            --text-tertiary: #636366;
 
-            --radius-card: 20px;
-            --radius-btn: 16px;
+            /* Properties */
+            --radius-card: 24px;
+            --radius-btn: 18px;
             --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+            /* Shadows */
+            --glow-primary: 0 0 20px rgba(48, 209, 88, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         * {
@@ -73,13 +85,15 @@
 
         /* --- INTRO BANNER --- */
         .intro-banner {
-            background: linear-gradient(135deg, var(--bg-card) 0%, #2c2c2e 100%);
-            border: 1px solid #333;
+            background: linear-gradient(135deg, rgba(44, 44, 46, 0.8) 0%, rgba(28, 28, 30, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             border-radius: var(--radius-card);
-            padding: 20px;
+            padding: 24px;
             margin-top: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-card);
         }
 
         .intro-title {
@@ -227,26 +241,36 @@
         /* --- CARDS & INPUTS --- */
         .card-group {
             background: var(--bg-card);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
             border-radius: var(--radius-card);
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         select.compact-select,
         input[type="time"],
         input[type="text"],
+        input[type="number"],
         .text-input-trigger,
         select.text-input {
             width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid transparent;
-            background: #2C2C2E;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
             color: var(--text-primary);
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 17px;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             appearance: none;
             -webkit-appearance: none;
             text-align: center;
@@ -254,9 +278,11 @@
 
         select.compact-select:focus,
         input:focus {
-            background: #3A3A3C;
+            background: rgba(0, 0, 0, 0.5);
             border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(48, 209, 88, 0.1);
             outline: none;
+            transform: scale(1.01);
         }
 
         label {
@@ -510,28 +536,52 @@
         /* --- BUTTONS --- */
         button.action-btn {
             width: 100%;
-            padding: 18px;
+            padding: 20px;
             font-size: 20px;
             font-weight: 800;
             border: none;
             border-radius: var(--radius-btn);
             cursor: pointer;
-            margin-top: 10px;
-            margin-bottom: 25px;
+            margin-top: 15px;
+            margin-bottom: 30px;
             flex-shrink: 0;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(48, 209, 88, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
         }
 
         button.action-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
+        }
+
+        button.action-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        button.action-btn:hover::after {
+            opacity: 1;
         }
 
         .btn-start {
-            background: var(--accent-primary);
+            background: linear-gradient(135deg, #32d74b 0%, #28cd41 100%);
             color: #000;
+            box-shadow: 0 8px 25px rgba(40, 205, 65, 0.4);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-start:hover {
+            box-shadow: 0 12px 30px rgba(40, 205, 65, 0.5);
+            transform: translateY(-2px);
         }
 
         .btn-view-schedule {
@@ -1634,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.115</span>
+                FNH Timer <span class="version-tag">v1.31.116</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="fullReset()">🔄 Reset</button>
