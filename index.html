@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.113</title>
+    <title>Friday-night-hawk-s Timer v1.31.114</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1634,7 +1634,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.113</span>
+                FNH Timer <span class="version-tag">v1.31.114</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="fullReset()">🔄 Reset</button>
@@ -3821,9 +3821,28 @@
             const rounds = document.getElementById('rounds').value; const exercises = document.getElementById('exercises').value; const sets = document.getElementById('sets').value;
             const restSec = document.getElementById('restSec').value; const exerciseRestSec = document.getElementById('exerciseRestSec').value; const roundRestSec = document.getElementById('roundRestSec').value;
             const totalMin = document.getElementById('totalMin').value;
+            
+            // NEW: Capture additional settings
+            const startTime = document.getElementById('startTimeValue').value;
+            const coach = document.getElementById('coach-preset').value;
+            
             const params = new URLSearchParams();
             params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
             params.set('rs', restSec); params.set('re', exerciseRestSec); params.set('rr', roundRestSec); params.set('tm', totalMin);
+            
+            if(startTime) params.set('st', startTime);
+            if(coach) params.set('c', coach);
+
+            // Bonus Settings
+            for(let i=1; i<=3; i++) {
+                const name = document.getElementById(`bonus${i}-name`).value;
+                const dur = document.getElementById(`bonus${i}-duration`).value;
+                const freq = document.getElementById(`bonus${i}-freq`).value;
+                if(name) params.set(`b${i}n`, name);
+                if(dur) params.set(`b${i}d`, dur);
+                if(freq) params.set(`b${i}f`, freq);
+            }
+
             for (const [key, value] of Object.entries(speechSettings)) { if (value.text) { params.set(key, value.text); } }
             const baseUrl = window.location.origin + window.location.pathname; const shareUrl = baseUrl + '?' + params.toString();
             if (navigator.share) { navigator.share({ title: 'FNH Training Settings', url: shareUrl }).catch(console.error); }
@@ -3838,10 +3857,39 @@
                 document.getElementById('restSec').value = params.get('rs'); document.getElementById('exerciseRestSec').value = params.get('re'); document.getElementById('roundRestSec').value = params.get('rr');
                 document.getElementById('totalMin').value = params.get('tm'); dataUpdated = true;
             }
+
+            // Restore new settings
+            if (params.has('st')) { document.getElementById('startTimeValue').value = params.get('st'); dataUpdated = true; }
+            
+            if (params.has('c')) {
+                const coachVal = params.get('c');
+                const coachEl = document.getElementById('coach-preset');
+                if (coachEl && coachEl.querySelector(`option[value="${coachVal}"]`)) {
+                     coachEl.value = coachVal; 
+                     // We must trigger this to load audio/speech settings for the coach
+                     applyCoachPreset(coachVal);
+                     dataUpdated = true;
+                }
+            }
+
+            // Restore Bonus Settings
+            for(let i=1; i<=3; i++) {
+                if(params.has(`b${i}n`)) { document.getElementById(`bonus${i}-name`).value = params.get(`b${i}n`); dataUpdated = true; }
+                if(params.has(`b${i}d`)) { document.getElementById(`bonus${i}-duration`).value = params.get(`b${i}d`); dataUpdated = true; }
+                if(params.has(`b${i}f`)) { document.getElementById(`bonus${i}-freq`).value = params.get(`b${i}f`); dataUpdated = true; }
+            }
+
             let speechUpdated = false;
             for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
             if (speechUpdated) { const dropdown = document.getElementById('coach-preset'); if (dropdown) { dropdown.value = 'custom'; dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } }
-            if (dataUpdated) { syncTime('duration'); saveToLocal(); }
+            
+            if (dataUpdated) { 
+                // Restore visibility of bonuses if needed
+                if(typeof updateBonusVisibility === 'function') updateBonusVisibility();
+                
+                syncTime('duration'); 
+                saveToLocal(); 
+            }
         }
 
         function saveToLocal() {
