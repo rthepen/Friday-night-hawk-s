@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.134</title>
+    <title>Friday-night-hawk-s Timer v1.31.135</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1707,7 +1707,7 @@
             <h1 class="app-header">Smart Jump</h1>
             <div id="debug-classes" style="font-size:10px; color:yellow; margin-left:10px;">Debug</div>
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.134</span>
+                FNH Timer <span class="version-tag">v1.31.135</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4565,35 +4565,35 @@
 
         function updateHeartbeat(bpm, isDark = false) {
             // DEBUG
+            let count = (window.hbCount || 0) + 1; window.hbCount = count;
             const debugEl = document.getElementById('debug-classes');
-            if (debugEl) debugEl.innerText = `BPM: ${bpm} (${isDark ? "Dark" : "Light"})`;
+            if (debugEl) debugEl.innerText = `BPM: ${bpm} (${isDark ? "Dark" : "Light"}) #${count}`;
 
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             if (bpm <= 0) return;
 
             const msPerBeat = 60000 / bpm;
-            const overlay = document.getElementById('heartbeat-overlay');
+
+            // METHOD: FLASH BODY SHADOW
+            const flash = () => {
+                const color = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
+                document.body.style.transition = 'box-shadow 0.05s ease-in-out';
+                // Inset shadow on body
+                document.body.style.boxShadow = `inset 0 0 100px ${color}`;
+                setTimeout(() => {
+                    document.body.style.boxShadow = 'none';
+                }, 100);
+            };
 
             // Initial Flash
-            if (overlay) {
-                overlay.className = isDark ? 'flash-now dark' : 'flash-now';
-                setTimeout(() => { if (overlay) overlay.className = ''; }, 100);
-            }
+            flash();
 
-            heartbeatInterval = setInterval(() => {
-                if (!overlay) return;
-                overlay.className = isDark ? 'flash-now dark' : 'flash-now';
-                // Duration of flash: 100ms
-                setTimeout(() => {
-                    if (overlay) overlay.className = '';
-                }, 100);
-            }, msPerBeat);
+            heartbeatInterval = setInterval(flash, msPerBeat);
         }
 
         function stopHeartbeat() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
-            const overlay = document.getElementById('heartbeat-overlay');
-            if (overlay) overlay.className = '';
+            document.body.style.boxShadow = 'none';
         }
 
         function startWorkout() {
