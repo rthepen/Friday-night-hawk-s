@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.136</title>
+    <title>Friday-night-hawk-s Timer v1.31.137</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -886,8 +886,28 @@
         }
 
         /* PROGRESS RINGS */
+        /* --- AMBIENT GLOW (FULL PAGE) --- */
+        #ambient-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150vw;
+            height: 150vh;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
+            pointer-events: none;
+            z-index: 0;
+            /* Behind everything */
+            transition: background 0.5s ease;
+            mix-blend-mode: screen;
+            /* Add vibrancy */
+        }
+
         .timer-ring-container {
             position: relative;
+            z-index: 2;
+            /* Above glow */
+            /* ... existing styles ... */
             width: 80vw;
             max-width: 350px;
             aspect-ratio: 1;
@@ -1675,7 +1695,7 @@
 </head>
 
 <body>
-
+    <div id="ambient-glow"></div>
     <div id="setup-screen" class="container">
 
         <div class="logo-container">
@@ -1685,7 +1705,7 @@
         <div class="header-row">
             <h1 class="app-header">Smart Jump</h1>
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.136</span>
+                FNH Timer <span class="version-tag">v1.31.137</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4700,6 +4720,15 @@
                 if (ringStep) {
                     ringStep.style.stroke = nextColor;
                     ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`;
+
+                    // NEW: Full Page Ambient Glow
+                    const amb = document.getElementById('ambient-glow');
+                    if (amb) {
+                        // Create a subtle radial gradient matching the ring color
+                        // e.g. from 20% opacity to 0% at edges
+                        amb.style.background = `radial-gradient(circle, ${nextGlow} 0%, rgba(0,0,0,0) 70%)`;
+                        amb.style.opacity = "0.3"; // Keep it subtle
+                    }
                 }
 
                 titleEl.innerText = step.label;
