@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.138</title>
+    <title>Friday-night-hawk-s Timer v1.31.127</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -886,28 +886,8 @@
         }
 
         /* PROGRESS RINGS */
-        /* --- AMBIENT GLOW (FULL PAGE) --- */
-        #ambient-glow {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150vw;
-            height: 150vh;
-            background: radial-gradient(circle, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%);
-            pointer-events: none;
-            z-index: 0;
-            /* Behind everything */
-            transition: background 0.5s ease;
-            mix-blend-mode: screen;
-            /* Add vibrancy */
-        }
-
         .timer-ring-container {
             position: relative;
-            z-index: 2;
-            /* Above glow */
-            /* ... existing styles ... */
             width: 80vw;
             max-width: 350px;
             aspect-ratio: 1;
@@ -1695,7 +1675,7 @@
 </head>
 
 <body>
-    <div id="ambient-glow"></div>
+
     <div id="setup-screen" class="container">
 
         <div class="logo-container">
@@ -1703,7 +1683,6 @@
         </div>
 
         <div class="header-row">
-            <h1 class="app-header">Smart Jump</h1>
             <div class="app-header">
                 FNH Timer <span class="version-tag">v1.31.138</span>
             </div>
@@ -4719,14 +4698,7 @@
                 const ringStep = document.getElementById('ring-step');
                 if (ringStep) {
                     ringStep.style.stroke = nextColor;
-                    // REMOVED: ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`; (Caused Block Artifact)
-
-                    // Full Page Ambient Glow
-                    const amb = document.getElementById('ambient-glow');
-                    if (amb) {
-                        amb.style.background = `radial-gradient(circle, ${nextGlow} 0%, rgba(0,0,0,0) 70%)`;
-                        amb.style.opacity = "0.4";
-                    }
+                    ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`;
                 }
 
                 titleEl.innerText = step.label;
@@ -4778,10 +4750,7 @@
                         let info = ""; if (speechSettings.rest_round_info && speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
                         triggerAudio('rest_round_start', "Grote pauze", info);
                     }
-                    else if (step.type === 'prep') {
-                        body.classList.add('mode-prep');
-                        triggerAudio('prep_intro', "Welkom");
-                    }
+                    else if (step.type === 'prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
                     else { finish(); return; }
                 } else {
                     // Ensure class is correct valid even if we didn't play audio
@@ -6132,10 +6101,6 @@
         // --- NEW FEATURES: LIVE SCHEDULE & NAVIGATION ---
 
         function renderLiveSchedule(forceRebuild = false) {
-            // DEBUG
-            const debugEl = document.getElementById('debug-classes');
-            if (debugEl) debugEl.innerText = "Mode: " + document.body.className;
-
             const tbody = document.getElementById('live-table-body');
 
             // 1. Check if we need to build the rows (First run or Force)
