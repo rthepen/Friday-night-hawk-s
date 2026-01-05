@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.126</title>
+    <title>Friday-night-hawk-s Timer v1.31.127</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1671,6 +1671,58 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(191, 90, 242, 0.4);
         }
+
+        /* --- HEARTBEAT ANIMATION --- */
+        #heartbeat-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            /* Subtler radial gradient for the glow effect */
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            opacity: 0;
+            /* Will be animated */
+        }
+
+        @keyframes beat {
+            0% {
+                opacity: 0.0;
+                transform: scale(1);
+            }
+
+            15% {
+                opacity: 0.25;
+                transform: scale(1.02);
+            }
+
+            /* Systole peak */
+            30% {
+                opacity: 0.0;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.0;
+                transform: scale(1);
+            }
+        }
+
+        /* 170 BPM: ~0.353s per beat */
+        body.mode-work #heartbeat-overlay {
+            animation: beat 0.353s infinite ease-in-out;
+        }
+
+        /* 60 BPM: 1s per beat */
+        body.mode-rest #heartbeat-overlay,
+        body.mode-switch #heartbeat-overlay,
+        body.mode-pause #heartbeat-overlay,
+        body.mode-long #heartbeat-overlay,
+        body.mode-prep #heartbeat-overlay {
+            animation: beat 1s infinite ease-in-out;
+        }
     </style>
 </head>
 
@@ -1684,7 +1736,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.126</span>
+                FNH Timer <span class="version-tag">v1.31.127</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
