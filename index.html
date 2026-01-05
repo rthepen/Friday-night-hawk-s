@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.130</title>
+    <title>Friday-night-hawk-s Timer v1.31.131</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1681,64 +1681,76 @@
             height: 100vh;
             pointer-events: none;
             z-index: 9999;
-            /* Force on TOP of everything */
             background: transparent;
-            /* Default hidden */
             opacity: 0;
-            box-shadow: inset 0 0 0px rgba(0, 0, 0, 0);
-            transition: all 0.3s ease;
+            /* Use White Inset Box Shadow for "Flash" effect visible on all colors */
+            box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+            transition: opacity 0.3s ease;
         }
 
+        /* Work Beat (Fast, Hard) */
         @keyframes beat-work {
             0% {
-                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.2;
             }
 
-            15% {
-                box-shadow: inset 0 0 80px rgba(255, 0, 0, 0.6);
+            10% {
+                box-shadow: inset 0 0 100px rgba(255, 255, 255, 0.8);
+                opacity: 1;
             }
 
-            30% {
-                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
+            /* Flash! */
+            40% {
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.2;
             }
 
             100% {
-                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.2;
             }
         }
 
+        /* Rest Beat (Slow, Soft) */
         @keyframes beat-rest {
             0% {
-                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.1;
             }
 
-            15% {
-                box-shadow: inset 0 0 80px rgba(50, 255, 100, 0.5);
+            20% {
+                box-shadow: inset 0 0 150px rgba(255, 255, 255, 0.5);
+                opacity: 0.8;
             }
 
-            30% {
-                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
+            /* Slow Glow */
+            60% {
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.1;
             }
 
             100% {
-                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
+                box-shadow: inset 0 0 0px rgba(255, 255, 255, 0);
+                opacity: 0.1;
             }
         }
 
-        /* 170 BPM: ~0.353s per beat */
         body.mode-work #heartbeat-overlay {
-            opacity: 1;
-            animation: beat-work 0.353s infinite ease-in-out;
+            animation: beat-work 0.353s infinite ease-out;
+            /* 170 BPM */
+            mix-blend-mode: overlay;
+            /* Blend nicely with green background */
         }
 
-        /* 60 BPM: 1s per beat */
         body.mode-rest #heartbeat-overlay,
         body.mode-switch #heartbeat-overlay,
         body.mode-pause #heartbeat-overlay,
         body.mode-long #heartbeat-overlay,
         body.mode-prep #heartbeat-overlay {
-            opacity: 1;
             animation: beat-rest 1s infinite ease-in-out;
+            /* 60 BPM */
+            mix-blend-mode: overlay;
         }
     </style>
 </head>
@@ -1755,7 +1767,7 @@
             <h1 class="app-header">Smart Jump</h1>
             <div id="debug-classes" style="font-size:10px; color:yellow; margin-left:10px;">Debug</div>
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.130</span>
+                FNH Timer <span class="version-tag">v1.31.131</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
