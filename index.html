@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.142</title>
+    <title>Friday-night-hawk-s Timer v1.31.144</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.142</span>
+                FNH Timer <span class="version-tag">v1.31.144</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3414,12 +3414,11 @@
             document.getElementById('coach-preset').value = 'tabataman';
 
             // Reset settings (Except Audio Mode)
-            // Force Tabataman & Enable ALL Audio Settings on Reset
-            uiConfig.forEach(item => {
-                if (item.id) {
-                    if (!speechSettings[item.id]) speechSettings[item.id] = {};
-                    speechSettings[item.id].enabled = true;
-                }
+            // Force Tabataman & Enable Milestones on Reset
+            // Enable Milestones in Global Settings
+            ['mile_start', 'mile_half', 'mile_end'].forEach(k => {
+                if (!speechSettings[k]) speechSettings[k] = {};
+                speechSettings[k].enabled = true;
             });
             renderAudioToggles();
 
@@ -4695,9 +4694,6 @@
                 } else {
                     nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)';
                 }
-
-                // ANCHOR FOR PROGRESS BAR
-                window.lastStepChangeTime = Date.now();
 
                 const ringStep = document.getElementById('ring-step');
                 if (ringStep) {
@@ -5991,14 +5987,13 @@
                 // Formula: (Total Work Sets - Remaining Work Sets) / Total Work Sets
                 // Filter: type === 'work' AND info.exercise > 0 (excludes bonuses/toetjes)
 
-                // NEW LOGIC: Hybrid (Sets + Time)
-                // 1. Base Progress: Completed Sets / Total Sets
                 let totalWorkSets = 0;
                 let remainingWorkSets = 0;
 
                 schedule.forEach((s, i) => {
                     if (s.type === 'work' && s.info && s.info.exercise > 0) {
                         totalWorkSets++;
+                        // If index is >= currentIndex, it is "remaining" (including the one currently active)
                         if (i >= currentIndex) {
                             remainingWorkSets++;
                         }
@@ -6006,42 +6001,22 @@
                 });
 
                 if (totalWorkSets > 0) {
-                    let basePct = (totalWorkSets - remainingWorkSets) / totalWorkSets;
-                    if (basePct < 0) basePct = 0;
+                    // Example: 10 Total. Start (Index 0). Remaining 10. (10-10)/10 = 0%.
+                    // Finish Set 1. Move to Rest (Index 1). Remaining 9. (10-9)/10 = 10%.
+                    // Start Set 2 (Index 2). Remaining 9. (10-9)/10 = 10%.
+                    // Finish Set 10. Move to Finish. Remaining 0. (10-0)/10 = 100%.
 
-                    // 2. Time Factor: Interpolate remaining % over remaining time
-                    // Start: window.lastStepChangeTime
-                    // End: targetEndTimeDate (Global)
-
-                    let finalPct = basePct;
-                    const anchorStart = window.lastStepChangeTime || Date.now();
-
-                    if (targetEndTimeDate && anchorStart) {
-                        const nowMs = Date.now();
-                        const totalDurationMs = targetEndTimeDate.getTime() - anchorStart;
-                        const elapsedMs = nowMs - anchorStart;
-
-                        if (totalDurationMs > 0) {
-                            let timeFactor = elapsedMs / totalDurationMs;
-                            if (timeFactor > 1) timeFactor = 1;
-                            if (timeFactor < 0) timeFactor = 0;
-
-                            // Fill the gap (1 - basePct)
-                            const gap = 1.0 - basePct;
-                            finalPct = basePct + (gap * timeFactor);
-                        }
-                    }
-
-                    if (finalPct > 1) finalPct = 1;
+                    let pct = (totalWorkSets - remainingWorkSets) / totalWorkSets;
+                    if (pct > 1) pct = 1; if (pct < 0) pct = 0;
 
                     const totalC = 301.6; // 2 * pi * 48
-                    const offset = totalC * (1 - finalPct);
+                    const offset = totalC * (1 - pct);
                     ringTotal.style.strokeDashoffset = offset;
 
                     // Update Percentage Text
                     const ringPctEl = document.getElementById('ring-percent');
                     if (ringPctEl) {
-                        ringPctEl.innerText = Math.round(finalPct * 100) + "%";
+                        ringPctEl.innerText = Math.round(pct * 100) + "%";
                     }
 
                     // TIMELINE MILESTONES (Based on %)
