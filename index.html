@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.132</title>
+    <title>Friday-night-hawk-s Timer v1.31.133</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1672,7 +1672,7 @@
             box-shadow: 0 4px 15px rgba(191, 90, 242, 0.4);
         }
 
-        /* --- HEARTBEAT ANIMATION --- */
+        /* --- HEARTBEAT ANIMATION (JS DRIVEN) --- */
         #heartbeat-overlay {
             position: fixed;
             top: 0;
@@ -1681,55 +1681,16 @@
             height: 100vh;
             pointer-events: none;
             z-index: 2147483647;
-            /* Maximum Z-Index */
             background: transparent;
-            transition: background-color 0.1s;
+            transition: background-color 0.05s ease-in-out;
         }
 
-        /* Work Beat (Flash White/Red) */
-        @keyframes beat-work {
-            0% {
-                background-color: rgba(255, 255, 255, 0);
-            }
-
-            10% {
-                background-color: rgba(255, 255, 255, 0.4);
-            }
-
-            /* Visible White Flash */
-            100% {
-                background-color: rgba(255, 255, 255, 0);
-            }
+        #heartbeat-overlay.flash-now {
+            background-color: rgba(255, 255, 255, 0.5) !important;
         }
 
-        /* Rest Beat (Flash Dark/Green) */
-        @keyframes beat-rest {
-            0% {
-                background-color: rgba(0, 0, 0, 0);
-            }
-
-            50% {
-                background-color: rgba(0, 0, 0, 0.3);
-            }
-
-            /* Visible Dark Pulse */
-            100% {
-                background-color: rgba(0, 0, 0, 0);
-            }
-        }
-
-        body.mode-work #heartbeat-overlay {
-            animation: beat-work 0.353s infinite ease-out;
-            /* 170 BPM */
-        }
-
-        body.mode-rest #heartbeat-overlay,
-        body.mode-switch #heartbeat-overlay,
-        body.mode-pause #heartbeat-overlay,
-        body.mode-long #heartbeat-overlay,
-        body.mode-prep #heartbeat-overlay {
-            animation: beat-rest 1s infinite ease-in-out;
-            /* 60 BPM */
+        #heartbeat-overlay.flash-now.dark {
+            background-color: rgba(0, 0, 0, 0.4) !important;
         }
     </style>
 </head>
@@ -1746,7 +1707,7 @@
             <h1 class="app-header">Smart Jump</h1>
             <div id="debug-classes" style="font-size:10px; color:yellow; margin-left:10px;">Debug</div>
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.132</span>
+                FNH Timer <span class="version-tag">v1.31.133</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4783,6 +4744,7 @@
                     step.hasPlayedEntry = true;
                     if (step.type === 'work') {
                         body.classList.add('mode-work');
+                        updateHeartbeat(170, false); // Light Flash, Fast
                         // Standard work audio triggers
                         if (step.info.exercise > 0 || step.info.bonusId) {
                             // ALWAYS trigger "Start" (High Priority)
@@ -4799,20 +4761,27 @@
                     }
                     else if (step.type === 'rest') {
                         body.classList.add('mode-rest');
+                        updateHeartbeat(60, true); // Dark Flash, Slow
                         let info = ""; if (speechSettings.rest_set_tips && speechSettings.rest_set_tips.enabled) { const tips = ["Adem in, adem uit", "Schud je spieren los", "Slokje water", "Blijf gefocust"]; info = tips[Math.floor(Math.random() * tips.length)]; }
                         triggerAudio('rest_set_start', "Rust", info);
                     }
                     else if (step.type === 'rest-exercise') {
                         body.classList.add('mode-switch');
+                        updateHeartbeat(60, true);
                         let info = ""; if (speechSettings.rest_switch_info && speechSettings.rest_switch_info.enabled && nextStep && nextStep.info && nextStep.info.exercise > 0) { info = `Hierna oefening ${nextStep.info.exercise} van de ${totalEx}`; }
                         triggerAudio('rest_switch_start', "Wissel", info);
                     }
                     else if (step.type === 'rest-long') {
                         body.classList.add('mode-long');
+                        updateHeartbeat(60, true);
                         let info = ""; if (speechSettings.rest_round_info && speechSettings.rest_round_info.enabled && nextStep && nextStep.info) { info = `Hierna ronde ${nextStep.info.round} van de ${totalRounds}`; }
                         triggerAudio('rest_round_start', "Grote pauze", info);
                     }
-                    else if (step.type === 'prep') { body.classList.add('mode-prep'); triggerAudio('prep_intro', "Welkom"); }
+                    else if (step.type === 'prep') {
+                        body.classList.add('mode-prep');
+                        updateHeartbeat(60, true);
+                        triggerAudio('prep_intro', "Welkom");
+                    }
                     else { finish(); return; }
                 } else {
                     // Ensure class is correct valid even if we didn't play audio
