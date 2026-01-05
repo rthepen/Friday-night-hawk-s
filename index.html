@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.120</title>
+    <title>Friday-night-hawk-s Timer v1.31.121</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.120</span>
+                FNH Timer <span class="version-tag">v1.31.121</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5825,9 +5825,9 @@
                 if (choice === 'push') {
                     // Option 1: Shift End Time Earlier (Remove Surplus)
                     targetEndTimeDate = new Date(targetEndTimeDate.getTime() - (surplus * 1000));
-                    // FIX: Also adjust start time so total progress % allows us to jump forward visually!
-                    // If we don't do this, we "lose" elapsed time and the bar drops back.
-                    workoutStartTime = new Date(workoutStartTime.getTime() - (surplus * 1000));
+                    // FIX: Start time is NOW (implicitly set by performStart).
+                    // We REMOVED the logic that shifted it back, because it broke progress calculation.
+                    // workoutStartTime = new Date(workoutStartTime.getTime() - (surplus * 1000)); // DISABLED
 
                     updateEndTimeDisplay();
                     // recalculateForFixedEnd(); // REMOVED: Do not shorten exercises when extending time!
@@ -5969,11 +5969,11 @@
             if (ringTotal) {
                 // FIXED: Force 0% during Prep Phase (User Requirement)
                 if (schedule[currentIndex] && schedule[currentIndex].type === 'prep') {
-                     const totalC = 301.6; // 2 * pi * 48
-                     ringTotal.style.strokeDashoffset = totalC; // Empty
-                     const ringPctEl = document.getElementById('ring-percent');
-                     if (ringPctEl) ringPctEl.innerText = "0%";
-                     return;
+                    const totalC = 301.6; // 2 * pi * 48
+                    ringTotal.style.strokeDashoffset = totalC; // Empty
+                    const ringPctEl = document.getElementById('ring-percent');
+                    if (ringPctEl) ringPctEl.innerText = "0%";
+                    return;
                 }
 
                 // NEW LOGIC: Calculate based on Content, excluding Prep
