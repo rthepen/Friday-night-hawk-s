@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.128</title>
+    <title>Friday-night-hawk-s Timer v1.31.129</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1677,52 +1677,58 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
-            z-index: 0;
-            /* Changed from -1 to 0 to sit on top of background but below content */
+            z-index: 9999;
+            /* Force on TOP of everything */
+            background: transparent;
+            /* Default hidden */
             opacity: 0;
-            mix-blend-mode: screen;
-            /* Helps with glow effect */
+            box-shadow: inset 0 0 0px rgba(0, 0, 0, 0);
+            transition: all 0.3s ease;
         }
 
-        /* Container needs z-index to stay on top */
-        .container {
-            position: relative;
-            z-index: 1;
-        }
-
-        @keyframes beat {
+        @keyframes beat-work {
             0% {
-                opacity: 0.1;
-                /* Start slightly visible */
-                transform: scale(1);
+                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
             }
 
             15% {
-                opacity: 0.6;
-                /* Much stronger peak opacity */
-                transform: scale(1.05);
-                /* Slightly bigger pulse */
+                box-shadow: inset 0 0 80px rgba(255, 0, 0, 0.6);
             }
 
             30% {
-                opacity: 0.1;
-                transform: scale(1);
+                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
             }
 
             100% {
-                opacity: 0.1;
-                transform: scale(1);
+                box-shadow: inset 0 0 20px rgba(255, 50, 50, 0);
+            }
+        }
+
+        @keyframes beat-rest {
+            0% {
+                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
+            }
+
+            15% {
+                box-shadow: inset 0 0 80px rgba(50, 255, 100, 0.5);
+            }
+
+            30% {
+                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
+            }
+
+            100% {
+                box-shadow: inset 0 0 20px rgba(50, 255, 100, 0);
             }
         }
 
         /* 170 BPM: ~0.353s per beat */
         body.mode-work #heartbeat-overlay {
-            /* Red glow for high intensity */
-            background: radial-gradient(circle, rgba(255, 69, 58, 0.4) 0%, rgba(0, 0, 0, 0) 80%);
-            animation: beat 0.353s infinite ease-in-out;
+            opacity: 1;
+            animation: beat-work 0.353s infinite ease-in-out;
         }
 
         /* 60 BPM: 1s per beat */
@@ -1731,9 +1737,8 @@
         body.mode-pause #heartbeat-overlay,
         body.mode-long #heartbeat-overlay,
         body.mode-prep #heartbeat-overlay {
-            /* Green/Blue glow for rest */
-            background: radial-gradient(circle, rgba(48, 209, 88, 0.3) 0%, rgba(0, 0, 0, 0) 80%);
-            animation: beat 1s infinite ease-in-out;
+            opacity: 1;
+            animation: beat-rest 1s infinite ease-in-out;
         }
     </style>
 </head>
@@ -1748,7 +1753,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.128</span>
+                FNH Timer <span class="version-tag">v1.31.129</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
