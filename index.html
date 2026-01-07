@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.149</title>
+    <title>Friday-night-hawk-s Timer v1.31.150</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.149</span>
+                FNH Timer <span class="version-tag">v1.31.150</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1928,6 +1928,33 @@
     </div>
 
     <div id="timer-screen" style="display:none !important;">
+        <!-- VOLUME TOGGLE BTN -->
+        <div style="position:absolute; top:20px; right:20px; z-index:200; background:rgba(0,0,0,0.4); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.1);"
+            onclick="toggleVolumePanel()">
+            <span style="font-size:20px;">🔊</span>
+        </div>
+
+        <!-- VOLUME PANEL OVERLAY -->
+        <div id="active-volume-panel"
+            style="display:none; position:absolute; top:70px; right:20px; width:250px; background:rgba(28,28,30,0.95); backdrop-filter:blur(10px); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); z-index:201; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                <span style="font-size:13px; color:#fff; font-weight:bold;">Volume</span>
+                <span style="font-size:18px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                <span style="font-size:18px;">🎵</span>
+                <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
+                    style="flex:1; margin:0 10px; accent-color:#30D158;" oninput="updateLiveVolumes()">
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:18px;">🗣️</span>
+                <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
+                    style="flex:1; margin:0 10px; accent-color:#0A84FF;" oninput="updateLiveVolumes()">
+            </div>
+        </div>
+
         <div class="display-zone">
             <div class="gym-phase-title" id="gym-phase-title">KLAARMAKEN</div>
 
@@ -2040,20 +2067,7 @@
             <p id="pause-msg-p" style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span
                     id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd.</p>
 
-            <!-- VOLUME CONTROLS (Moved here per user request) -->
-            <div
-                style="background:#222; padding:10px; border-radius:12px; margin-bottom:15px; border:1px solid #333; text-align:left;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <span style="font-size:12px; color:#ccc;">🎵 Muziek</span>
-                    <input type="range" id="vol-music" min="0" max="1" step="0.1" value="0.4"
-                        style="width:50%; accent-color:#30D158;" oninput="updatevolumes()">
-                </div>
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                    <span style="font-size:12px; color:#ccc;">🗣️ Coach</span>
-                    <input type="range" id="vol-coach" min="0" max="1" step="0.1" value="1.0"
-                        style="width:50%; accent-color:#0A84FF;" oninput="updatevolumes()">
-                </div>
-            </div>
+
 
             <button class="modal-btn"
                 style="background: linear-gradient(135deg, #32d74b 0%, #28cd41 100%); color: #000; font-weight: 800; border: none; box-shadow: 0 5px 15px rgba(50, 215, 75, 0.4);"
@@ -4036,11 +4050,13 @@
 
                     // Restore Volumes
                     if (data.volMusic) {
-                        document.getElementById('vol-music').value = data.volMusic;
+                        try { document.getElementById('vol-music').value = data.volMusic; } catch (e) { } // Removed element
+                        if (document.getElementById('vol-music-live')) document.getElementById('vol-music-live').value = data.volMusic;
                         bgMusicManager.audio.volume = parseFloat(data.volMusic);
                     }
                     if (data.volCoach) {
-                        document.getElementById('vol-coach').value = data.volCoach;
+                        try { document.getElementById('vol-coach').value = data.volCoach; } catch (e) { } // Removed element
+                        if (document.getElementById('vol-coach-live')) document.getElementById('vol-coach-live').value = data.volCoach;
                     }
 
                     // Restore Coach Preset
