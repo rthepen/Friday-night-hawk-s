@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.160</title>
+    <title>Friday-night-hawk-s Timer v1.31.161</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.160</span>
+                FNH Timer <span class="version-tag">v1.31.161</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1936,9 +1936,9 @@
 
         <!-- VOLUME PANEL OVERLAY -->
         <div id="active-volume-panel"
-            style="display:none; position:absolute; top:70px; right:20px; width:250px; background:rgba(28,28,30,0.95); backdrop-filter:blur(10px); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); z-index:201; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            style="display:none; position:absolute; top:70px; right:20px; width:280px; background:rgba(28,28,30,0.95); backdrop-filter:blur(10px); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); z-index:201; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
-                <span style="font-size:13px; color:#fff; font-weight:bold;">Volume</span>
+                <span style="font-size:13px; color:#fff; font-weight:bold;">Audio Settings</span>
                 <span style="font-size:18px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
             </div>
 
@@ -1948,10 +1948,46 @@
                     style="flex:1; margin:0 10px; accent-color:#30D158;" oninput="updateLiveVolumes()">
             </div>
 
-            <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
                 <span style="font-size:18px;">🗣️</span>
                 <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
                     style="flex:1; margin:0 10px; accent-color:#0A84FF;" oninput="updateLiveVolumes()">
+            </div>
+
+            <!-- Continuous Mode Toggle -->
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex; flex-direction:column; text-align:left;">
+                    <span style="font-size:13px; color:#ddd;">Muziek Doorspelen</span>
+                    <span style="font-size:10px; color:#888;">Geen rustmuziek, alleen werk</span>
+                </div>
+                <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
+                    <input type="checkbox" id="chk-continuous-music"
+                        onchange="bgMusicManager.setContinuous(this.checked)">
+                    <span class="slider round"
+                        style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#555; transition:.4s; border-radius:34px;"></span>
+                    <style>
+                        .slider:before {
+                            position: absolute;
+                            content: "";
+                            height: 18px;
+                            width: 18px;
+                            left: 3px;
+                            bottom: 3px;
+                            background-color: white;
+                            transition: .4s;
+                            border-radius: 50%;
+                        }
+
+                        input:checked+.slider {
+                            background-color: #30D158;
+                        }
+
+                        input:checked+.slider:before {
+                            transform: translateX(16px);
+                        }
+                    </style>
+                </label>
             </div>
         </div>
 
@@ -4463,8 +4499,36 @@
                 this.workIndex = 0;
                 this.restIndex = 0;
 
+                this.workIndex = 0;
+                this.restIndex = 0;
+
+                this.continuousMode = false;
                 this.currentGenre = null;
                 this.hasStartedForWorkout = false;
+
+                // Handle Track End for Continuous Mode
+                this.audio.onended = () => {
+                    if (this.continuousMode && this.hasStartedForWorkout) {
+                        this.playNextWorkTrack();
+                    }
+                };
+            }
+
+            setContinuous(enabled) {
+                this.continuousMode = enabled;
+                // If ON, disable loop SO 'onended' fires. If OFF, loop is true (default behavior)
+                this.audio.loop = !enabled;
+            }
+
+            playNextWorkTrack() {
+                if (this.workQueue.length === 0) return;
+                const item = this.workQueue[this.workIndex];
+                this.workIndex = (this.workIndex + 1) % this.workQueue.length;
+
+                const path = `muziek/${item.genre}/werk/${item.track}`;
+                this.audio.src = path;
+                this.audio.play().catch(e => console.log("Cont. Play Error", e));
+                this.showNowPlaying(item.track, item.genre, 'work');
             }
 
             setGenres(list) {
@@ -4534,6 +4598,12 @@
             playPhase(phase) {
                 if (this.selectedGenres.length === 0) return;
 
+                // CONTINUOUS MODE CHECK
+                if (this.continuousMode && phase === 'rest') {
+                    // Do nothing, let work music continue
+                    return;
+                }
+
                 // FIXED PLAYLIST LOGIC
                 let item = null;
                 let type = 'rust';
@@ -4544,6 +4614,7 @@
                     this.workIndex = (this.workIndex + 1) % this.workQueue.length; // Loop
                     type = 'werk';
                 } else {
+                    // Standard Rest Logic
                     if (this.restQueue.length === 0) return;
                     item = this.restQueue[this.restIndex];
                     this.restIndex = (this.restIndex + 1) % this.restQueue.length; // Loop
