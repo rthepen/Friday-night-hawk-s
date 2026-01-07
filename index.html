@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.158</title>
+    <title>Friday-night-hawk-s Timer v1.31.159</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.158</span>
+                FNH Timer <span class="version-tag">v1.31.159</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4437,7 +4437,13 @@
                 this.audio.volume = volInput ? parseFloat(volInput.value) : parseFloat(localStorage.getItem('fnh_vol_music') || 0.4);
                 this.audio.preload = 'auto'; // Ensure preload
                 this.selectedGenres = [];
-                this.genreQueue = [];
+
+                // FIXED PLAYLIST QUEUES
+                this.workQueue = [];
+                this.restQueue = [];
+                this.workIndex = 0;
+                this.restIndex = 0;
+
                 this.currentGenre = null;
                 this.hasStartedForWorkout = false;
             }
@@ -4450,8 +4456,37 @@
             startWorkout() {
                 if (this.selectedGenres.length === 0) return;
                 this.hasStartedForWorkout = true;
-                this.refillQueue();
+                this.buildPlaylists(); // Build fixed shuffled lists
                 this.playPhase('rest'); // Start with atmosphere
+            }
+
+            buildPlaylists() {
+                this.workQueue = [];
+                this.restQueue = [];
+
+                // 1. Gather all tracks from selected genres
+                this.selectedGenres.forEach(genre => {
+                    const db = musicManifest[genre];
+                    if (db) {
+                        if (db.werk) db.werk.forEach(t => this.workQueue.push({ track: t, genre: genre }));
+                        if (db.rust) db.rust.forEach(t => this.restQueue.push({ track: t, genre: genre }));
+                    }
+                });
+
+                // 2. Shuffle them ONCE
+                this.shuffle(this.workQueue);
+                this.shuffle(this.restQueue);
+
+                // 3. Reset Indices
+                this.workIndex = 0;
+                this.restIndex = 0;
+            }
+
+            shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
             }
 
             stopWorkout() {
@@ -4480,34 +4515,33 @@
             playPhase(phase) {
                 if (this.selectedGenres.length === 0) return;
 
-                // Logic:
-                // If phase == 'work', keep SAME genre, pick 'werk' track.
-                // If phase == 'rest' (or prep), pick NEW genre, pick 'rust' track.
+                // FIXED PLAYLIST LOGIC
+                let item = null;
+                let type = 'rust';
 
-                let genre = this.currentGenre;
-                if (!genre || phase === 'rest' || phase === 'prep') {
-                    genre = this.getNextGenre();
-                    this.currentGenre = genre;
+                if (phase === 'work') {
+                    if (this.workQueue.length === 0) return;
+                    item = this.workQueue[this.workIndex];
+                    this.workIndex = (this.workIndex + 1) % this.workQueue.length; // Loop
+                    type = 'werk';
+                } else {
+                    if (this.restQueue.length === 0) return;
+                    item = this.restQueue[this.restIndex];
+                    this.restIndex = (this.restIndex + 1) % this.restQueue.length; // Loop
+                    type = 'rust';
                 }
 
-                if (!genre) return;
+                if (!item) return;
 
-                const db = musicManifest[genre];
-                if (!db) return;
-
-                const type = (phase === 'work') ? 'werk' : 'rust';
-                const tracks = db[type];
-
-                if (!tracks || tracks.length === 0) return;
-
-                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-                const path = `muziek/${genre}/${type}/${randomTrack}`;
+                const genre = item.genre;
+                const track = item.track;
+                const path = `muziek/${genre}/${type}/${track}`;
 
                 this.audio.src = path;
                 this.audio.play().catch(e => console.log("Music Play Error", e));
 
                 // Update UI or Toast
-                this.showNowPlaying(randomTrack, genre, phase);
+                this.showNowPlaying(track, genre, phase);
             }
 
             showNowPlaying(trackName, genre, phase) {
