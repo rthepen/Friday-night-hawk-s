@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.157</title>
+    <title>Friday-night-hawk-s Timer v1.31.158</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.157</span>
+                FNH Timer <span class="version-tag">v1.31.158</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2038,6 +2038,10 @@
             </div>
 
             <div class="gym-next-info" id="gym-next-info">Hierna: Rust</div>
+            <!-- NOW PLAYING (Relocated) -->
+            <div id="gym-now-playing"
+                style="font-size:13px; color:#888; margin-top:5px; height:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            </div>
         </div>
 
         <div class="controls-container">
@@ -4503,28 +4507,20 @@
                 this.audio.play().catch(e => console.log("Music Play Error", e));
 
                 // Update UI or Toast
-                // console.log(`Playing [${genre}]: ${randomTrack} (${phase})`);
                 this.showNowPlaying(randomTrack, genre, phase);
             }
 
             showNowPlaying(trackName, genre, phase) {
-                const el = document.getElementById('now-playing-container');
-                const txt = document.getElementById('now-playing-text');
-                if (el && txt) {
-                    // Clean track name (remove extension, remove parens if desired)
+                const txt = document.getElementById('gym-now-playing');
+                if (txt) {
                     let cleanName = trackName.replace('.mp3', '');
-                    txt.innerHTML = `<span style="opacity:0.7">${genre}</span><br><span style="font-weight:bold; color:${phase === 'work' ? '#30D158' : '#0A84FF'}">${cleanName}</span>`;
-                    el.style.display = 'flex';
-                    // Auto-hide after 5s? No, user wants to see it? "ik wil ook tijdens de workout zien welk nummer er wordt afgespeeld" -> Permanent or long fade? 
-                    // Let's keep it visible or fade. User implied "during workout", so overlay is good.
-                    // Maybe fade out after 8 seconds to not block view?
-                    // Or just keep it small at bottom? Let's keep it visible.
+                    txt.innerHTML = `🎵 ${cleanName} <span style="opacity:0.6">(${genre})</span>`;
                 }
             }
 
             hideNowPlaying() {
-                const el = document.getElementById('now-playing-container');
-                if (el) el.style.display = 'none';
+                const txt = document.getElementById('gym-now-playing');
+                if (txt) txt.innerHTML = "";
             }
         }
 
@@ -6847,29 +6843,7 @@
         </script>
         <!-- AUDIO GUIDE POPUP -->
 
-        <!-- NOW PLAYING OVERLAY -->
-        <div id="now-playing-container" style="
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(28, 28, 30, 0.9);
-        backdrop-filter: blur(10px);
-        padding: 10px 20px;
-        border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        z-index: 2147483647 !important; /* Force on top of everything */
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-        font-size: 13px;
-        line-height: 1.4;
-        pointer-events: none;
-        color: white;
-    ">
-            <div id="now-playing-text"></div>
-        </div>
+
 </body>
 
 </html>
