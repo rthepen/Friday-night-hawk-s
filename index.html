@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.169</title>
+    <title>Friday-night-hawk-s Timer v1.31.170</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.169</span>
+                FNH Timer <span class="version-tag">v1.31.170</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4648,21 +4648,21 @@
                 // FIXED PLAYLIST LOGIC
                 let item = null;
                 let type = 'rust';
-                let targetVol = this.volRest;
+                // targetVol already set above
 
                 if (phase === 'work') {
                     if (this.workQueue.length === 0) return;
                     item = this.workQueue[this.workIndex];
                     this.workIndex = (this.workIndex + 1) % this.workQueue.length; // Loop
                     type = 'werk';
-                    targetVol = this.volWork;
+                    // targetVol handled
                 } else {
                     // Standard Rest Logic
                     if (this.restQueue.length === 0) return;
                     item = this.restQueue[this.restIndex];
                     this.restIndex = (this.restIndex + 1) % this.restQueue.length; // Loop
                     type = 'rust';
-                    targetVol = this.volRest;
+                    // targetVol handled
                 }
 
                 if (!item) return;
