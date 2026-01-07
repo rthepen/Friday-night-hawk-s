@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.146</title>
+    <title>Friday-night-hawk-s Timer v1.31.147</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.146</span>
+                FNH Timer <span class="version-tag">v1.31.147</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4314,6 +4314,137 @@
         }
 
         // --- MUSIC UI RENDERER ---
+
+        // --- MUSIC MANIFEST (Hardcoded) ---
+        const musicManifest = {
+            "Neue Deutsche Härte": {
+                rust: [
+                    "(Ein langes Zischen von Dampf).mp3",
+                    "(Ein tiefer, gedämpfter Beat setzt sofor.mp3",
+                    "(Langsam, Düster, Atmosphärisch).mp3",
+                    "(Sehr langsam, Tief).mp3",
+                    "(Tiefes Brummen der Motoren).mp3"
+                ],
+                werk: [
+                    "BEFEHL IST BEFEHL!.mp3",
+                    "DAS TIER!.mp3",
+                    "DEUTSCHLAND!.mp3",
+                    "DRECKIGER SCHWEINEKOPF!.mp3",
+                    "DU BIST AUS STAHL!.mp3",
+                    "EISEN!.mp3",
+                    "HALT DIE FRESSE!.mp3",
+                    "HAMMER!.mp3",
+                    "HEUL NICHT!.mp3",
+                    "NEIN!.mp3",
+                    "PANZER!.mp3",
+                    "VERDAMMTES ARSCHLOCH!.mp3"
+                ]
+            }
+        };
+
+        class BackgroundMusicManager {
+            constructor() {
+                this.audio = new Audio();
+                this.audio.loop = true;
+                this.audio.volume = 0.4;
+                this.selectedGenres = [];
+                this.genreQueue = [];
+                this.currentGenre = null;
+                this.hasStartedForWorkout = false;
+            }
+
+            setGenres(list) {
+                this.selectedGenres = list;
+                this.hasStartedForWorkout = false;
+            }
+
+            startWorkout() {
+                if (this.selectedGenres.length === 0) return;
+                this.hasStartedForWorkout = true;
+                this.refillQueue();
+                this.playPhase('rest'); // Start with atmosphere
+            }
+
+            stopWorkout() {
+                this.audio.pause();
+                this.audio.currentTime = 0;
+                this.hasStartedForWorkout = false;
+                this.hideNowPlaying();
+            }
+
+            refillQueue() {
+                // Shuffle genres
+                let g = [...this.selectedGenres];
+                for (let i = g.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [g[i], g[j]] = [g[j], g[i]];
+                }
+                this.genreQueue = g;
+            }
+
+            getNextGenre() {
+                if (this.genreQueue.length === 0) this.refillQueue();
+                if (this.genreQueue.length === 0) return null; // No genres selected
+                return this.genreQueue.pop();
+            }
+
+            playPhase(phase) {
+                if (this.selectedGenres.length === 0) return;
+
+                // Logic:
+                // If phase == 'work', keep SAME genre, pick 'werk' track.
+                // If phase == 'rest' (or prep), pick NEW genre, pick 'rust' track.
+
+                let genre = this.currentGenre;
+                if (!genre || phase === 'rest' || phase === 'prep') {
+                    genre = this.getNextGenre();
+                    this.currentGenre = genre;
+                }
+
+                if (!genre) return;
+
+                const db = musicManifest[genre];
+                if (!db) return;
+
+                const type = (phase === 'work') ? 'werk' : 'rust';
+                const tracks = db[type];
+
+                if (!tracks || tracks.length === 0) return;
+
+                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                const path = `muziek/${genre}/${type}/${randomTrack}`;
+
+                this.audio.src = path;
+                this.audio.play().catch(e => console.log("Music Play Error", e));
+
+                // Update UI or Toast
+                // console.log(`Playing [${genre}]: ${randomTrack} (${phase})`);
+                this.showNowPlaying(randomTrack, genre, phase);
+            }
+
+            showNowPlaying(trackName, genre, phase) {
+                const el = document.getElementById('now-playing-container');
+                const txt = document.getElementById('now-playing-text');
+                if (el && txt) {
+                    // Clean track name (remove extension, remove parens if desired)
+                    let cleanName = trackName.replace('.mp3', '');
+                    txt.innerHTML = `<span style="opacity:0.7">${genre}</span><br><span style="font-weight:bold; color:${phase === 'work' ? '#30D158' : '#0A84FF'}">${cleanName}</span>`;
+                    el.style.display = 'flex';
+                    // Auto-hide after 5s? No, user wants to see it? "ik wil ook tijdens de workout zien welk nummer er wordt afgespeeld" -> Permanent or long fade? 
+                    // Let's keep it visible or fade. User implied "during workout", so overlay is good.
+                    // Maybe fade out after 8 seconds to not block view?
+                    // Or just keep it small at bottom? Let's keep it visible.
+                }
+            }
+
+            hideNowPlaying() {
+                const el = document.getElementById('now-playing-container');
+                if (el) el.style.display = 'none';
+            }
+        }
+
+        const bgMusicManager = new BackgroundMusicManager();
+
         window.addEventListener('load', function () {
             renderMusicGenres();
         });
@@ -4353,129 +4484,7 @@
         }
 
 
-        // --- MUSIC MANIFEST (HARDCODED) ---
-        const musicManifest = {
-            "Neue Deutsche Härte": {
-                rest: [
-                    "(Ein langes Zischen von Dampf).mp3",
-                    "(Ein tiefer, gedämpfter Beat setzt sofor.mp3",
-                    "(Langsam, Düster, Atmosphärisch).mp3",
-                    "(Sehr langsam, Tief).mp3",
-                    "(Tiefes Brummen der Motoren).mp3"
-                ],
-                work: [
-                    "BEFEHL IST BEFEHL!.mp3",
-                    "DAS TIER!.mp3",
-                    "DEUTSCHLAND!.mp3",
-                    "DRECKIGER SCHWEINEKOPF!.mp3",
-                    "DU BIST AUS STAHL!.mp3",
-                    "EISEN!.mp3",
-                    "HALT DIE FRESSE!.mp3",
-                    "HAMMER!.mp3",
-                    "HEUL NICHT!.mp3",
-                    "NEIN!.mp3",
-                    "PANZER!.mp3",
-                    "VERDAMMTES ARSCHLOCH!.mp3"
-                ]
-            }
-        };
 
-        // --- BACKGROUND MUSIC MANAGER ---
-        const bgMusicManager = {
-            enabled: true,
-            audio: new Audio(),
-            selectedGenres: [],
-            genreQueue: [],
-            currentGenre: null,
-            currentPhase: 'stop',
-            hasStartedForWorkout: false,
-
-            init() {
-                this.audio.loop = true; // Loop tracks just in case
-                this.audio.volume = 0.4; // Default volume background
-            },
-
-            setGenres(list) {
-                this.selectedGenres = list;
-            },
-
-            startWorkout() {
-                if (this.selectedGenres.length === 0) return;
-                this.hasStartedForWorkout = true;
-                this.currentGenre = null;
-                // Shuffle initial queue
-                this.refillQueue();
-                // Start with REST (Prep phase is rest-like)
-                this.playPhase('rest');
-            },
-
-            stopWorkout() {
-                this.audio.pause();
-                this.audio.currentTime = 0;
-                this.hasStartedForWorkout = false;
-                this.currentGenre = null;
-                this.currentPhase = 'stop';
-            },
-
-            refillQueue() {
-                // Create a randomized list of genres
-                let pool = [...this.selectedGenres];
-                // Fisher-Yates shuffle
-                for (let i = pool.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [pool[i], pool[j]] = [pool[j], pool[i]];
-                }
-                this.genreQueue = pool;
-            },
-
-            getNextGenre() {
-                if (this.selectedGenres.length === 0) return null;
-                if (this.genreQueue.length === 0) this.refillQueue();
-                return this.genreQueue.pop();
-            },
-
-            playPhase(phase) {
-                if (!this.hasStartedForWorkout || this.selectedGenres.length === 0) return;
-
-                // LOGIC: 'rest' = Pick NEW genre. 'work' = Keep SAME genre.
-                // Exception: If we just started, we need a genre.
-
-                let targetGenre = this.currentGenre;
-
-                if (phase === 'rest' || phase === 'prep' || !this.currentGenre) {
-                    // Switch genre on Rest
-                    targetGenre = this.getNextGenre();
-                }
-
-                // If we somehow still don't have a genre (shouldn't happen if list > 0), abort
-                if (!targetGenre) return;
-
-                this.currentGenre = targetGenre;
-                this.currentPhase = phase;
-
-                // Select track
-                // Map 'prep', 'rest-exercise', 'rest-long' -> 'rest'
-                // Map 'work' -> 'work'
-
-                let type = 'rest';
-                if (phase === 'work') type = 'work';
-
-                const trackList = musicManifest[targetGenre][type];
-                if (!trackList || trackList.length === 0) return;
-
-                // Pick Random Track
-                const trackName = trackList[Math.floor(Math.random() * trackList.length)];
-                const src = `muziek/${targetGenre}/${type}/${trackName}`;
-
-                // Play
-                // If we are already playing this exact src, maybe don't restart? 
-                // BUT request says: "Rest version first... Work version next". So we probably always want to change track.
-
-                this.audio.src = src;
-                this.audio.play().catch(e => console.log("BgMusic Play Error", e));
-            }
-        };
-        bgMusicManager.init();
 
         // Global Audio State (Priority System)
         let currentActiveSource = null;
@@ -6748,6 +6757,30 @@
                 }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
             }
         </script>
+        <!-- AUDIO GUIDE POPUP -->
+
+        <!-- NOW PLAYING OVERLAY -->
+        <div id="now-playing-container" style="
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(28, 28, 30, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 9999;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        font-size: 13px;
+        line-height: 1.4;
+        pointer-events: none;
+        color: white;
+    ">
+            <div id="now-playing-text"></div>
+        </div>
 </body>
 
 </html>
