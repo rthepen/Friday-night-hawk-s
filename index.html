@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.170</title>
+    <title>Friday-night-hawk-s Timer v1.31.171</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.170</span>
+                FNH Timer <span class="version-tag">v1.31.171</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1940,6 +1940,14 @@
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
                 <span style="font-size:13px; color:#fff; font-weight:bold;">Audio Settings</span>
                 <span style="font-size:18px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
+            </div>
+
+            <!-- Playback Controls -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:20px;">
+                <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:24px; opacity:0.8;">⏮️
+                </div>
+                <div onclick="bgMusicManager.togglePlayback()" style="cursor:pointer; font-size:28px;">⏯️</div>
+                <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:24px; opacity:0.8;">⏭️</div>
             </div>
 
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
@@ -4523,6 +4531,7 @@
 
                 this.continuousMode = false;
                 this.currentGenre = null;
+                this.currentType = 'rust'; // Default
                 this.hasStartedForWorkout = false;
 
                 // Handle Track End for Continuous Mode
@@ -4639,6 +4648,9 @@
                 // VOLUME LOGIC: Apply volume for the phase, even if track doesn't change
                 const targetVol = (phase === 'work') ? this.volWork : this.volRest;
                 this.audio.volume = targetVol;
+
+                // Track current type/phase for manual controls
+                this.currentType = (phase === 'work') ? 'werk' : 'rust';
 
                 // CONTINUOUS MODE: If active and playing, DO NOT INTERRUPT active song.
                 if (this.continuousMode && !this.audio.paused) {
