@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.148</title>
+    <title>Friday-night-hawk-s Timer v1.31.149</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.148</span>
+                FNH Timer <span class="version-tag">v1.31.149</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1870,18 +1870,7 @@
         </div>
 
         <!-- VOLUME SLIDERS -->
-        <div style="background:#222; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #333;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                <span style="font-size:12px; color:#ccc;">🎵 Muziek Volume</span>
-                <input type="range" id="vol-music" min="0" max="1" step="0.1" value="0.4"
-                    style="width:50%; accent-color:#30D158;" oninput="updatevolumes()">
-            </div>
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:12px; color:#ccc;">🗣️ Coach Volume</span>
-                <input type="range" id="vol-coach" min="0" max="1" step="0.1" value="1.0"
-                    style="width:50%; accent-color:#0A84FF;" oninput="updatevolumes()">
-            </div>
-        </div>
+
 
         <div style="font-size:12px; color:#666; text-transform:uppercase; margin-bottom:5px; margin-top: 15px;">
             ACHTERGROND MUZIEK</div>
@@ -2050,6 +2039,21 @@
             <h2 id="pause-modal-title" style="margin-top:0;">PAUZE VOORBIJ</h2>
             <p id="pause-msg-p" style="color:#aaa; font-size:13px; margin-bottom:15px;">Je hebt <span
                     id="pause-duration-display" style="color:white; font-weight:bold;">0s</span> gepauzeerd.</p>
+
+            <!-- VOLUME CONTROLS (Moved here per user request) -->
+            <div
+                style="background:#222; padding:10px; border-radius:12px; margin-bottom:15px; border:1px solid #333; text-align:left;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                    <span style="font-size:12px; color:#ccc;">🎵 Muziek</span>
+                    <input type="range" id="vol-music" min="0" max="1" step="0.1" value="0.4"
+                        style="width:50%; accent-color:#30D158;" oninput="updatevolumes()">
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:12px; color:#ccc;">🗣️ Coach</span>
+                    <input type="range" id="vol-coach" min="0" max="1" step="0.1" value="1.0"
+                        style="width:50%; accent-color:#0A84FF;" oninput="updatevolumes()">
+                </div>
+            </div>
 
             <button class="modal-btn"
                 style="background: linear-gradient(135deg, #32d74b 0%, #28cd41 100%); color: #000; font-weight: 800; border: none; box-shadow: 0 5px 15px rgba(50, 215, 75, 0.4);"
@@ -4381,112 +4385,109 @@
             constructor() {
                 this.audio = new Audio();
                 this.audio.loop = true;
-                constructor() {
-                    this.audio = new Audio();
-                    this.audio.loop = true;
-                    this.audio.volume = parseFloat(localStorage.getItem('fnh_vol_music') || 0.4);
-                    this.audio.preload = 'auto';
-                    this.selectedGenres = [];
-                    this.genreQueue = [];
-                    this.currentGenre = null;
-                    this.hasStartedForWorkout = false;
+                this.audio.volume = parseFloat(localStorage.getItem('fnh_vol_music') || 0.4);
+                this.audio.preload = 'auto';
+                this.selectedGenres = [];
+                this.genreQueue = [];
+                this.currentGenre = null;
+                this.hasStartedForWorkout = false;
+            }
+
+            setGenres(list) {
+                this.selectedGenres = list;
+                this.hasStartedForWorkout = false;
+            }
+
+            startWorkout() {
+                if (this.selectedGenres.length === 0) return;
+                this.hasStartedForWorkout = true;
+                this.refillQueue();
+                this.playPhase('rest'); // Start with atmosphere
+            }
+
+            stopWorkout() {
+                this.audio.pause();
+                this.audio.currentTime = 0;
+                this.hasStartedForWorkout = false;
+                this.hideNowPlaying();
+            }
+
+            refillQueue() {
+                // Shuffle genres
+                let g = [...this.selectedGenres];
+                for (let i = g.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [g[i], g[j]] = [g[j], g[i]];
+                }
+                this.genreQueue = g;
+            }
+
+            getNextGenre() {
+                if (this.genreQueue.length === 0) this.refillQueue();
+                if (this.genreQueue.length === 0) return null; // No genres selected
+                return this.genreQueue.pop();
+            }
+
+            playPhase(phase) {
+                if (this.selectedGenres.length === 0) return;
+
+                // Logic:
+                // If phase == 'work', keep SAME genre, pick 'werk' track.
+                // If phase == 'rest' (or prep), pick NEW genre, pick 'rust' track.
+
+                let genre = this.currentGenre;
+                if (!genre || phase === 'rest' || phase === 'prep') {
+                    genre = this.getNextGenre();
+                    this.currentGenre = genre;
                 }
 
-                setGenres(list) {
-                    this.selectedGenres = list;
-                    this.hasStartedForWorkout = false;
-                }
+                if (!genre) return;
 
-                startWorkout() {
-                    if (this.selectedGenres.length === 0) return;
-                    this.hasStartedForWorkout = true;
-                    this.refillQueue();
-                    this.playPhase('rest'); // Start with atmosphere
-                }
+                const db = musicManifest[genre];
+                if (!db) return;
 
-                stopWorkout() {
-                    this.audio.pause();
-                    this.audio.currentTime = 0;
-                    this.hasStartedForWorkout = false;
-                    this.hideNowPlaying();
-                }
+                const type = (phase === 'work') ? 'werk' : 'rust';
+                const tracks = db[type];
 
-                refillQueue() {
-                    // Shuffle genres
-                    let g = [...this.selectedGenres];
-                    for (let i = g.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [g[i], g[j]] = [g[j], g[i]];
-                    }
-                    this.genreQueue = g;
-                }
+                if (!tracks || tracks.length === 0) return;
 
-                getNextGenre() {
-                    if (this.genreQueue.length === 0) this.refillQueue();
-                    if (this.genreQueue.length === 0) return null; // No genres selected
-                    return this.genreQueue.pop();
-                }
+                const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+                const path = `muziek/${genre}/${type}/${randomTrack}`;
 
-                playPhase(phase) {
-                    if (this.selectedGenres.length === 0) return;
+                this.audio.src = path;
+                this.audio.play().catch(e => console.log("Music Play Error", e));
 
-                    // Logic:
-                    // If phase == 'work', keep SAME genre, pick 'werk' track.
-                    // If phase == 'rest' (or prep), pick NEW genre, pick 'rust' track.
+                // Update UI or Toast
+                // console.log(`Playing [${genre}]: ${randomTrack} (${phase})`);
+                this.showNowPlaying(randomTrack, genre, phase);
+            }
 
-                    let genre = this.currentGenre;
-                    if (!genre || phase === 'rest' || phase === 'prep') {
-                        genre = this.getNextGenre();
-                        this.currentGenre = genre;
-                    }
-
-                    if (!genre) return;
-
-                    const db = musicManifest[genre];
-                    if (!db) return;
-
-                    const type = (phase === 'work') ? 'werk' : 'rust';
-                    const tracks = db[type];
-
-                    if (!tracks || tracks.length === 0) return;
-
-                    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-                    const path = `muziek/${genre}/${type}/${randomTrack}`;
-
-                    this.audio.src = path;
-                    this.audio.play().catch(e => console.log("Music Play Error", e));
-
-                    // Update UI or Toast
-                    // console.log(`Playing [${genre}]: ${randomTrack} (${phase})`);
-                    this.showNowPlaying(randomTrack, genre, phase);
-                }
-
-                showNowPlaying(trackName, genre, phase) {
-                    const el = document.getElementById('now-playing-container');
-                    const txt = document.getElementById('now-playing-text');
-                    if (el && txt) {
-                        // Clean track name (remove extension, remove parens if desired)
-                        let cleanName = trackName.replace('.mp3', '');
-                        txt.innerHTML = `<span style="opacity:0.7">${genre}</span><br><span style="font-weight:bold; color:${phase === 'work' ? '#30D158' : '#0A84FF'}">${cleanName}</span>`;
-                        el.style.display = 'flex';
-                        // Auto-hide after 5s? No, user wants to see it? "ik wil ook tijdens de workout zien welk nummer er wordt afgespeeld" -> Permanent or long fade? 
-                        // Let's keep it visible or fade. User implied "during workout", so overlay is good.
-                        // Maybe fade out after 8 seconds to not block view?
-                        // Or just keep it small at bottom? Let's keep it visible.
-                    }
-                }
-
-                hideNowPlaying() {
-                    const el = document.getElementById('now-playing-container');
-                    if (el) el.style.display = 'none';
+            showNowPlaying(trackName, genre, phase) {
+                const el = document.getElementById('now-playing-container');
+                const txt = document.getElementById('now-playing-text');
+                if (el && txt) {
+                    // Clean track name (remove extension, remove parens if desired)
+                    let cleanName = trackName.replace('.mp3', '');
+                    txt.innerHTML = `<span style="opacity:0.7">${genre}</span><br><span style="font-weight:bold; color:${phase === 'work' ? '#30D158' : '#0A84FF'}">${cleanName}</span>`;
+                    el.style.display = 'flex';
+                    // Auto-hide after 5s? No, user wants to see it? "ik wil ook tijdens de workout zien welk nummer er wordt afgespeeld" -> Permanent or long fade? 
+                    // Let's keep it visible or fade. User implied "during workout", so overlay is good.
+                    // Maybe fade out after 8 seconds to not block view?
+                    // Or just keep it small at bottom? Let's keep it visible.
                 }
             }
 
-            const bgMusicManager = new BackgroundMusicManager();
+            hideNowPlaying() {
+                const el = document.getElementById('now-playing-container');
+                if (el) el.style.display = 'none';
+            }
+        }
 
-        window.addEventListener('load', function() {
-                renderMusicGenres();
-            });
+        const bgMusicManager = new BackgroundMusicManager();
+
+        window.addEventListener('load', function () {
+            renderMusicGenres();
+        });
 
         function renderMusicGenres() {
             const container = document.getElementById('music-genres-container');
