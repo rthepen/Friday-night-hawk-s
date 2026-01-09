@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.176</title>
+    <title>Friday-night-hawk-s Timer v1.31.177</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.176</span>
+                FNH Timer <span class="version-tag">v1.31.177</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4342,6 +4342,8 @@
             }
 
             const workSecTotal = availableSec - remainingFixedRestTime;
+            console.log("DEBUG CALC:", { availableSec, remainingFixedRestTime, workSecTotal, remainingWorkSets, globalExCount });
+
             const btnEl = document.getElementById('btn-start-app'); const errEl = document.getElementById('live-calc-error'); const resEl = document.getElementById('live-calc-result');
 
             if (workSecTotal <= 0 || remainingWorkSets <= 0) {
@@ -4349,6 +4351,7 @@
                 document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
             } else {
                 workTimeSec = Math.floor(workSecTotal / remainingWorkSets);
+                console.log("DEBUG RESULT:", workTimeSec);
                 resEl.innerText = workTimeSec + "s"; errEl.style.display = "none"; btnEl.style.opacity = 1; btnEl.disabled = false;
                 restTimeSec = rst; exerciseRestSec = exRst; roundRestSec = roundRst;
                 generateScheduleData(true); renderPreviewList();
