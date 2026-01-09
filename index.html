@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.177</title>
+    <title>Friday-night-hawk-s Timer v1.31.178</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.177</span>
+                FNH Timer <span class="version-tag">v1.31.178</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4342,7 +4342,6 @@
             }
 
             const workSecTotal = availableSec - remainingFixedRestTime;
-            console.log("DEBUG CALC:", { availableSec, remainingFixedRestTime, workSecTotal, remainingWorkSets, globalExCount });
 
             const btnEl = document.getElementById('btn-start-app'); const errEl = document.getElementById('live-calc-error'); const resEl = document.getElementById('live-calc-result');
 
@@ -4351,7 +4350,6 @@
                 document.getElementById('preview-list').innerHTML = "<div style='padding:10px; color:#555;'>Geen schema mogelijk</div>";
             } else {
                 workTimeSec = Math.floor(workSecTotal / remainingWorkSets);
-                console.log("DEBUG RESULT:", workTimeSec);
                 resEl.innerText = workTimeSec + "s"; errEl.style.display = "none"; btnEl.style.opacity = 1; btnEl.disabled = false;
                 restTimeSec = rst; exerciseRestSec = exRst; roundRestSec = roundRst;
                 generateScheduleData(true); renderPreviewList();
@@ -6264,7 +6262,13 @@
             const oldEndStr = document.getElementById('endTimeValue').value;
             // newEndDate isn't finalized until we performStart, but we can calc relative
             // Actually targetEndTimeDate is current input.
-            const curEnd = targetEndTimeDate; // Should match input
+            const curEndVal = document.getElementById('endTimeValue').value;
+            const nowCheck = new Date();
+            const [eh, em] = curEndVal.split(':');
+            const curEnd = new Date();
+            curEnd.setHours(eh, em, 0, 0);
+            if (curEnd < nowCheck) curEnd.setDate(curEnd.getDate() + 1);
+
             const newEndDate = new Date(curEnd.getTime() - diffMs);
             const newEndStr = newEndDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
