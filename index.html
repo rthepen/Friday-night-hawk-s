@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.178</title>
+    <title>Friday-night-hawk-s Timer v1.31.179</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.178</span>
+                FNH Timer <span class="version-tag">v1.31.179</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2150,8 +2150,10 @@
                 <span class="btn-subtext" id="btn-text-switch">...</span>
             </button>
 
-            ☕ Inhalen via Ronde Rust
-            <span class="btn-subtext" id="btn-text-round">...</span>
+            <button class="modal-btn" id="btn-catch-round" style="background: #0A84FF; color: white;"
+                onclick="resolvePause('round')">
+                ☕ Inhalen via Ronde Rust
+                <span class="btn-subtext" id="btn-text-round">...</span>
             </button>
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
@@ -6353,6 +6355,11 @@
                 if (choice === 'push') {
                     // Option 1: Shift End Time Earlier (Remove Surplus)
                     targetEndTimeDate = new Date(targetEndTimeDate.getTime() - (surplus * 1000));
+
+                    // FIX: Sync Inputs to Reality so calculateRealTime works correctly
+                    const now = new Date();
+                    document.getElementById('startTimeValue').value = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('endTimeValue').value = targetEndTimeDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
                     // FIX: Conditionally adjust start time
                     // Start Now (Early Start): Do NOT shift. Progress stays 0%.
