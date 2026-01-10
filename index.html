@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.198</title>
+    <title>Friday-night-hawk-s Timer v1.31.199</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1715,7 +1715,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.198</span>
+                FNH Timer <span class="version-tag">v1.31.199</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5516,6 +5516,19 @@
                     else if (nextStep.type === 'prep') { nextColor = '#3a3a3c'; nextGlow = 'rgba(58, 58, 60, 0.6)'; }
                 } else {
                     nextColor = '#FFD60A'; nextGlow = 'rgba(255, 214, 10, 0.6)';
+                }
+
+                // Current Color Logic for Background (Smooth Transition)
+                let currentColor = '#000000';
+                if (step.type === 'work') currentColor = '#30D158';
+                else if (step.type === 'rest') currentColor = '#FF9F0A';
+                else if (step.type === 'rest-exercise') currentColor = '#BF5AF2';
+                else if (step.type === 'rest-long') currentColor = '#0A84FF';
+                else if (step.type === 'prep') currentColor = '#3a3a3c';
+
+                const hgBg = document.getElementById('hourglass-bg');
+                if (hgBg) {
+                    hgBg.style.backgroundColor = currentColor;
                 }
 
                 // ANCHOR FOR PROGRESS BAR (SAFE MODE)
