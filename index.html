@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.209</title>
+    <title>Friday-night-hawk-s Timer v1.31.210</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.209</span>
+                FNH Timer <span class="version-tag">v1.31.210</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2735,32 +2735,39 @@
         }
 
         // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
+        // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
         async function initApp() {
-            const select = document.getElementById('coach-preset');
-            select.innerHTML = '<option value="loading" disabled selected>Laden...</option>';
+            const select = document.getElementById('coach-preset-live'); // UPDATED: Target Live Select
+            if (select) {
+                select.innerHTML = '<option value="loading" disabled selected>Laden...</option>';
 
-            const addOption = (id, name) => {
-                if (!select.querySelector(`option[value="${id}"]`)) {
-                    const opt = document.createElement('option');
-                    opt.value = id; opt.text = name;
-                    select.appendChild(opt);
+                const addOption = (id, name) => {
+                    if (!select.querySelector(`option[value="${id}"]`)) {
+                        const opt = document.createElement('option');
+                        opt.value = id; opt.text = name;
+                        select.appendChild(opt);
+                    }
+                };
+
+                // 1. Init Defaults (Skipped external fetch, usage hardcoded)
+
+                // 2. Probeer Coaches
+                for (const coachId in coachPresets) {
+                    let displayName = coachId.charAt(0).toUpperCase() + coachId.slice(1);
+                    if (coachId === 'tabataman') displayName = 'TabataMan (Actief)';
+                    if (coachId === 'eva') displayName = 'Eva (Nederlands Energiek)';
+                    // Generic fallback name fix
+                    if (coachId === 'default') displayName = "Standaard (Tabataman)";
+                    if (coachId === 'drill_sergeant') displayName = "Drill Sergeant (Intens)";
+                    if (coachId === 'zen_master') displayName = "Zen Master (Rust)";
+
+                    addOption(coachId, displayName);
                 }
-            };
 
-            // 1. Init Defaults (Skipped external fetch, usage hardcoded)
-
-            // 2. Probeer Coaches
-            // The coachPresets object is now hardcoded, so we just populate the select based on it.
-            for (const coachId in coachPresets) {
-                let displayName = coachId.charAt(0).toUpperCase() + coachId.slice(1);
-                if (coachId === 'tabataman') displayName = 'TabataMan (Actief)';
-                if (coachId === 'eva') displayName = 'Eva (Nederlands Energiek)';
-                addOption(coachId, displayName);
+                // Clean up dropdown UI
+                const loadingOpt = select.querySelector('option[value="loading"]');
+                if (loadingOpt) loadingOpt.remove();
             }
-
-            // Clean up dropdown UI
-            const loadingOpt = select.querySelector('option[value="loading"]');
-            if (loadingOpt) loadingOpt.remove();
 
             // 3. PAS NU DE WAARDEN TOE
             finalizeInit();
@@ -2791,18 +2798,18 @@
         }
 
         function finalizeInit() {
-            const select = document.getElementById('coach-preset');
+            const select = document.getElementById('coach-preset-live'); // UPDATED
 
             // Selecteer standaard uit defaults, of fallback op eerste in lijst
             let targetPreset = appDefaults.coachPreset || 'tabataman';
 
             // If the target preset doesn't exist (shouldn't happen with hardcoded presets),
             // or if the select value isn't set, default to 'tabataman'.
-            if (!coachPresets[targetPreset] || !select.querySelector(`option[value="${targetPreset}"]`)) {
+            if (select && (!coachPresets[targetPreset] || !select.querySelector(`option[value="${targetPreset}"]`))) {
                 targetPreset = 'tabataman';
             }
 
-            select.value = targetPreset;
+            if (select) select.value = targetPreset;
             if (!speechSettings || Object.keys(speechSettings).length === 0) {
                 speechSettings = JSON.parse(JSON.stringify(coachPresets[targetPreset]));
             }
@@ -2829,7 +2836,8 @@
 
             // Show mix mode on iOS
             if (isIOS()) {
-                document.getElementById('ios-mix-container').style.display = 'block';
+                const mixC = document.getElementById('ios-mix-container');
+                if (mixC) mixC.style.display = 'block';
             }
         }
 
@@ -2841,7 +2849,8 @@
             document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec;
             document.getElementById('roundRestSec').value = appDefaults.roundRestSec;
             document.getElementById('totalMin').value = appDefaults.totalMin;
-            document.getElementById('coach-preset').value = appDefaults.coachPreset;
+            const coachSel = document.getElementById('coach-preset-live'); // UPDATED
+            if (coachSel) coachSel.value = appDefaults.coachPreset;
 
             if (appDefaults.bonuses) {
                 for (let i = 0; i < 3; i++) {
@@ -2884,8 +2893,8 @@
                 document.getElementById('startTimeValue').value = "19:45";
 
                 // Coach Tabataman
-                const coachSel = document.getElementById('coach-preset');
-                if (coachSel.querySelector('option[value="tabataman"]')) {
+                const coachSel = document.getElementById('coach-preset-live'); // UPDATED
+                if (coachSel && coachSel.querySelector('option[value="tabataman"]')) {
                     coachSel.value = 'tabataman';
                 }
 
@@ -3074,7 +3083,7 @@
         }
 
         function handleCoachChange() {
-            const val = document.getElementById('coach-preset').value;
+            const val = document.getElementById('coach-preset-live').value; // UPDATED
             // Merge new coach preset but KEEP user toggle overrides if they exist? 
             // Ideally we reset to the new coach defaults, but user might want to keep "Halfway OFF".
             // For now, let's reset to defaults of the new coach to be safe.
@@ -3579,7 +3588,7 @@
 
             syncTime('duration'); // Updates End Time based on Start + Duration
             setAudioMode('speech');
-            document.getElementById('coach-preset').value = 'tabataman';
+            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = 'tabataman'; // UPDATED
 
             // Reset settings (Except Audio Mode)
             // Force Tabataman & Enable Milestones on Reset
@@ -4050,7 +4059,8 @@
 
             // NEW: Capture additional settings
             const startTime = document.getElementById('startTimeValue').value;
-            const coach = document.getElementById('coach-preset').value;
+            const coach = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'tabataman'; // UPDATED
+
 
             const params = new URLSearchParams();
             params.set('r', rounds); params.set('e', exercises); params.set('s', sets);
@@ -4097,7 +4107,7 @@
 
             if (params.has('c')) {
                 const coachVal = params.get('c');
-                const coachEl = document.getElementById('coach-preset');
+                const coachEl = document.getElementById('coach-preset-live'); // UPDATED
                 if (coachEl && coachEl.querySelector(`option[value="${coachVal}"]`)) {
                     coachEl.value = coachVal;
                     // We must trigger this to load audio/speech settings for the coach
@@ -4128,7 +4138,8 @@
 
             let speechUpdated = false;
             for (const key in speechSettings) { if (params.has(key)) { speechSettings[key].text = params.get(key); speechUpdated = true; dataUpdated = true; } }
-            if (speechUpdated) { const dropdown = document.getElementById('coach-preset'); if (dropdown) { dropdown.value = 'custom'; dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } }
+            if (speechUpdated) { const dropdown = document.getElementById('coach-preset-live'); if (dropdown) { dropdown.value = 'custom'; if (dropdown.querySelector('option[value="custom"]')) { dropdown.querySelector('option[value="custom"]').removeAttribute('hidden'); dropdown.querySelector('option[value="custom"]').removeAttribute('disabled'); } } } // UPDATED
+
 
             if (dataUpdated) {
                 // Restore visibility of bonuses if needed
@@ -4194,9 +4205,9 @@
 
                     // Restore Coach Preset
                     if (data.coachPreset) {
-                        const sel = document.getElementById('coach-preset');
+                        const sel = document.getElementById('coach-preset-live'); // UPDATED
                         // Only set if option exists
-                        if (sel.querySelector(`option[value="${data.coachPreset}"]`)) {
+                        if (sel && sel.querySelector(`option[value="${data.coachPreset}"]`)) {
                             sel.value = data.coachPreset;
                         }
                     }
@@ -5339,7 +5350,8 @@
                 }
 
                 // MP3 Support Logic
-                const coachId = document.getElementById('coach-preset').value || 'tabataman';
+                const coachId = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'tabataman'; // UPDATED
+
 
                 // Check Enable/Disable Toggle
                 if (speechSettings[key] && speechSettings[key].enabled === false) {
@@ -7198,7 +7210,7 @@
             document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec;
             document.getElementById('roundRestSec').value = appDefaults.roundRestSec;
             document.getElementById('totalMin').value = appDefaults.totalMin;
-            document.getElementById('coach-preset').value = appDefaults.coachPreset;
+            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = appDefaults.coachPreset; // UPDATED
 
             for (let i = 0; i < 3; i++) {
                 document.getElementById(`bonus${i + 1}-name`).value = appDefaults.bonuses[i].name;
@@ -7681,7 +7693,7 @@
                     exercises: document.getElementById('exercises').value,
                     sets: document.getElementById('sets').value,
                     totalMin: totalMinText,
-                    coach: document.getElementById('coach-preset').value,
+                    coach: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'unknown', // UPDATED
                     startTime: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
                 };
 
