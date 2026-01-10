@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.202</title>
+    <title>Friday-night-hawk-s Timer v1.31.203</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.202</span>
+                FNH Timer <span class="version-tag">v1.31.203</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4690,6 +4690,40 @@
                 this.playSpecificTrack(item, this.currentType);
             }
 
+            fadeOut(durationSeconds) {
+                if (!this.audio || this.audio.paused) return;
+
+                // Clear any existing fade
+                if (this.fadeInterval) clearInterval(this.fadeInterval);
+
+                const startVolume = this.audio.volume;
+                const steps = 20; // updates per second
+                const totalSteps = durationSeconds * steps;
+                const volumeStep = startVolume / totalSteps;
+                let currentStep = 0;
+
+                console.log(`Starting Fade Out over ${durationSeconds}s from ${startVolume}`);
+
+                this.fadeInterval = setInterval(() => {
+                    currentStep++;
+                    let newVol = startVolume - (volumeStep * currentStep);
+                    if (newVol < 0) newVol = 0;
+
+                    try {
+                        this.audio.volume = newVol;
+                    } catch (e) {
+                        // ignore rounding errors
+                    }
+
+                    if (currentStep >= totalSteps) {
+                        clearInterval(this.fadeInterval);
+                        this.fadeInterval = null;
+                        this.audio.pause();
+                        console.log("Fade Out Complete. Audio Paused.");
+                    }
+                }, 1000 / steps);
+            }
+
             playSpecificTrack(item, type) {
                 if (!item) return;
                 // Safety check: is genre enabled?
@@ -4703,9 +4737,15 @@
                     return;
                 }
 
+                // CANCEL ANY ACTIVE FADE
+                if (this.fadeInterval) {
+                    clearInterval(this.fadeInterval);
+                    this.fadeInterval = null;
+                }
+
                 const path = `muziek/${item.genre}/${type}/${item.track}`;
                 this.audio.src = path;
-                // Maintain current volume
+                // Maintain current volume based on TYPE
                 this.audio.volume = (type === 'werk') ? this.volWork : this.volRest;
                 this.audio.play().catch(e => console.log("Manual Play Error", e));
                 this.showNowPlaying(item.track, item.genre, type === 'werk' ? 'work' : 'rest');
@@ -5703,6 +5743,11 @@
 
                         if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); }
                         else if (step.time <= 3) {
+                            // FADE OUT REST MUSIC (User Request)
+                            if (step.time === 3 && (step.type === 'rest' || step.type === 'rest-exercise' || step.type === 'rest-long' || step.type === 'prep')) {
+                                bgMusicManager.fadeOut(3);
+                            }
+
                             if (speechSettings.use_mp3) {
                                 // MP3 Mode: Trigger prep_countdown once at 3s. Silence at 2s/1s.
                                 if (step.time === 3) triggerAudio('prep_countdown', "3 2 1");
