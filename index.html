@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.206</title>
+    <title>Friday-night-hawk-s Timer v1.31.207</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.206</span>
+                FNH Timer <span class="version-tag">v1.31.207</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5752,9 +5752,10 @@
 
                         if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); }
                         else if (step.time <= 5) {
-                            // FADE OUT REST MUSIC (User Request: 5 seconds)
+                            // FADE OUT REST MUSIC (User Request: Start at 5s, End at 1s -> 4s duration)
+                            // This ensures the last second ("1") is completely silent.
                             if (step.time === 5 && (step.type === 'rest' || step.type === 'rest-exercise' || step.type === 'rest-long' || step.type === 'prep')) {
-                                bgMusicManager.fadeOut(5);
+                                bgMusicManager.fadeOut(4);
                             }
 
                             // COUNTDOWN AUDIO (Still starts at 3s)
