@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.189</title>
+    <title>Friday-night-hawk-s Timer v1.31.190</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.189</span>
+                FNH Timer <span class="version-tag">v1.31.190</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4648,7 +4648,10 @@
                 const nowEl = document.getElementById('gym-now-playing');
                 const listEl = document.getElementById('gym-queue-list');
 
-                if (nowEl) nowEl.innerText = `🎵 ${genre} - ${trackName} (${type})`;
+                if (nowEl) {
+                    const cleanTitle = trackName.replace('.mp3', '');
+                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
+                }
 
                 if (listEl) {
                     listEl.innerHTML = "";
@@ -4658,16 +4661,35 @@
 
                     queue.forEach((item, i) => {
                         const div = document.createElement('div');
-                        div.style.padding = "2px 0";
+                        div.style.padding = "4px 8px";
                         div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                        div.style.cursor = "pointer";
+                        div.className = "playlist-item"; // For hover effects if we added CSS, but inline is fine
+
+                        // Clean visible name
+                        const cleanTrack = item.track.replace('.mp3', '');
 
                         if (i === currentIndex) {
                             div.style.color = "#30D158";
                             div.style.fontWeight = "bold";
-                            div.innerText = `▶ ${item.track}`;
+                            div.innerText = `▶ ${cleanTrack}`;
                         } else {
-                            div.innerText = `${i + 1}. ${item.track}`;
+                            div.style.color = "#aaa";
+                            div.innerText = `${i + 1}. ${cleanTrack}`;
                         }
+
+                        // Click Logic
+                        div.onclick = () => {
+                            // Update the correct index
+                            if (type === 'work' || type === 'werk') {
+                                this.workIndex = i;
+                            } else {
+                                this.restIndex = i;
+                            }
+                            // Play Immediate
+                            this.playSpecificTrack(item, (type === 'work' || type === 'werk') ? 'werk' : 'rust');
+                        };
+
                         listEl.appendChild(div);
                     });
                 }
