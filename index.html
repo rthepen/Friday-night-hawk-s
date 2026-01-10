@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.207</title>
+    <title>Friday-night-hawk-s Timer v1.31.208</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.207</span>
+                FNH Timer <span class="version-tag">v1.31.208</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5000,29 +5000,34 @@
                 }
             }
 
-            renderGenreToggles() {
+            renderGenreToggles(targetId = null) {
                 // Find or create container in audio settings
-                let container = document.getElementById('audio-settings-genres');
-                if (!container) {
-                    // Create it after volume controls
-                    const parent = document.getElementById('active-volume-panel');
+                let containerId = targetId || 'audio-settings-genres';
+                let container = document.getElementById(containerId);
+
+                if (!container && !targetId) {
+                    // Create it after volume controls (Default behavior)
+                    const parent = document.getElementById('active-volume-panel'); // ... existing creation logic ...
+                    // (Simplified for this edit: reuse existing if possible, or fail gracefully if custom ID missing)
                     if (parent) {
                         container = document.createElement('div');
                         container.id = 'audio-settings-genres';
                         container.style.marginTop = "15px";
                         container.style.borderTop = "1px solid rgba(255,255,255,0.1)";
                         container.style.paddingTop = "10px";
-                        parent.appendChild(container); // Append at end (after playlist view?)
-                        // Actually playlist view is separate. Move it before playlist?
                         // Insert before playlist-view if exists
                         const playlist = document.getElementById('playlist-view');
                         if (playlist) parent.insertBefore(container, playlist);
-                        else parent.appendChild(container);
+                        else parent.appendChild(container); // Append at end
                     }
                 }
                 if (!container) return;
 
-                container.innerHTML = "<div style='font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;'>GENRES (LIVE)</div>";
+                if (!targetId) {
+                    container.innerHTML = "<div style='font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;'>GENRES (LIVE)</div>";
+                } else {
+                    container.innerHTML = ""; // Clear custom container
+                }
 
                 // Show ALL manifest genres so user can enable music even if started with none.
                 const allGenres = Object.keys(musicManifest);
@@ -5423,6 +5428,76 @@
                     overlay.style.display = 'flex';
                     if (startInfoEl) startInfoEl.innerText = `STARTTIJD: ${startStr}`;
 
+                    // AUDIO CONTROLS INIT (PRE-WORKOUT)
+                    const volWorkPre = document.getElementById('vol-music-pre');
+                    const volRestPre = document.getElementById('vol-rest-pre');
+                    const valVolWorkPre = document.getElementById('val-vol-work-pre');
+                    const valVolRestPre = document.getElementById('val-vol-rest-pre');
+                    const chkContPre = document.getElementById('chk-continuous-pre');
+
+                    // Sync with current Manager state
+                    if (volWorkPre) {
+                        volWorkPre.value = bgMusicManager.volWork;
+                        valVolWorkPre.innerText = Math.round(bgMusicManager.volWork * 100) + "%";
+                        volWorkPre.oninput = (e) => {
+                            const v = parseFloat(e.target.value);
+                            bgMusicManager.volWork = v;
+                            valVolWorkPre.innerText = Math.round(v * 100) + "%";
+                            // If playing work, update live
+                            if (bgMusicManager.currentType === 'werk') bgMusicManager.audio.volume = v;
+                            // Also sync main settings
+                            const main = document.getElementById('vol-music-live'); if (main) main.value = v;
+                            localStorage.setItem('fnh_vol_music', v);
+                        };
+                    }
+                    if (volRestPre) {
+                        volRestPre.value = bgMusicManager.volRest;
+                        valVolRestPre.innerText = Math.round(bgMusicManager.volRest * 100) + "%";
+                        volRestPre.oninput = (e) => {
+                            const v = parseFloat(e.target.value);
+                            bgMusicManager.volRest = v;
+                            valVolRestPre.innerText = Math.round(v * 100) + "%";
+                            // If playing rest, update live
+                            if (bgMusicManager.currentType === 'rust') bgMusicManager.audio.volume = v;
+                            // Also sync main settings
+                            const main = document.getElementById('vol-music-rest-live'); if (main) main.value = v;
+                            localStorage.setItem('fnh_vol_music_rest', v);
+                        };
+                    }
+                    if (chkContPre) {
+                        chkContPre.checked = bgMusicManager.continuousMode;
+                        chkContPre.onchange = (e) => {
+                            bgMusicManager.setContinuous(e.target.checked);
+                            // Sync main
+                            const main = document.getElementById('chk-music-continuous'); if (main) main.checked = e.target.checked;
+
+                            // Live Switch Logic for Countdown
+                            if (e.target.checked) {
+                                // Switched ON -> Play Work Music immediately
+                                bgMusicManager.playPhase('work');
+                            } else {
+                                // Switched OFF -> Play Rest Music immediately
+                                bgMusicManager.playPhase('rest');
+                            }
+                        };
+                    }
+
+                    // Render Genres
+                    bgMusicManager.renderGenreToggles('pre-workout-genres');
+
+                    // MUSIC START (Immediate)
+                    bgMusicManager.setGenres(getSelectedGenres());
+                    if (!bgMusicManager.hasStartedForWorkout) {
+                        bgMusicManager.startWorkout();
+                    }
+
+                    // LPOGIC: If Continuous Mode, Play Work Music NOW
+                    if (bgMusicManager.continuousMode) {
+                        bgMusicManager.playPhase('work');
+                    } else {
+                        bgMusicManager.playPhase('rest');
+                    }
+
                     // Initial wake lock attempt (user interaction context)
                     if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
 
@@ -5506,7 +5581,10 @@
 
             // MUSIC START
             bgMusicManager.setGenres(getSelectedGenres());
-            bgMusicManager.startWorkout();
+            // Only start if not already started (e.g. by overlay)
+            if (!bgMusicManager.hasStartedForWorkout) {
+                bgMusicManager.startWorkout();
+            }
 
             runStep();
         }
@@ -7474,6 +7552,48 @@
         <div id="pre-workout-start-time"
             style="font-size:24px; color:#30D158; font-weight:bold; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 10px rgba(48,209,88,0.4);">
             STARTTIJD: --:--
+        </div>
+
+        <!-- AUDIO CONTROLS (NEW) -->
+        <div id="pre-workout-audio-controls" style="width:90%; max-width:320px; margin-bottom:20px;">
+            <!-- Volume Controls -->
+            <div
+                style="background:rgba(28,28,30,0.8); padding:15px; border-radius:12px; margin-bottom:12px; backdrop-filter:blur(5px); border:1px solid rgba(255,255,255,0.1);">
+                <label
+                    style="display:flex; justify-content:space-between; color:#bbb; font-size:12px; margin-bottom:8px;">
+                    <span>🎵 Werk Volume</span> <span id="val-vol-work-pre" style="color:#fff;">40%</span>
+                </label>
+                <input type="range" id="vol-music-pre" min="0" max="1" step="0.1" value="0.4"
+                    style="width:100%; height:4px; accent-color:#30D158; cursor:pointer;">
+
+                <div style="height:15px;"></div>
+
+                <label
+                    style="display:flex; justify-content:space-between; color:#bbb; font-size:12px; margin-bottom:8px;">
+                    <span>🧘 Rust Volume</span> <span id="val-vol-rest-pre" style="color:#fff;">20%</span>
+                </label>
+                <input type="range" id="vol-rest-pre" min="0" max="1" step="0.1" value="0.2"
+                    style="width:100%; height:4px; accent-color:#FF9F0A; cursor:pointer;">
+            </div>
+
+            <!-- Continuous Mode -->
+            <div
+                style="display:flex; align-items:center; justify-content:space-between; background:rgba(28,28,30,0.8); padding:12px 15px; border-radius:12px; margin-bottom:12px; backdrop-filter:blur(5px); border:1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex; flex-direction:column;">
+                    <span style="color:white; font-size:14px; font-weight:600;">🔂 Continuous Mode</span>
+                    <span style="color:#888; font-size:11px;">Werkmuziek tijdens rust</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="chk-continuous-pre">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Genres (Container) -->
+            <div id="pre-workout-genres"
+                style="background:rgba(28,28,30,0.8); padding:12px 15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(5px); max-height:150px; overflow-y:auto;">
+                <!-- Populated by JS -->
+            </div>
         </div>
 
         <button onclick="previewEarlyStartOptions()" class="action-btn"
