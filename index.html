@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.196</title>
+    <title>Friday-night-hawk-s Timer v1.31.197</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -64,13 +64,40 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            height: var(--app-height);
-            width: 100vw;
+            overflow: hidden;
+            /* Prevent scrolling */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            align-items: center;
             overscroll-behavior: none;
             transition: background-color 0.3s ease;
+        }
+
+        /* --- HOURGLASS BACKGROUND --- */
+        #hourglass-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #000;
+            /* Start black */
+            pointer-events: none;
+        }
+
+        #hourglass-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: #30D158;
+            /* Default green */
+            transition: height 1s linear, background-color 0.5s ease;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+            /* Soft top edge */
         }
 
         .container {
@@ -1675,6 +1702,10 @@
 </head>
 
 <body>
+    <!-- Hourglass Background -->
+    <div id="hourglass-bg">
+        <div id="hourglass-fill"></div>
+    </div>
 
     <div id="setup-screen" class="container">
 
@@ -1684,7 +1715,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.196</span>
+                FNH Timer <span class="version-tag">v1.31.197</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5492,8 +5523,8 @@
 
                 const ringStep = document.getElementById('ring-step');
                 if (ringStep) {
-                    ringStep.style.stroke = nextColor;
-                    ringStep.style.filter = `drop-shadow(0 0 10px ${nextGlow})`;
+                    ringStep.style.stroke = "#ffffff"; // Always White
+                    ringStep.style.filter = `drop-shadow(0 0 10px rgba(255,255,255,0.4))`;
                 }
 
                 titleEl.innerText = step.label;
@@ -5511,6 +5542,14 @@
                 let nextText = "Hierna: Klaar";
                 if (nextStep) { nextText = "Hierna: " + nextStep.label; if (nextStep.type === 'work' && nextStep.info && nextStep.info.exercise > 0) nextText += ` (Oef ${nextStep.info.exercise})`; }
                 nextEl.innerText = nextText;
+
+                // Set Hourglass Color immediately at start of step
+                const hgFill = document.getElementById('hourglass-fill');
+                if (hgFill) {
+                    hgFill.style.backgroundColor = nextColor;
+                    hgFill.style.height = "0%";
+                    // Force reflow?
+                }
 
                 if (!step.hasPlayedEntry) {
                     step.hasPlayedEntry = true;
@@ -5565,6 +5604,17 @@
                         const now = Date.now();
                         const remainingMs = stepEndTime - now;
                         let remainingSec = Math.ceil(remainingMs / 1000);
+
+                        // HOURGLASS ANIMATION
+                        if (hgFill) {
+                            const totalDurMs = step.initialTime * 1000;
+                            if (totalDurMs > 0) {
+                                let pct = 100 - ((remainingMs / totalDurMs) * 100);
+                                if (pct < 0) pct = 0;
+                                if (pct > 100) pct = 100;
+                                hgFill.style.height = pct + "%";
+                            }
+                        }
 
                         if (remainingSec < 0) {
                             while (remainingSec < 0) {
@@ -7318,7 +7368,7 @@
                 }
                 div.remove();
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                if (ctx.state !== 'running') ctx.resume();
+                if (ctx.state !== 'running') ctx.resume()
             };
         }
     </script>
@@ -7379,8 +7429,8 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify(payload)
-                }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
-            }
+                }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging e));
+     }
         </script>
         <!-- AUDIO GUIDE POPUP -->
 
