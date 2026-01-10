@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.190</title>
+    <title>Friday-night-hawk-s Timer v1.31.191</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.190</span>
+                FNH Timer <span class="version-tag">v1.31.191</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4609,30 +4609,48 @@
             }
 
             playNext() {
-                if (this.currentType === 'werk') {
-                    this.workIndex = (this.workIndex + 1) % this.workQueue.length;
-                    this.playSpecificTrack(this.workQueue[this.workIndex], 'werk');
-                } else {
-                    this.restIndex = (this.restIndex + 1) % this.restQueue.length;
-                    this.playSpecificTrack(this.restQueue[this.restIndex], 'rust');
-                }
+                // Determine direction based on current phase?
+                // Or simply advance index?
+                // If in 'work' phase, we play next work track.
+                // If in 'rest' phase, we play next rest track.
+                // Both use same playlistIndex.
+
+                this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
+
+                const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
+                // Note: currentType is 'werk'/'rust'.
+
+                // Play
+                const item = queue[this.playlistIndex];
+                this.playSpecificTrack(item, this.currentType);
             }
 
             playPrevious() {
-                if (this.currentType === 'werk') {
-                    this.workIndex = (this.workIndex - 1 + this.workQueue.length) % this.workQueue.length;
-                    this.playSpecificTrack(this.workQueue[this.workIndex], 'werk');
-                } else {
-                    this.restIndex = (this.restIndex - 1 + this.restQueue.length) % this.restQueue.length;
-                    this.playSpecificTrack(this.restQueue[this.restIndex], 'rust');
-                }
+                let idx = this.playlistIndex;
+                const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
+                if (queue.length === 0) return;
+
+                // Find previous enabled
+                let attempts = 0;
+                do {
+                    idx = (idx - 1 + queue.length) % queue.length;
+                    attempts++;
+                    const item = queue[idx];
+                    if (this.enabledGenres.has(item.genre)) {
+                        this.playlistIndex = idx;
+                        break;
+                    }
+                } while (attempts < queue.length);
+
+                const item = queue[this.playlistIndex];
+                this.playSpecificTrack(item, this.currentType);
             }
 
             playSpecificTrack(item, type) {
                 if (!item) return;
                 const path = `muziek/${item.genre}/${type}/${item.track}`;
                 this.audio.src = path;
-                // Maintain current volume based on type/phase logic (simplified here to volWork or volRest)
+                // Maintain current volume
                 this.audio.volume = (type === 'werk') ? this.volWork : this.volRest;
                 this.audio.play().catch(e => console.log("Manual Play Error", e));
                 this.showNowPlaying(item.track, item.genre, type === 'werk' ? 'work' : 'rest');
@@ -4644,67 +4662,11 @@
                 this.volRest = rest;
             }
 
-            showNowPlaying(trackName, genre, type) {
-                const nowEl = document.getElementById('gym-now-playing');
-                const listEl = document.getElementById('gym-queue-list');
-
-                if (nowEl) {
-                    const cleanTitle = trackName.replace('.mp3', '');
-                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
-                }
-
-                if (listEl) {
-                    listEl.innerHTML = "";
-                    const queue = (type === 'work' || type === 'werk') ? this.workQueue : this.restQueue;
-                    const currentIndex = (type === 'work' || type === 'werk') ? this.workIndex : this.restIndex;
-
-
-                    queue.forEach((item, i) => {
-                        const div = document.createElement('div');
-                        div.style.padding = "4px 8px";
-                        div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-                        div.style.cursor = "pointer";
-                        div.className = "playlist-item"; // For hover effects if we added CSS, but inline is fine
-
-                        // Clean visible name
-                        const cleanTrack = item.track.replace('.mp3', '');
-
-                        if (i === currentIndex) {
-                            div.style.color = "#30D158";
-                            div.style.fontWeight = "bold";
-                            div.innerText = `▶ ${cleanTrack}`;
-                        } else {
-                            div.style.color = "#aaa";
-                            div.innerText = `${i + 1}. ${cleanTrack}`;
-                        }
-
-                        // Click Logic
-                        div.onclick = () => {
-                            // Update the correct index
-                            if (type === 'work' || type === 'werk') {
-                                this.workIndex = i;
-                            } else {
-                                this.restIndex = i;
-                            }
-                            // Play Immediate
-                            this.playSpecificTrack(item, (type === 'work' || type === 'werk') ? 'werk' : 'rust');
-                        };
-
-                        listEl.appendChild(div);
-                    });
-                }
-            }
+            // ... showNowPlaying is separate ...
 
             playNextWorkTrack() {
-                if (this.workQueue.length === 0) return;
-                const item = this.workQueue[this.workIndex];
-                this.workIndex = (this.workIndex + 1) % this.workQueue.length;
-
-                const path = `muziek/${item.genre}/werk/${item.track}`;
-                this.audio.src = path;
-                this.audio.volume = this.volWork; // Ensure Work Volume
-                this.audio.play().catch(e => console.log("Cont. Play Error", e));
-                this.showNowPlaying(item.track, item.genre, 'work');
+                // Deprecated / Mapped to playNext if called by legacy event
+                this.playNext();
             }
 
             setGenres(list) {
@@ -4716,29 +4678,118 @@
                 if (this.selectedGenres.length === 0) return;
                 this.hasStartedForWorkout = true;
                 this.buildPlaylists(); // Build fixed shuffled lists
+                this.renderGenreToggles(); // Render UI
                 this.playPhase('rest'); // Start with atmosphere
             }
 
             buildPlaylists() {
                 this.workQueue = [];
                 this.restQueue = [];
+                // Initialize enabled filters (all ON by default)
+                this.enabledGenres = new Set(this.selectedGenres);
 
-                // 1. Gather all tracks from selected genres
+                // 1. Prepare temp buckets
+                const bucketsWork = {};
+                const bucketsRest = {};
+                let maxLen = 0;
+
                 this.selectedGenres.forEach(genre => {
+                    bucketsWork[genre] = [];
+                    bucketsRest[genre] = [];
                     const db = musicManifest[genre];
                     if (db) {
-                        if (db.werk) db.werk.forEach(t => this.workQueue.push({ track: t, genre: genre }));
-                        if (db.rust) db.rust.forEach(t => this.restQueue.push({ track: t, genre: genre }));
+                        if (db.werk) db.werk.forEach(t => bucketsWork[genre].push({ track: t, genre: genre }));
+                        if (db.rust) db.rust.forEach(t => bucketsRest[genre].push({ track: t, genre: genre }));
+
+                        // Shuffle buckets individually so order is random within genre
+                        this.shuffle(bucketsWork[genre]);
+                        this.shuffle(bucketsRest[genre]);
+
+                        if (bucketsWork[genre].length > maxLen) maxLen = bucketsWork[genre].length;
                     }
                 });
 
-                // 2. Shuffle them ONCE
-                this.shuffle(this.workQueue);
-                this.shuffle(this.restQueue);
+                // 2. Interleave (Round Robin)
+                for (let i = 0; i < maxLen; i++) {
+                    this.selectedGenres.forEach(genre => {
+                        // Work Track
+                        if (bucketsWork[genre] && bucketsWork[genre][i]) {
+                            this.workQueue.push(bucketsWork[genre][i]);
+
+                            // Match Rest Track (wrap around if fewer rest tracks)
+                            if (bucketsRest[genre] && bucketsRest[genre].length > 0) {
+                                const rIndex = i % bucketsRest[genre].length;
+                                this.restQueue.push(bucketsRest[genre][rIndex]);
+                            } else {
+                                // Fallback if no rest tracks for this genre? Should not happen based on manifest, but safety:
+                                this.restQueue.push({ track: 'silence.mp3', genre: genre }); // Placeholder
+                            }
+                        }
+                    });
+                }
 
                 // 3. Reset Indices
-                this.workIndex = 0;
-                this.restIndex = 0;
+                this.playlistIndex = 0;
+                this.justFinishedWork = false;
+            }
+
+            // Helper to find next/prev enabled index
+            getEnabledIndex(currentIndex, direction) {
+                let idx = currentIndex;
+                const queue = (this.workQueue.length > 0) ? this.workQueue : [];
+                // queue is Master Queue. Length should be safe.
+                if (queue.length === 0) return 0;
+
+                let attempts = 0;
+                do {
+                    idx = (idx + direction + queue.length) % queue.length;
+                    attempts++;
+                    const item = queue[idx];
+                    if (this.enabledGenres.has(item.genre)) return idx;
+                } while (attempts < queue.length);
+
+                return currentIndex; // No enabled tracks found
+            }
+
+            // Check if current index is enabled, if not separate find next
+            ensureValidIndex() {
+                if (this.workQueue.length === 0) return;
+                // Handle safe index wrapper
+                this.playlistIndex = (this.playlistIndex || 0) % this.workQueue.length;
+
+                const item = this.workQueue[this.playlistIndex];
+                if (!item || !this.enabledGenres.has(item.genre)) {
+                    this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
+                }
+            }
+
+            toggleGenre(genre, isEnabled) {
+                if (isEnabled) {
+                    this.enabledGenres.add(genre);
+                } else {
+                    this.enabledGenres.delete(genre);
+                }
+                // Update display immediately if current track is affected? 
+                // No, just update the playlist view. Playback continues until track end or manual skip.
+                // Actually, if we disable the CURRENT genre, we might want to skip? 
+                // User said "filters bepalen ... wat word afgespeeld". 
+                // Usually filters apply to NEXT track. Immediate skip might be jarring.
+                // However, the playlist view must update.
+                const currentType = this.currentType === 'werk' ? 'work' : 'rest';
+                // Find visible current track name for display refresh?
+                // Actually just calling showNowPlaying should refresh the list.
+                // But showNowPlaying needs arguments... it uses internal state mostly.
+                this.ensureValidIndex();
+
+                // Refresh Playlist UI if visible
+                const nowEl = document.getElementById('gym-now-playing');
+                if (nowEl) {
+                    // We need to re-call showNowPlaying with current track info
+                    // But simpler: just grab current state if valid
+                    const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
+                    const item = queue[this.playlistIndex];
+                    if (item) this.showNowPlaying(item.track, item.genre, this.currentType === 'werk' ? 'work' : 'rest');
+                }
             }
 
             shuffle(array) {
@@ -4756,71 +4807,163 @@
             }
 
             refillQueue() {
-                // Shuffle genres
-                let g = [...this.selectedGenres];
-                for (let i = g.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [g[i], g[j]] = [g[j], g[i]];
-                }
-                this.genreQueue = g;
+                // No-op in new system, master queue is cyclic
             }
 
             getNextGenre() {
-                if (this.genreQueue.length === 0) this.refillQueue();
-                if (this.genreQueue.length === 0) return null; // No genres selected
-                return this.genreQueue.pop();
+                return null; // Deprecated
             }
 
             playPhase(phase) {
                 if (this.selectedGenres.length === 0) return;
 
-                // VOLUME LOGIC: Apply volume for the phase, even if track doesn't change
+                // VOLUME LOGIC
                 const targetVol = (phase === 'work') ? this.volWork : this.volRest;
                 this.audio.volume = targetVol;
 
-                // Track current type/phase for manual controls
                 this.currentType = (phase === 'work') ? 'werk' : 'rust';
 
-                // CONTINUOUS MODE: If active and playing, DO NOT INTERRUPT active song.
+                // CONTINUOUS MODE
                 if (this.continuousMode && !this.audio.paused) {
                     return;
                 }
 
-                // FIXED PLAYLIST LOGIC
-                let item = null;
-                let type = 'rust';
-                // targetVol already set above
-
                 if (phase === 'work') {
-                    if (this.workQueue.length === 0) return;
-                    item = this.workQueue[this.workIndex];
-                    this.workIndex = (this.workIndex + 1) % this.workQueue.length; // Loop
-                    type = 'werk';
-                    // targetVol handled
-                } else {
-                    // Standard Rest Logic
-                    if (this.restQueue.length === 0) return;
-                    item = this.restQueue[this.restIndex];
-                    this.restIndex = (this.restIndex + 1) % this.restQueue.length; // Loop
-                    type = 'rust';
-                    // targetVol handled
+                    // If we just finished a work block (and its following rest), move to next track pair
+                    if (this.justFinishedWork) {
+                        this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
+                    }
                 }
+
+                this.ensureValidIndex();
+
+                const queue = (phase === 'work') ? this.workQueue : this.restQueue;
+                if (queue.length === 0) return;
+
+                this.playlistIndex = this.playlistIndex % queue.length;
+                const item = queue[this.playlistIndex];
 
                 if (!item) return;
 
-                const genre = item.genre;
-                const track = item.track;
-                const path = `muziek/${genre}/${type}/${track}`;
-
+                const path = `muziek/${item.genre}/${phase === 'work' ? 'werk' : 'rust'}/${item.track}`;
                 this.audio.src = path;
-                this.audio.volume = targetVol;
-                this.audio.play().catch(e => console.log("Music Play Error", e));
+                this.audio.play().catch(e => console.log("Play Error", e));
+                this.showNowPlaying(item.track, item.genre, phase === 'work' ? 'work' : 'rest');
 
-                // Update UI or Toast
-                this.showNowPlaying(track, genre, phase);
+                if (phase === 'work') {
+                    this.justFinishedWork = true;
+                }
             }
 
+            renderGenreToggles() {
+                // Find or create container in audio settings
+                let container = document.getElementById('audio-settings-genres');
+                if (!container) {
+                    // Create it after volume controls
+                    const parent = document.getElementById('active-volume-panel');
+                    if (parent) {
+                        container = document.createElement('div');
+                        container.id = 'audio-settings-genres';
+                        container.style.marginTop = "15px";
+                        container.style.borderTop = "1px solid rgba(255,255,255,0.1)";
+                        container.style.paddingTop = "10px";
+                        parent.appendChild(container); // Append at end (after playlist view?)
+                        // Actually playlist view is separate. Move it before playlist?
+                        // Insert before playlist-view if exists
+                        const playlist = document.getElementById('playlist-view');
+                        if (playlist) parent.insertBefore(container, playlist);
+                        else parent.appendChild(container);
+                    }
+                }
+                if (!container) return;
 
+                container.innerHTML = "<div style='font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;'>GENRES (LIVE)</div>";
+
+                // Show ALL select 'setup' genres (so they can toggle them)
+                // Or show ALL manifest genres? 
+                // User said: "filters bepalen allen wat zichtbaar is...".
+                // We should assume the 'Pool' is what lines up with 'selectedGenres' from setup.
+                // Because non-selected genres were not loaded into the queue.
+
+                this.selectedGenres.forEach(genre => {
+                    const row = document.createElement('div');
+                    row.style.display = "flex";
+                    row.style.alignItems = "center";
+                    row.style.marginBottom = "5px";
+
+                    const cb = document.createElement('input');
+                    cb.type = "checkbox";
+                    cb.checked = this.enabledGenres.has(genre);
+                    cb.style.marginRight = "8px";
+                    cb.style.cursor = "pointer";
+
+                    cb.onchange = (e) => {
+                        this.toggleGenre(genre, e.target.checked);
+                    };
+
+                    const lbl = document.createElement('span');
+                    lbl.innerText = genre;
+                    lbl.style.fontSize = "14px";
+
+                    row.appendChild(cb);
+                    row.appendChild(lbl);
+                    container.appendChild(row);
+                });
+            }
+
+            showNowPlaying(trackName, genre, type) {
+                const nowEl = document.getElementById('gym-now-playing');
+                const listEl = document.getElementById('gym-queue-list');
+
+                if (nowEl) {
+                    const cleanTitle = trackName.replace('.mp3', '');
+                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
+                }
+
+                if (listEl) {
+                    listEl.innerHTML = "";
+                    const queue = (type === 'work' || type === 'work') ? this.workQueue : this.restQueue;
+                    // Note: 'werk' vs 'work' consistency fix handled by '||' logic usually, 
+                    // but here passed 'type' comes from call.
+                    // playPhase sends 'work'/'rest'.
+
+                    let displayIndex = 1;
+
+                    queue.forEach((item, i) => {
+                        // FILTER: Only show enabled genres
+                        if (!this.enabledGenres.has(item.genre)) return;
+
+                        const div = document.createElement('div');
+                        div.style.padding = "4px 8px";
+                        div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                        div.style.cursor = "pointer";
+                        div.className = "playlist-item";
+
+                        const cleanTrack = item.track.replace('.mp3', '');
+
+                        if (i === this.playlistIndex) {
+                            div.style.color = "#30D158";
+                            div.style.fontWeight = "bold";
+                            div.innerText = `▶ ${cleanTrack} (${item.genre})`;
+                        } else {
+                            div.style.color = "#aaa";
+                            div.innerText = `${displayIndex}. ${cleanTrack} (${item.genre})`;
+                        }
+                        displayIndex++;
+
+                        div.onclick = () => {
+                            this.playlistIndex = i;
+                            this.playSpecificTrack(item, (type === 'work' || type === 'work') ? 'werk' : 'rust');
+                            // Note: playSpecificTrack is legacy. Ideally should call playPhase-like logic?
+                            // But playSpecificTrack is: audio.src = ...
+                            // We should maintain it or update it.
+                            // See logic below.
+                        };
+
+                        listEl.appendChild(div);
+                    });
+                }
+            }
 
             hideNowPlaying() {
                 const txt = document.getElementById('gym-now-playing');
