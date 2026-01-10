@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.187</title>
+    <title>Friday-night-hawk-s Timer v1.31.188</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.187</span>
+                FNH Timer <span class="version-tag">v1.31.188</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3490,11 +3490,11 @@
 
             customNames = {};
 
-            // Custom Reset Logic: Start Time + 1min, Duration 45min, Rest 15s
+            // Custom Reset Logic: Start Time + 2min, Duration 45min, Rest 15s
             const now = new Date();
-            const start = new Date(now.getTime() + 1 * 60000);
-            const startStr = start.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
-
+            now.setMinutes(now.getMinutes() + 2);
+            // Format HH:MM
+            const startStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
             document.getElementById('startTimeValue').value = startStr;
 
             // Ensure 45m exists and set it
@@ -3536,6 +3536,13 @@
         function applyTabataPreset() {
             if (!confirm("Huidige instellingen overschrijven met Tabata preset?")) return;
 
+            const nowT = new Date();
+            nowT.setMinutes(nowT.getMinutes() + 2);
+            const startStrT = nowT.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('startTimeValue').value = startStrT;
+
+            document.getElementById('totalMin').value = 4;
+
             // Tabata Specifics:
             // 4 min Duration
             // 1 Round
@@ -3563,10 +3570,7 @@
 
             document.getElementById('exerciseRestSec').value = 10;
 
-            // NEW: Set Start Time to NOW to prevent "Time in Past" legacy bugs
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('startTimeValue').value = timeStr;
+
 
             // We don't touch other Rests unless needed. 
             // Standard Tabata usually implies short rests. 
