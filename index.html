@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.188</title>
+    <title>Friday-night-hawk-s Timer v1.31.189</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1684,7 +1684,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.188</span>
+                FNH Timer <span class="version-tag">v1.31.189</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2002,6 +2002,16 @@
                         }
                     </style>
                 </label>
+            </div>
+
+            <!-- PLAYLIST VIEW (User Request) -->
+            <div id="playlist-view"
+                style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:150px; overflow-y:auto;">
+                <div id="gym-now-playing" style="font-size:12px; color:#30D158; font-weight:bold; margin-bottom:5px;">
+                    Now Playing: -</div>
+                <div id="gym-queue-list" style="font-size:11px; color:#aaa;">
+                    <!-- Queue items populated by JS -->
+                </div>
             </div>
         </div>
 
@@ -4632,9 +4642,35 @@
             updateVolumes(work, rest) {
                 this.volWork = work;
                 this.volRest = rest;
-                // Optional: Dynamic update based on state? 
-                // For now, let next phase switch apply it, or user just waits.
-                // Or better: check current phase (if we tracked it) but simplicity is key.
+            }
+
+            showNowPlaying(trackName, genre, type) {
+                const nowEl = document.getElementById('gym-now-playing');
+                const listEl = document.getElementById('gym-queue-list');
+
+                if (nowEl) nowEl.innerText = `🎵 ${genre} - ${trackName} (${type})`;
+
+                if (listEl) {
+                    listEl.innerHTML = "";
+                    const queue = (type === 'work' || type === 'werk') ? this.workQueue : this.restQueue;
+                    const currentIndex = (type === 'work' || type === 'werk') ? this.workIndex : this.restIndex;
+
+
+                    queue.forEach((item, i) => {
+                        const div = document.createElement('div');
+                        div.style.padding = "2px 0";
+                        div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+
+                        if (i === currentIndex) {
+                            div.style.color = "#30D158";
+                            div.style.fontWeight = "bold";
+                            div.innerText = `▶ ${item.track}`;
+                        } else {
+                            div.innerText = `${i + 1}. ${item.track}`;
+                        }
+                        listEl.appendChild(div);
+                    });
+                }
             }
 
             playNextWorkTrack() {
@@ -4762,13 +4798,7 @@
                 this.showNowPlaying(track, genre, phase);
             }
 
-            showNowPlaying(trackName, genre, phase) {
-                const txt = document.getElementById('gym-now-playing');
-                if (txt) {
-                    let cleanName = trackName.replace('.mp3', '');
-                    txt.innerHTML = `🎵 ${cleanName} <span style="opacity:0.6">(${genre})</span>`;
-                }
-            }
+
 
             hideNowPlaying() {
                 const txt = document.getElementById('gym-now-playing');
