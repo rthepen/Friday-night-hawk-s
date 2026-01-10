@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.205</title>
+    <title>Friday-night-hawk-s Timer v1.31.206</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.205</span>
+                FNH Timer <span class="version-tag">v1.31.206</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5751,18 +5751,21 @@
                         if (step.type === 'rest-exercise' && step.time === 10 && init > 15) triggerAudio('rest_switch_10s', "Nog 10 seconden");
 
                         if (step.time <= 0) { clearInterval(timerInterval); currentIndex++; runStep(); }
-                        else if (step.time <= 3) {
-                            // FADE OUT REST MUSIC (User Request)
-                            if (step.time === 3 && (step.type === 'rest' || step.type === 'rest-exercise' || step.type === 'rest-long' || step.type === 'prep')) {
-                                bgMusicManager.fadeOut(3);
+                        else if (step.time <= 5) {
+                            // FADE OUT REST MUSIC (User Request: 5 seconds)
+                            if (step.time === 5 && (step.type === 'rest' || step.type === 'rest-exercise' || step.type === 'rest-long' || step.type === 'prep')) {
+                                bgMusicManager.fadeOut(5);
                             }
 
-                            if (speechSettings.use_mp3) {
-                                // MP3 Mode: Trigger prep_countdown once at 3s. Silence at 2s/1s.
-                                if (step.time === 3) triggerAudio('prep_countdown', "3 2 1");
-                            } else {
-                                // TTS Mode: Individual ticks
-                                triggerAudio('tick', step.time.toString());
+                            // COUNTDOWN AUDIO (Still starts at 3s)
+                            if (step.time <= 3) {
+                                if (speechSettings.use_mp3) {
+                                    // MP3 Mode: Trigger prep_countdown once at 3s. Silence at 2s/1s.
+                                    if (step.time === 3) triggerAudio('prep_countdown', "3 2 1");
+                                } else {
+                                    // TTS Mode: Individual ticks
+                                    triggerAudio('tick', step.time.toString());
+                                }
                             }
                         }
                     } else {
