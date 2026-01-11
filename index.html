@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.224</title>
+    <title>Friday-night-hawk-s Timer v1.31.225</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.224</span>
+                FNH Timer <span class="version-tag">v1.31.225</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1736,8 +1736,6 @@
                     onclick="applyTabataPreset()">⏱️ Tabata</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
                 <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
-                <button class="btn-header" onclick="toggleFullScreen()" style="background:#444; color:white;"
-                    title="Volledig Scherm">⛶</button>
             </div>
         </div>
 
@@ -7554,6 +7552,12 @@
     </div> <!-- Close pre-workout-overlay -->
 
     <!-- GLOBAL VOLUME TOGGLE BTN (Relocated & HIGH Z-INDEX) -->
+    <div id="global-fullscreen-btn"
+        style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+        onclick="toggleFullScreen()">
+        <span style="font-size:20px;">⛶</span>
+    </div>
+
     <div id="global-volume-btn"
         style="position:fixed; top:20px; right:20px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
         onclick="toggleVolumePanel()">
