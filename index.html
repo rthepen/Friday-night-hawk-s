@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.222</title>
+    <title>Friday-night-hawk-s Timer v1.31.223</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.222</span>
+                FNH Timer <span class="version-tag">v1.31.223</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3526,14 +3526,7 @@
 
         // Show Mix Mode toggle only on iOS & Add Resumption Listeners
         if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            document.addEventListener('DOMContentLoaded', () => {
-                const el = document.getElementById('ios-mix-container');
-                if (el) el.style.display = 'block';
-
-                // Set checkbox to default true if not loaded yet
-                const mixEl = document.getElementById('ios-mix-mode');
-                if (mixEl && !localStorage.getItem('fnh_settings')) mixEl.checked = true;
-            });
+            // UI Toggle removed (Always On requested)
 
             // Auto-Resume AudioContext on Tab Focus/Return
             document.addEventListener('visibilitychange', () => {
@@ -3563,10 +3556,7 @@
             } catch (e) { /* ignore */ }
         }
 
-        function toggleMixMode(state) {
-            iosMixMode = state;
-            saveToLocal();
-        }
+
 
         function openGeneratorModal() {
             document.getElementById('generator-modal').style.display = 'flex';
@@ -4069,14 +4059,8 @@
                         }
                     }
 
-                    // Restore Mix Mode (or Auto-Detect)
-                    if (typeof data.iosMixMode !== 'undefined') {
-                        iosMixMode = data.iosMixMode;
-                    } else {
-                        // Default behavior: On for iOS, Off for others
-                        iosMixMode = isIOS();
-                        if (iosMixMode) console.log("Auto-enabled Mix Mode for iOS");
-                    }
+                    // Restore Mix Mode (Always ON now)
+                    iosMixMode = true;
 
                     if (data.audioMode) setAudioMode(data.audioMode);
                     // v1.16: Restore speechSettings load
@@ -4145,9 +4129,7 @@
             if (btnSpeech) btnSpeech.className = (audioMode === 'speech') ? 'toggle-btn active' : 'toggle-btn';
             if (btnBeep) btnBeep.className = (audioMode === 'beep') ? 'toggle-btn active' : 'toggle-btn';
 
-            const mix = document.getElementById('ios-mix-mode-live');
-            const mixStored = localStorage.getItem('fnh_mix_mode') === 'true';
-            if (mix) mix.checked = mixStored;
+
         }
 
         function populateLiveCoachSelect() {
@@ -7701,16 +7683,7 @@
                     </div>
                 </div>
 
-                <!-- IOS MIX MODE (Reordered) -->
-                <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:10px;">
-                    <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <span style="font-size:12px; color:#aaa;">Mix Mode (iOS Fix)</span>
-                        <label class="switch" style="transform:scale(0.8);">
-                            <input type="checkbox" id="ios-mix-mode-live" onchange="toggleMixMode(this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
+
             </div>
         </details>
     </div>
