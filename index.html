@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.245</title>
+    <title>Friday-night-hawk-s Timer v1.31.246</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.245</span>
+                FNH Timer <span class="version-tag">v1.31.246</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3262,19 +3262,16 @@
             list.innerHTML = "";
 
             // 1. Identify Unique Stations (Group by Exercise Index)
-            // Map: ExIndex -> { key, name, info }
+            // Map: ExIndex -> Set of Unique Exercise Labels
             let stations = new Map();
 
             schedule.forEach(step => {
                 if (step.type === 'work' && step.info && step.info.exercise > 0) {
                     const exIdx = step.info.exercise;
                     if (!stations.has(exIdx)) {
-                        stations.set(exIdx, {
-                            id: exIdx,
-                            name: step.label, // Default Name
-                            fullItem: step    // Store reference for details
-                        });
+                        stations.set(exIdx, new Set());
                     }
+                    stations.get(exIdx).add(step.label);
                 }
             });
 
@@ -3288,7 +3285,8 @@
 
             // 3. Render List
             sortedIds.forEach(id => {
-                const st = stations.get(id);
+                const uniqueNames = Array.from(stations.get(id));
+                const namesStr = uniqueNames.join(", ");
 
                 const div = document.createElement('div');
                 div.style.cssText = "display:flex; align-items:center; background:#2c2c2e; padding:10px; margin-bottom:5px; border-radius:8px;";
@@ -3296,8 +3294,8 @@
                 div.innerHTML = `
                     <input type="checkbox" class="station-cb" value="${id}" checked style="width:20px; height:20px; margin-right:15px; accent-color:#30D158;">
                     <div style="text-align:left;">
-                        <div style="font-weight:bold; color:white; font-size:16px;">Oefening ${id}</div>
-                        <div style="color:#aaa; font-size:13px;">${st.name}</div>
+                        <div style="font-weight:bold; color:white; font-size:16px;">Station ${id}</div>
+                        <div style="color:#aaa; font-size:13px;">${namesStr}</div>
                     </div>
                 `;
                 list.appendChild(div);
@@ -3327,12 +3325,21 @@
 
             let firstPage = true;
 
+            // Pre-Calculate Unique Exercises per Station (Same logic as Selector)
+            let stationMap = new Map();
+            schedule.forEach(step => {
+                if (step.type === 'work' && step.info && step.info.exercise > 0) {
+                    const exIdx = step.info.exercise;
+                    if (!stationMap.has(exIdx)) stationMap.set(exIdx, new Set());
+                    stationMap.get(exIdx).add(step.label);
+                }
+            });
+
             checkboxes.forEach((cb) => {
                 const exIdx = parseInt(cb.value);
+                const uniqueLabels = Array.from(stationMap.get(exIdx) || []);
 
-                // Find info again (could have stored in DOM, but lookup is fast enough)
-                const step = schedule.find(s => s.type === 'work' && s.info.exercise === exIdx);
-                if (!step) return;
+                if (uniqueLabels.length === 0) return;
 
                 if (!firstPage) doc.addPage();
                 firstPage = false;
@@ -3341,54 +3348,71 @@
                 const width = doc.internal.pageSize.getWidth();
                 const height = doc.internal.pageSize.getHeight();
 
-                // 1. Big Number (Center)
+                // 1. Big Number (Center Top)
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(250);
+                doc.setFontSize(200);
                 doc.setTextColor(0, 0, 0); // Black
-                doc.text(`${exIdx}`, width / 2, 100, { align: 'center' });
+                doc.text(`${exIdx}`, width / 2, 70, { align: 'center' }); // Raised slightly
 
-                // 2. Name (Below Number)
-                let yPos = 140;
-                doc.setFontSize(40); // Auto-scale if too long?
-                // Simple wrapping logic
-                const nameLines = doc.splitTextToSize(step.label, width - 20);
-                doc.text(nameLines, width / 2, yPos, { align: 'center' });
-                yPos += (nameLines.length * 15);
+                // 2. Iterate Exercises
+                let yPos = 110;
 
-                // 3. Details (Material & Instr)
-                const details = getExerciseDetails(step.label);
+                uniqueLabels.forEach((label, index) => {
+                    // Check for page overflow (simplified)
+                    if (yPos > height - 50) {
+                        doc.addPage();
+                        yPos = 40;
+                    }
 
-                // Separator Line
-                doc.setLineWidth(1);
-                doc.line(20, yPos, width - 20, yPos);
-                yPos += 20;
+                    // Separator if multiple
+                    if (index > 0) {
+                        doc.setLineWidth(0.5);
+                        doc.setDrawColor(200);
+                        doc.line(40, yPos - 10, width - 40, yPos - 10);
+                        yPos += 10;
+                    }
 
-                doc.setFontSize(16);
-                doc.setFont("helvetica", "normal");
-
-                if (details) {
-                    const matName = details.material_name || "-";
-                    const matDesc = details.material_description || "";
-                    const instr = details.instructions || "Geen instructie.";
-
-                    // Material
+                    // Name
+                    doc.setFontSize(30);
                     doc.setFont("helvetica", "bold");
-                    doc.text("MATERIAAL:", 20, yPos);
-                    doc.setFont("helvetica", "normal");
-                    doc.text(`${matName} ${matDesc ? `(${matDesc})` : ''}`, 60, yPos);
-                    yPos += 20;
+                    doc.setTextColor(0, 0, 0);
+                    const nameLines = doc.splitTextToSize(label, width - 20);
+                    doc.text(nameLines, width / 2, yPos, { align: 'center' });
+                    yPos += (nameLines.length * 12); // Spacing
 
-                    // Instructions
-                    doc.setFont("helvetica", "bold");
-                    doc.text("INSTRUCTIE:", 20, yPos);
-                    yPos += 10;
-                    doc.setFont("helvetica", "normal");
+                    // Details
+                    const details = getExerciseDetails(label);
 
-                    const splitInstr = doc.splitTextToSize(instr, width - 40);
-                    doc.text(splitInstr, 20, yPos);
-                } else {
-                    doc.text("Geen verdere details beschikbaar.", 20, yPos);
-                }
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "normal");
+                    doc.setTextColor(50);
+
+                    if (details) {
+                        const matName = details.material_name || "-";
+                        const matDesc = details.material_description || "";
+                        const instr = details.instructions || "Geen instructie.";
+
+                        // Material
+                        doc.setFont("helvetica", "bold");
+                        doc.text("MATERIAAL:", 20, yPos);
+                        doc.setFont("helvetica", "normal");
+                        doc.text(`${matName} ${matDesc ? `(${matDesc})` : ''}`, 55, yPos);
+                        yPos += 10;
+
+                        // Instructions
+                        doc.setFont("helvetica", "bold");
+                        doc.text("INSTRUCTIE:", 20, yPos);
+                        yPos += 6;
+                        doc.setFont("helvetica", "normal");
+
+                        const splitInstr = doc.splitTextToSize(instr, width - 40);
+                        doc.text(splitInstr, 20, yPos);
+                        yPos += (splitInstr.length * 6) + 15; // Buffer
+                    } else {
+                        doc.text("Geen verdere details.", 20, yPos);
+                        yPos += 20;
+                    }
+                });
 
                 // Footer
                 doc.setFontSize(10);
