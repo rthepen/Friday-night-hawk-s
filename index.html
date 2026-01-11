@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.228</title>
+    <title>Friday-night-hawk-s Timer v1.31.229</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.228</span>
+                FNH Timer <span class="version-tag">v1.31.229</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3452,7 +3452,7 @@
 
             syncTime('duration'); // Updates End Time based on Start + Duration
             setAudioMode('speech');
-            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = 'tabataman'; // UPDATED
+            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = 'eva'; // UPDATED
 
             // Reset settings (Except Audio Mode)
             // Force Tabataman & Enable Milestones on Reset
@@ -3907,7 +3907,7 @@
 
             // NEW: Capture additional settings
             const startTime = document.getElementById('startTimeValue').value;
-            const coach = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'tabataman'; // UPDATED
+            const coach = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'eva'; // UPDATED
 
 
             const params = new URLSearchParams();
@@ -4007,7 +4007,7 @@
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 speechSettings: speechSettings, // v1.16: Restore Save
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
-                coachPreset: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : (appDefaults.coachPreset || 'tabataman'), // Save Coach Selection (Live or Default)
+                coachPreset: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : (appDefaults.coachPreset || 'eva'), // Save Coach Selection (Live or Default)
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
                 iosMixMode: iosMixMode, // Save Mix Mode setting
@@ -4155,9 +4155,9 @@
                 sel.appendChild(opt);
             }
             // Set current value
-            const current = appDefaults.coachPreset || 'tabataman';
+            const current = appDefaults.coachPreset || 'eva';
             // We should get the ACTUAL current, not just default. 
-            // But coach logic is a bit scattered. Let's assume 'tabataman' if unset.
+            // But coach logic is a bit scattered. Let's assume 'eva' if unset.
             sel.value = document.getElementById('coach-preset') ? document.getElementById('coach-preset').value : current;
         }
 
@@ -5231,7 +5231,7 @@
                 }
 
                 // MP3 Support Logic
-                const coachId = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'tabataman'; // UPDATED
+                const coachId = document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'eva'; // UPDATED
 
 
                 // Check Enable/Disable Toggle
