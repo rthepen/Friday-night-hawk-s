@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.225</title>
+    <title>Friday-night-hawk-s Timer v1.31.226</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.225</span>
+                FNH Timer <span class="version-tag">v1.31.226</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -7473,16 +7473,72 @@
             };
         }
 
+        // IMPROVED: Cross-browser & iOS Friendly Fullscreen
         function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
+            const doc = window.document;
+            const docEl = doc.documentElement;
+
+            // 1. Check for iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in doc);
+
+            if (isIOS) {
+                // iOS doesn't support the fullscreen API for web apps in Safari reliably.
+                // Best practice is "Add to Home Screen" (Standalone mode).
+                const isStandalone = ('standalone' in window.navigator) && (window.navigator.standalone);
+
+                if (!isStandalone) {
+                    showIOSFullscreenHelp();
+                    return;
                 }
             }
+
+            // 2. Standard API
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                if (requestFullScreen) {
+                    requestFullScreen.call(docEl).catch(err => {
+                        console.warn("Fullscreen request denied/failed", err);
+                        // Fallback: If blocked (often on iOS), show help
+                        if (isIOS) showIOSFullscreenHelp();
+                    });
+                }
+            } else {
+                if (cancelFullScreen) {
+                    cancelFullScreen.call(doc);
+                }
+            }
+        }
+
+        function showIOSFullscreenHelp() {
+            // Check if already seen session-wise to avoid annoyance, unless user clicks button explicitly? 
+            // Actually, if they click the button, they WANT fullscreen, so show it every time.
+
+            const div = document.createElement("div");
+            div.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:200005; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(5px);";
+
+            div.innerHTML = `
+                <div style="background:#1c1c1e; color:white; padding:25px; border-radius:24px; max-width:340px; text-align:center; border:1px solid #333; box-shadow:0 10px 40px rgba(0,0,0,0.6);">
+                    <div style="font-size:40px; margin-bottom:15px;">📱</div>
+                    <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h2>
+                    <div style="font-size:14px; color:#ccc; line-height:1.5; text-align:left; margin-bottom:20px;">
+                        Op iPhone/iPad werkt dit knopje niet direct in Safari.
+                        <br><br>
+                        <b>Voor de beste ervaring:</b>
+                        <ol style="margin:10px 0; padding-left:20px; color:#fff;">
+                            <li>Tik op de <b style="color:#0A84FF">Deel-knop</b> 🛫 (onderin).</li>
+                            <li>Kies <b style="color:#fff">"Zet op beginscherm"</b> ➕.</li>
+                        </ol>
+                        Start de app daarna via het nieuwe icoontje!
+                    </div>
+                    <button id="btn-ios-close" style="background:#333; color:white; border:none; padding:12px 30px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; width:100%;">
+                        Sluiten
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(div);
+            document.getElementById("btn-ios-close").onclick = () => div.remove();
         }
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
