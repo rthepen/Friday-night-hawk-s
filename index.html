@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.214</title>
+    <title>Friday-night-hawk-s Timer v1.31.215</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.214</span>
+                FNH Timer <span class="version-tag">v1.31.215</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -7590,92 +7590,108 @@
             <span style="font-size:12px; font-weight:bold; color:#0A84FF;" id="disp-vol-coach">100%</span>
         </div>
 
-        <!-- Continuous Mode Toggle -->
-        <div
-            style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-            <div style="display:flex; flex-direction:column; text-align:left;">
-                <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
-                <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
+        <!-- COLLAPSIBLE AUDIO SETTINGS -->
+        <details style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            <summary
+                style="cursor:pointer; font-weight:bold; color:#fff; list-style:none; padding:12px; background:rgba(255,255,255,0.08); border-radius:12px; display:flex; align-items:center; justify-content:space-between; user-select:none;">
+                <span>⚙️ Meer Instellingen</span>
+                <span style="opacity:0.6;">▼</span>
+            </summary>
+
+            <div style="margin-top:15px; padding-left:5px; padding-right:5px;">
+                <!-- Continuous Mode Toggle -->
+                <div
+                    style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; flex-direction:column; text-align:left;">
+                        <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
+                        <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
+                    </div>
+                    <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
+                        <input type="checkbox" id="chk-continuous-music"
+                            onchange="bgMusicManager.setContinuous(this.checked)">
+                        <span class="slider round"
+                            style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#444; transition:.4s; border-radius:34px;"></span>
+                        <style>
+                            .slider:before {
+                                position: absolute;
+                                content: "";
+                                height: 18px;
+                                width: 18px;
+                                left: 3px;
+                                bottom: 3px;
+                                background-color: white;
+                                transition: .4s;
+                                border-radius: 50%;
+                            }
+
+                            input:checked+.slider {
+                                background-color: #30D158;
+                            }
+
+                            input:checked+.slider:before {
+                                transform: translateX(16px);
+                            }
+                        </style>
+                    </label>
+                </div>
+
+                <!-- COACH SETTINGS -->
+                <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:15px;">
+                    <div
+                        style="font-size:11px; font-weight:900; color:#666; margin-bottom:10px; text-transform:uppercase;">
+                        COACH TYPE</div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <button class="toggle-btn active" id="btn-audio-speech-live"
+                            onclick="setAudioMode('speech'); updateLiveAudioUI();"
+                            style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
+                        <button class="toggle-btn" id="btn-audio-beep-live"
+                            onclick="setAudioMode('beep'); updateLiveAudioUI();"
+                            style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
+                    </div>
+
+                    <select id="coach-preset-live" class="text-input"
+                        onchange="applyCoachPreset(this.value); saveToLocal();"
+                        style="width:100%; font-size:13px; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border-radius:10px;">
+                        <!-- Populated via JS -->
+                    </select>
+
+                    <!-- SPEECH TOGGLES (Detailed) -->
+                    <div id="audio-toggles-panel"
+                        style="margin-top:10px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05);">
+                        <!-- Populated by renderAudioToggles -->
+                    </div>
+                </div>
+
+                <!-- IOS MIX MODE -->
+                <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:10px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:12px; color:#aaa;">Mix Mode (iOS Fix)</span>
+                        <label class="switch" style="transform:scale(0.8);">
+                            <input type="checkbox" id="ios-mix-mode-live" onchange="toggleMixMode(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- GENRE LIST CONTAINER -->
+                <div id="audio-settings-genres"
+                    style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:200px; overflow-y:auto;">
+                    <!-- Populated by renderGenreToggles -->
+                </div>
+
+                <!-- PLAYLIST VIEW (User Request) -->
+                <div id="playlist-view"
+                    style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:150px; overflow-y:auto;">
+                    <div id="gym-now-playing"
+                        style="font-size:11px; color:#30D158; font-weight:bold; margin-bottom:5px;">
+                        Now Playing: -</div>
+                    <div id="gym-queue-list" style="font-size:10px; color:#666;">
+                        <!-- Queue items populated by JS -->
+                    </div>
+                </div>
             </div>
-            <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
-                <input type="checkbox" id="chk-continuous-music" onchange="bgMusicManager.setContinuous(this.checked)">
-                <span class="slider round"
-                    style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#444; transition:.4s; border-radius:34px;"></span>
-                <style>
-                    .slider:before {
-                        position: absolute;
-                        content: "";
-                        height: 18px;
-                        width: 18px;
-                        left: 3px;
-                        bottom: 3px;
-                        background-color: white;
-                        transition: .4s;
-                        border-radius: 50%;
-                    }
-
-                    input:checked+.slider {
-                        background-color: #30D158;
-                    }
-
-                    input:checked+.slider:before {
-                        transform: translateX(16px);
-                    }
-                </style>
-            </label>
-        </div>
-
-        <!-- COACH SETTINGS -->
-        <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:15px;">
-            <div style="font-size:11px; font-weight:900; color:#666; margin-bottom:10px; text-transform:uppercase;">
-                COACH TYPE</div>
-
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <button class="toggle-btn active" id="btn-audio-speech-live"
-                    onclick="setAudioMode('speech'); updateLiveAudioUI();"
-                    style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
-                <button class="toggle-btn" id="btn-audio-beep-live" onclick="setAudioMode('beep'); updateLiveAudioUI();"
-                    style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
-            </div>
-
-            <select id="coach-preset-live" class="text-input" onchange="applyCoachPreset(this.value); saveToLocal();"
-                style="width:100%; font-size:13px; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border-radius:10px;">
-                <!-- Populated via JS -->
-            </select>
-
-            <!-- SPEECH TOGGLES (Detailed) -->
-            <div id="audio-toggles-panel"
-                style="margin-top:10px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05);">
-                <!-- Populated by renderAudioToggles -->
-            </div>
-        </div>
-
-        <!-- IOS MIX MODE -->
-        <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:10px;">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:12px; color:#aaa;">Mix Mode (iOS Fix)</span>
-                <label class="switch" style="transform:scale(0.8);">
-                    <input type="checkbox" id="ios-mix-mode-live" onchange="toggleMixMode(this.checked)">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- GENRE LIST CONTAINER -->
-        <div id="audio-settings-genres"
-            style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:200px; overflow-y:auto;">
-            <!-- Populated by renderGenreToggles -->
-        </div>
-
-        <!-- PLAYLIST VIEW (User Request) -->
-        <div id="playlist-view"
-            style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:150px; overflow-y:auto;">
-            <div id="gym-now-playing" style="font-size:11px; color:#30D158; font-weight:bold; margin-bottom:5px;">
-                Now Playing: -</div>
-            <div id="gym-queue-list" style="font-size:10px; color:#666;">
-                <!-- Queue items populated by JS -->
-            </div>
-        </div>
+        </details>
     </div>
 </body>
 
