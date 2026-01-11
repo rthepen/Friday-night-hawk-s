@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.236</title>
+    <title>Friday-night-hawk-s Timer v1.31.237</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.236</span>
+                FNH Timer <span class="version-tag">v1.31.237</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5297,54 +5297,51 @@
                     logAudioDebug(`🎵 Attempting MP3: ${coachId}/${finalKey}.mp3`);
                     const mp3Path = `coaches/${coachId}/${finalKey}.mp3`;
 
-                    // OPTIONAL MIX MODE (iOS Web Audio) with PRIORITY Logic
-                    if (iosMixMode) {
-                        // DETERMINE PRIORITY
-                        // Priority 2 (High): Commands, Countdowns, Phase Changes
-                        // Priority 1 (Low): Milestones, Tips
-                        let priority = 1; // Default to Low
-                        const highPriorityKeys = [
-                            'work_start', 'rest_start', 'rest_set_start',
-                            'rest_switch_start', 'rest_round_start', // Be specific about starts
-                            'prep_countdown', 'finish',
-                            'work_start_lastround', // Explicit high priority
-                            'manual_override', 'work_complete', 'rest_complete',
-                            'tick'
-                        ];
+                    // ALWAYS USE WEB AUDIO MIX MODE (Better Priority & Overlap Handling)
+                    // Priority Mapping
+                    let priority = 1; // Default: Low
+                    const highPriorityKeys = [
+                        'work_start', 'rest_start', 'rest_set_start',
+                        'rest_switch_start', 'rest_round_start',
+                        'prep_countdown', 'finish',
+                        'work_start_lastround',
+                        'manual_override', 'work_complete', 'rest_complete',
+                        'tick'
+                    ];
 
-                        // If key is high priority
-                        if (highPriorityKeys.includes(key)) {
-                            priority = 2;
-                        }
+                    // Check Priority
+                    if (highPriorityKeys.includes(key) || key.includes('work_start') || key.includes('count') || ['1', '2', '3'].includes(key)) {
+                        priority = 2;
+                    }
 
-                        // PRIORITY RULE:
-                        // If P2 comes in -> Stop everything (handled in playBuffer) and Play.
-                        // If P1 comes in -> ONLY play if current is 0. If current is 2, IGNORE P1.
-                        if (priority === 1 && currentAudioPriority === 2) {
-                            logAudioDebug(`🚫 Skipped Low Priority: ${key} (Busy w/ High)`);
-                            return;
-                        }
-
-                        playMp3WebAudio(mp3Path, key, priority);
+                    // PRIORITY RULE:
+                    // If P2 comes in -> Stop everything (handled in playBuffer) and Play.
+                    // If P1 comes in -> ONLY play if current is 0. If current is 2, IGNORE P1.
+                    if (priority === 1 && currentAudioPriority === 2) {
+                        logAudioDebug(`🚫 Skipped Low Priority: ${key} (Busy w/ High)`);
                         return;
                     }
 
-                    // Standard HTML5 Audio (Single Global Object)
-                    globalCoachAudio.src = mp3Path;
-                    const playPromise = globalCoachAudio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => { logAudioDebug(`✅ Playing MP3: ${key}`); })
-                            .catch(error => {
-                                failedAudioKeys.add(key);
-                                logAudioDebug(`❌ MP3 Failed: ${key}`);
-                            });
-                    }
+                    playMp3WebAudio(mp3Path, key, priority);
                     return;
                 }
-            } catch (e) {
-                console.error("Audio Trigger Error", e);
-                logAudioDebug(`⚠️ Audio Error: ${e.message}`);
+
+                // Standard HTML5 Audio (Single Global Object)
+                globalCoachAudio.src = mp3Path;
+                const playPromise = globalCoachAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => { logAudioDebug(`✅ Playing MP3: ${key}`); })
+                        .catch(error => {
+                            failedAudioKeys.add(key);
+                            logAudioDebug(`❌ MP3 Failed: ${key}`);
+                        });
+                }
+                return;
             }
+            } catch (e) {
+            console.error("Audio Trigger Error", e);
+            logAudioDebug(`⚠️ Audio Error: ${e.message}`);
+        }
         }
 
         function testMixModeSound() {
