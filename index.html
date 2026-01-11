@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.235</title>
+    <title>Friday-night-hawk-s Timer v1.31.236</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.235</span>
+                FNH Timer <span class="version-tag">v1.31.236</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5127,7 +5127,7 @@
             // Check Cache
             if (audioCache[url]) {
                 logAudioDebug(`✅ WebAudio Cache: ${key} (P${priority})`);
-                playBuffer(audioCache[url], priority);
+                playBuffer(audioCache[url], priority, key);
                 return;
             }
 
@@ -5141,7 +5141,7 @@
                 .then(audioBuffer => {
                     audioCache[url] = audioBuffer;
                     logAudioDebug(`✅ WebAudio Play: ${key} (P${priority})`);
-                    playBuffer(audioBuffer, priority);
+                    playBuffer(audioBuffer, priority, key);
                 })
                 .catch(e => {
                     failedAudioKeys.add(key);
@@ -5150,17 +5150,33 @@
                 });
         }
 
-        function playBuffer(buffer, priority) {
+        function playBuffer(buffer, priority, key = "") {
             // STOP previous active sound if it exists
             if (currentActiveSource) {
-                try {
-                    currentActiveSource.stop();
-                    currentActiveSource = null;
-                } catch (e) { console.log("Stop error", e); }
+                // EXCEPTION: Allow "Work Start" (P2) to overlap "Countdown" (P2)
+                // This fixes the issue where "1" is cut off by "GO!"
+                const curKey = currentActiveSource.customKey || "";
+                const newKey = key || "";
+
+                const isWorkStart = newKey.includes('work_start');
+                // Cover common countdown keys: 'prep_countdown', 'count', '3', '2', '1'
+                const isCountdown = curKey.includes('count') || curKey.includes('down') || ['1', '2', '3'].includes(curKey);
+
+                const shouldOverlap = (isWorkStart && isCountdown);
+
+                if (!shouldOverlap) {
+                    try {
+                        currentActiveSource.stop();
+                        currentActiveSource = null;
+                    } catch (e) { console.log("Stop error", e); }
+                } else {
+                    logAudioDebug(`🔀 Mixing: ${curKey} + ${newKey}`);
+                }
             }
 
             const source = audioCtx.createBufferSource();
             source.buffer = buffer;
+            source.customKey = key; // Store for next comparison
 
             // VOLUME BOOST (for Mix Mode) - Adjusted by Coach Volume Slider
             const gainNode = audioCtx.createGain();
@@ -5173,6 +5189,14 @@
             gainNode.connect(audioCtx.destination);
 
             // Update State
+            // Only update "Current Active" if we stopped the old one OR if it's a new dominant sound?
+            // If we are mixing, we have TWO sources.
+            // If we replace the pointer `currentActiveSource` with the new one, the old one just plays out (Good).
+            // But if the old one ends cleanly, its onended might clear the NEW one's priority if we are not careful?
+            // Logic below handles this: `if (currentActiveSource === source)`
+            // Since we update `currentActiveSource` to the NEW source, the old source's onended will see mismatch and do nothing.
+            // Perfect.
+
             currentActiveSource = source;
             currentAudioPriority = priority;
 
