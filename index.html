@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.219</title>
+    <title>Friday-night-hawk-s Timer v1.31.220</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.219</span>
+                FNH Timer <span class="version-tag">v1.31.220</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4124,10 +4124,7 @@
             const mr = parseFloat(document.getElementById('vol-music-rest-live').value);
             const cv = parseFloat(document.getElementById('vol-coach-live').value);
 
-            // Update Labels
-            if (document.getElementById('disp-vol-music')) document.getElementById('disp-vol-music').innerText = Math.round(mv * 100) + "%";
-            if (document.getElementById('disp-vol-rest')) document.getElementById('disp-vol-rest').innerText = Math.round(mr * 100) + "%";
-            if (document.getElementById('disp-vol-coach')) document.getElementById('disp-vol-coach').innerText = Math.round(cv * 100) + "%";
+
 
             // Update Manager
             if (bgMusicManager && bgMusicManager.updateVolumes) {
@@ -7597,7 +7594,7 @@
                 <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
                     style="width:100%; accent-color:#30D158;" oninput="updateLiveVolumes()">
             </div>
-            <span style="font-size:12px; font-weight:bold; color:#30D158;" id="disp-vol-music">40%</span>
+
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
@@ -7607,7 +7604,7 @@
                 <input type="range" id="vol-music-rest-live" min="0" max="1" step="0.1" value="0.2"
                     style="width:100%; accent-color:#FF9F0A;" oninput="updateLiveVolumes()">
             </div>
-            <span style="font-size:12px; font-weight:bold; color:#FF9F0A;" id="disp-vol-rest">20%</span>
+
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
@@ -7617,7 +7614,7 @@
                 <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
                     style="width:100%; accent-color:#0A84FF;" oninput="updateLiveVolumes()">
             </div>
-            <span style="font-size:12px; font-weight:bold; color:#0A84FF;" id="disp-vol-coach">100%</span>
+
         </div>
 
         <!-- COLLAPSIBLE AUDIO SETTINGS -->
