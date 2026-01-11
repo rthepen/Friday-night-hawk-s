@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.223</title>
+    <title>Friday-night-hawk-s Timer v1.31.224</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.223</span>
+                FNH Timer <span class="version-tag">v1.31.224</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1736,6 +1736,8 @@
                     onclick="applyTabataPreset()">⏱️ Tabata</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
                 <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
+                <button class="btn-header" onclick="toggleFullScreen()" style="background:#444; color:white;"
+                    title="Volledig Scherm">⛶</button>
             </div>
         </div>
 
@@ -7471,6 +7473,18 @@
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (ctx.state !== 'running') ctx.resume()
             };
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
         }
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
