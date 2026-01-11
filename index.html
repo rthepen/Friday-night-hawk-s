@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.232</title>
+    <title>Friday-night-hawk-s Timer v1.31.233</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.232</span>
+                FNH Timer <span class="version-tag">v1.31.233</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -7676,7 +7676,96 @@
                     mode: 'no-cors',
                 }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
             }
+            // --- PULL TO REFRESH (Custom) ---
+            (function initPullToRefresh() {
+                // 1. Inject CSS
+                const style = document.createElement('style');
+                style.innerHTML = `
+                #ptr-spinner {
+                    position: fixed; top: -60px; left: 0; right: 0; height: 60px;
+                    display: flex; align-items: center; justify-content: center;
+                    z-index: 99999; pointer-events: none; /* Passes touches through until visible/active? No, we need to see it. */
+                    transition: top 0.2s;
+                }
+                #ptr-icon {
+                    font-size: 24px; color: #30D158;
+                    transition: transform 0.2s;
+                    text-shadow: 0 0 10px black;
+                }
+                .ptr-refreshing #ptr-spinner { top: 20px; }
+                .ptr-refreshing #ptr-icon { animation: ptr-spin 1s linear infinite; }
+                @keyframes ptr-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            `;
+                document.head.appendChild(style);
+
+                // 2. Inject DOM
+                const ptr = document.createElement('div');
+                ptr.id = 'ptr-spinner';
+                ptr.innerHTML = '<div id="ptr-icon">⬇️</div>';
+                document.body.appendChild(ptr);
+
+                // 3. Variables
+                let startY = 0;
+                let isDragging = false;
+                const threshold = 120; // Drag distance
+
+                // 4. Touch Handlers
+                document.addEventListener('touchstart', (e) => {
+                    // Only enable if at top AND no overlays are active (checks specific IDs and classes)
+                    const isOverlayOpen = document.getElementById('pause-modal').style.display === 'flex' ||
+                        document.getElementById('setup-screen').style.display !== 'none' && !document.getElementById('setup-screen').classList.contains('hidden');
+
+                    if (window.scrollY === 0 && !isOverlayOpen) {
+                        startY = e.touches[0].clientY;
+                        isDragging = true;
+                    }
+                }, { passive: true });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    const y = e.touches[0].clientY;
+                    const diff = y - startY;
+
+                    if (diff > 0 && window.scrollY <= 0) {
+                        // Pulling down
+                        ptr.style.top = (diff / 2.5 - 60) + 'px'; // Resistance
+                        const icon = document.getElementById('ptr-icon');
+                        if (diff > threshold) {
+                            icon.style.transform = 'rotate(180deg)';
+                            icon.innerText = "🔄";
+                        } else {
+                            icon.style.transform = 'rotate(0deg)';
+                            icon.innerText = "⬇️";
+                        }
+                    } else {
+                        isDragging = false; // Scrolled down
+                    }
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    const y = e.changedTouches[0].clientY;
+                    const diff = y - startY;
+
+                    if (diff > threshold && window.scrollY <= 0) {
+                        // Trigger Refresh Check
+                        if (confirm("Weet je zeker dat je de pagina wilt verversen? \n(De huidige training stopt dan)")) {
+                            ptr.className = 'ptr-refreshing';
+                            location.reload();
+                        } else {
+                            // Cancel
+                            ptr.style.top = '-60px';
+                        }
+                    } else {
+                        // Reset
+                        ptr.style.top = '-60px';
+                    }
+                });
+            })();
+
         </script>
+
         <!-- AUDIO GUIDE POPUP -->
 
 
