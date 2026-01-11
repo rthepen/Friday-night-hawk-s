@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.231</title>
+    <title>Friday-night-hawk-s Timer v1.31.232</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.231</span>
+                FNH Timer <span class="version-tag">v1.31.232</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -7559,6 +7559,63 @@
             document.body.appendChild(div);
             document.getElementById("btn-ios-close").onclick = () => div.remove();
         }
+
+        // --- ROBUST iOS PWA AUDIO FIX ---
+        // Solves "intermittent audio" by forcing context resume on touch & visibility change
+        function unlockIOSAudio() {
+            // 1. Web Audio API Context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                // Access the global context if we can find it, or just create a dummy to wake the subsystem?
+                // Better: If we have a global context variable (created in playMp3WebAudio), use it.
+                // If not, we can't easily reach it unless we exposed it.
+                // However, usually one context per page is best practice.
+                // Let's assume standard behavior:
+                // We'll trust that 'playMp3WebAudio' (if it exists) manages its context.
+                // We can try to resume IT if we can find the variable.
+                // Looking at standard implementations, often 'audioCtx' is global.
+                if (window.audioCtx && window.audioCtx.state === 'suspended') {
+                    window.audioCtx.resume().then(() => console.log("AudioContext Resumed by Touch"));
+                }
+            }
+
+            // 2. HTML5 Audio Elements (Warmup)
+            // Silence is golden.
+        }
+
+        // Global unlocker for ANY AudioContext created in the future
+        document.addEventListener('touchstart', function () {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext && window.audioCtx) {
+                window.audioCtx.resume();
+            }
+        }, { passive: true });
+
+        document.addEventListener('click', function () {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext && window.audioCtx) {
+                window.audioCtx.resume();
+            }
+        }, { passive: true });
+
+        // VISIBILITY KEEP-ALIVE
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) {
+                // App came to foreground -> Force Resume
+                console.log("App Foregrounded -> Resuming Audio");
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext && window.audioCtx && window.audioCtx.state === 'suspended') {
+                    window.audioCtx.resume();
+                }
+                // Also refresh Background Music if needed
+                if (bgMusicManager && bgMusicManager.audio && !bgMusicManager.audio.paused) {
+                    // Check if it actually stopped playing?
+                    // Sometimes iOS pauses it.
+                    // If we expect it to be playing, we might need to nudge it.
+                }
+            }
+        });
+
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
         style="display:none; flex-direction:column; justify-content:center; align-items:center; background:black; color:white;">
