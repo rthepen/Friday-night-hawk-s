@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.246</title>
+    <title>Friday-night-hawk-s Timer v1.31.247</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.246</span>
+                FNH Timer <span class="version-tag">v1.31.247</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3312,6 +3312,17 @@
             document.querySelectorAll('.station-cb').forEach(cb => cb.checked = state);
         }
 
+        // Helper to load image for PDF
+        function loadImage(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = url;
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null); // Fail gracefully
+            });
+        }
+
         async function generateStationCards() {
             // Get selected IDs
             const checkboxes = document.querySelectorAll('.station-cb:checked');
@@ -3323,9 +3334,12 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
 
+            // Load Logo
+            const logoImg = await loadImage('FNH logo.jpg');
+
             let firstPage = true;
 
-            // Pre-Calculate Unique Exercises per Station (Same logic as Selector)
+            // Pre-Calculate Unique Exercises per Station
             let stationMap = new Map();
             schedule.forEach(step => {
                 if (step.type === 'work' && step.info && step.info.exercise > 0) {
@@ -3348,79 +3362,112 @@
                 const width = doc.internal.pageSize.getWidth();
                 const height = doc.internal.pageSize.getHeight();
 
-                // 1. Big Number (Center Top)
+                // --- HEADER ---
+                // Logo at Top Right
+                if (logoImg) {
+                    const imgRatio = logoImg.height / logoImg.width;
+                    const imgW = 40;
+                    const imgH = imgW * imgRatio;
+                    doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
+                }
+
+                // "STATION" Label
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(200);
-                doc.setTextColor(0, 0, 0); // Black
-                doc.text(`${exIdx}`, width / 2, 70, { align: 'center' }); // Raised slightly
+                doc.setFontSize(24);
+                doc.setTextColor(100);
+                doc.text("STATION", 20, 25);
+
+                // 1. MASSIVE Number (Left/Center aligned or purely Center)
+                // Let's go purely Center for impact
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(350); // HUGE
+                doc.setTextColor(0, 0, 0);
+                // Center roughly in top third
+                doc.text(`${exIdx}`, width / 2, 130, { align: 'center' });
 
                 // 2. Iterate Exercises
-                let yPos = 110;
+                let yPos = 160;
 
                 uniqueLabels.forEach((label, index) => {
-                    // Check for page overflow (simplified)
-                    if (yPos > height - 50) {
+                    // Check for page overflow
+                    if (yPos > height - 60) {
                         doc.addPage();
                         yPos = 40;
+                        if (logoImg) {
+                            const imgRatio = logoImg.height / logoImg.width;
+                            doc.addImage(logoImg, 'JPEG', width - 50, 10, 40, 40 * imgRatio);
+                        }
                     }
 
-                    // Separator if multiple
+                    // Separator line if multiple exercises
                     if (index > 0) {
-                        doc.setLineWidth(0.5);
                         doc.setDrawColor(200);
-                        doc.line(40, yPos - 10, width - 40, yPos - 10);
-                        yPos += 10;
+                        doc.setLineWidth(1);
+                        doc.line(20, yPos - 10, width - 20, yPos - 10);
+                        yPos += 15;
                     }
 
-                    // Name
-                    doc.setFontSize(30);
+                    // Exercise Name
+                    doc.setFontSize(32); // Slightly bigger
                     doc.setFont("helvetica", "bold");
-                    doc.setTextColor(0, 0, 0);
-                    const nameLines = doc.splitTextToSize(label, width - 20);
+                    doc.setTextColor(0, 0, 0); // Black
+                    const nameLines = doc.splitTextToSize(label, width - 30);
                     doc.text(nameLines, width / 2, yPos, { align: 'center' });
-                    yPos += (nameLines.length * 12); // Spacing
+                    yPos += (nameLines.length * 12) + 5;
 
                     // Details
                     const details = getExerciseDetails(label);
-
-                    doc.setFontSize(14);
-                    doc.setFont("helvetica", "normal");
-                    doc.setTextColor(50);
 
                     if (details) {
                         const matName = details.material_name || "-";
                         const matDesc = details.material_description || "";
                         const instr = details.instructions || "Geen instructie.";
 
-                        // Material
+                        // Clean Layout for details
+                        const detailBoxX = 25;
+                        const detailBoxW = width - 50;
+
+                        // Background Box for details (Optional, maybe too much ink? Let's stick to clean text)
+                        // doc.setFillColor(245, 245, 245);
+                        // doc.rect(detailBoxX, yPos, detailBoxW, 50, 'F');
+
+                        // Material (Icon/Label style)
+                        doc.setFontSize(14);
                         doc.setFont("helvetica", "bold");
-                        doc.text("MATERIAAL:", 20, yPos);
+                        doc.setTextColor(50);
+                        doc.text("MATERIAAL:", detailBoxX, yPos);
+
                         doc.setFont("helvetica", "normal");
-                        doc.text(`${matName} ${matDesc ? `(${matDesc})` : ''}`, 55, yPos);
-                        yPos += 10;
+                        doc.setTextColor(0);
+                        doc.text(`${matName} ${matDesc ? `(${matDesc})` : ''}`, detailBoxX + 40, yPos);
+                        yPos += 12;
 
                         // Instructions
                         doc.setFont("helvetica", "bold");
-                        doc.text("INSTRUCTIE:", 20, yPos);
-                        yPos += 6;
-                        doc.setFont("helvetica", "normal");
+                        doc.setTextColor(50);
+                        doc.text("INSTRUCTIE:", detailBoxX, yPos);
+                        yPos += 7;
 
-                        const splitInstr = doc.splitTextToSize(instr, width - 40);
-                        doc.text(splitInstr, 20, yPos);
-                        yPos += (splitInstr.length * 6) + 15; // Buffer
+                        doc.setFont("helvetica", "normal");
+                        doc.setTextColor(0);
+                        doc.setFontSize(12);
+                        const splitInstr = doc.splitTextToSize(instr, detailBoxW);
+                        doc.text(splitInstr, detailBoxX, yPos);
+                        yPos += (splitInstr.length * 5) + 20; // Buffer
                     } else {
-                        doc.text("Geen verdere details.", 20, yPos);
                         yPos += 20;
                     }
                 });
 
-                // Footer
+                // Footer Bar
+                doc.setFillColor(0, 0, 0);
+                doc.rect(0, height - 15, width, 15, 'F');
                 doc.setFontSize(10);
-                doc.setTextColor(150);
-                doc.text(`Station ${exIdx} - FNH Training`, width / 2, height - 10, { align: 'center' });
+                doc.setTextColor(255, 255, 255);
+                doc.text(`FRIDAY NIGHT HAWK - Station ${exIdx}`, width / 2, height - 5, { align: 'center' });
             });
 
-            doc.save("FNH-Station-Cards.pdf");
+            doc.save("FNH-Stationskaarten.pdf");
             closeStationSelector();
         }
 
