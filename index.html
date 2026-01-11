@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.216</title>
+    <title>Friday-night-hawk-s Timer v1.31.217</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1728,7 +1728,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.216</span>
+                FNH Timer <span class="version-tag">v1.31.217</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4531,8 +4531,11 @@
 
                 this.audio.volume = this.volRest; // Default to rest volume initially
                 this.audio.preload = 'auto'; // Ensure preload
-                this.selectedGenres = [];
-                this.enabledGenres = new Set(); // FIXED: Init here
+
+                // FIXED: Load persisted genres
+                const savedGenres = localStorage.getItem('fnh_selected_genres');
+                this.selectedGenres = savedGenres ? JSON.parse(savedGenres) : [];
+                this.enabledGenres = new Set(this.selectedGenres);
 
                 // FIXED PLAYLIST QUEUES
                 this.workQueue = [];
@@ -4544,6 +4547,15 @@
                 this.restIndex = 0;
 
                 this.continuousMode = false;
+                // Load continuous mode preference
+                if (localStorage.getItem('fnh_continuous') === 'true') {
+                    this.setContinuous(true);
+                    setTimeout(() => {
+                        const chk = document.getElementById('chk-continuous-music');
+                        if (chk) chk.checked = true;
+                    }, 500);
+                }
+
                 this.currentGenre = null;
                 this.currentType = 'rust'; // Default
                 this.hasStartedForWorkout = false;
@@ -4558,6 +4570,7 @@
 
             setContinuous(enabled) {
                 this.continuousMode = enabled;
+                localStorage.setItem('fnh_continuous', enabled); // Persist
                 // If ON, disable loop SO 'onended' fires. If OFF, loop is true (default behavior)
                 this.audio.loop = !enabled;
 
@@ -4804,12 +4817,6 @@
                 if (isEnabled) {
                     this.enabledGenres.add(genre);
                     // Auto-start if it was silenced?
-                    // If we are in the middle of a workout and audio is paused (because of no genres), 
-                    // we should probably trigger a phase check or just ensure it plays next.
-                    // If we just enabled a genre, ensureValidIndex will now find it.
-                    // If we are currently paused/stopped due to empty filter, we might want to resume?
-                    // Let's just update the list. The user can hit play or next. 
-                    // OR: If audio is paused and we have >0 enabled genres, try to resume?
                     if (this.audio.paused && this.hasStartedForWorkout && this.enabledGenres.size > 0) {
                         // Force a "refresh" of the current state
                         const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
@@ -4832,9 +4839,15 @@
                     if (this.enabledGenres.size === 0) {
                         this.audio.pause();
                         this.hideNowPlaying();
-                        return;
+                        // Allow return, but ensure we save state first!
                     }
                 }
+
+                // FIXED: Persist Selection
+                this.selectedGenres = Array.from(this.enabledGenres);
+                localStorage.setItem('fnh_selected_genres', JSON.stringify(this.selectedGenres));
+
+                if (this.enabledGenres.size === 0) return; // Exit after saving if empty
 
                 this.ensureValidIndex();
 
@@ -5417,7 +5430,7 @@
                     bgMusicManager.renderGenreToggles('pre-workout-genres');
 
                     // MUSIC START (Immediate)
-                    bgMusicManager.setGenres(getSelectedGenres());
+                    // bgMusicManager.setGenres(getSelectedGenres()); // REMOVED: Manager persists its own state
                     if (!bgMusicManager.hasStartedForWorkout) {
                         bgMusicManager.startWorkout();
                     }
