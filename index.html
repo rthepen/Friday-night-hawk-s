@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.249</title>
+    <title>Friday-night-hawk-s Timer v1.31.250</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.249</span>
+                FNH Timer <span class="version-tag">v1.31.250</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2259,7 +2259,7 @@
             </div>
             <button class="modal-btn"
                 style="background: #333; color: white; margin-top:10px; width:100%; border:1px solid #555;"
-                onclick="openStationSelector()">🖨️ Print Stationskaarten</button>
+                onclick="printStationCardsDirectly()">🖨️ Print Stationskaarten</button>
         </div>
     </div>
 
@@ -3272,60 +3272,23 @@
         }
 
         // --- STATION CARD SELECTION MODAL ---
-        function openStationSelector() {
-            const modal = document.getElementById('station-select-modal');
-            const list = document.getElementById('station-select-list');
-            list.innerHTML = "";
-
-            // 1. Identify Unique Stations (Group by Exercise Index)
-            // Map: ExIndex -> Set of Unique Exercise Labels
-            let stations = new Map();
-
+        // Direct Print Function (No Modal)
+        function printStationCardsDirectly() {
+            // Find all unique station IDs
+            let stations = new Set();
             schedule.forEach(step => {
                 if (step.type === 'work' && step.info && step.info.exercise > 0) {
-                    const exIdx = step.info.exercise;
-                    if (!stations.has(exIdx)) {
-                        stations.set(exIdx, new Set());
-                    }
-                    stations.get(exIdx).add(step.label);
+                    stations.add(step.info.exercise);
                 }
             });
 
-            // 2. Sort by Index
-            const sortedIds = Array.from(stations.keys()).sort((a, b) => a - b);
-
+            const sortedIds = Array.from(stations).sort((a, b) => a - b);
             if (sortedIds.length === 0) {
                 alert("Geen oefeningen gevonden om te printen.");
                 return;
             }
 
-            // 3. Render List
-            sortedIds.forEach(id => {
-                const uniqueNames = Array.from(stations.get(id));
-                const namesStr = uniqueNames.join(", ");
-
-                const div = document.createElement('div');
-                div.style.cssText = "display:flex; align-items:center; background:#2c2c2e; padding:10px; margin-bottom:5px; border-radius:8px;";
-
-                div.innerHTML = `
-                    <input type="checkbox" class="station-cb" value="${id}" checked style="width:20px; height:20px; margin-right:15px; accent-color:#30D158;">
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; color:white; font-size:16px;">Station ${id}</div>
-                        <div style="color:#aaa; font-size:13px;">${namesStr}</div>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-
-            modal.style.display = 'flex';
-        }
-
-        function closeStationSelector() {
-            document.getElementById('station-select-modal').style.display = 'none';
-        }
-
-        function toggleStationSelection(state) {
-            document.querySelectorAll('.station-cb').forEach(cb => cb.checked = state);
+            generateStationCards(sortedIds);
         }
 
         // Helper to load image for PDF
@@ -3339,11 +3302,10 @@
             });
         }
 
-        async function generateStationCards() {
-            // Get selected IDs
-            const checkboxes = document.querySelectorAll('.station-cb:checked');
-            if (checkboxes.length === 0) {
-                alert("Selecteer tenminste één oefening.");
+        async function generateStationCards(stationIds) {
+            // If no list passed, fail (since we removed the UI selection logic)
+            if (!stationIds || stationIds.length === 0) {
+                alert("Geen stations geselecteerd.");
                 return;
             }
 
@@ -3365,8 +3327,8 @@
                 }
             });
 
-            checkboxes.forEach((cb) => {
-                const exIdx = parseInt(cb.value);
+            stationIds.forEach((exIdx) => {
+                // const exIdx = parseInt(cb.value); // No longer needed
                 const uniqueLabels = Array.from(stationMap.get(exIdx) || []);
 
                 if (uniqueLabels.length === 0) return;
