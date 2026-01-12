@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.248</title>
+    <title>Friday-night-hawk-s Timer v1.31.249</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.248</span>
+                FNH Timer <span class="version-tag">v1.31.249</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2240,6 +2240,7 @@
                     <thead>
                         <tr>
                             <th style="width:50px;">Tijd</th>
+                            <th style="width:30px; text-align:center;">Nr</th>
                             <th>Oefening / Fase</th>
                             <th style="width:40px;">Sec</th>
                         </tr>
@@ -3153,6 +3154,20 @@
                 tdTime.style.paddingTop = '10px';
                 tdTime.innerText = currentTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+                // Nr Cell
+                const tdNr = document.createElement('td');
+                tdNr.style.verticalAlign = 'top';
+                tdNr.style.paddingTop = '10px';
+                tdNr.style.textAlign = 'center';
+                tdNr.style.color = '#0A84FF';
+                tdNr.style.fontWeight = 'bold';
+
+                let nrText = "";
+                if (step.type === 'work' && step.info.exercise > 0 && step.info.set === 1) {
+                    nrText = `${step.info.round}.${step.info.exercise}`;
+                }
+                tdNr.innerText = nrText;
+
                 // Content Cell
                 const tdContent = document.createElement('td');
 
@@ -3197,7 +3212,7 @@
                                 <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:2px;">Naam Oefening</div>
                                 <div class="schedule-name" onclick="openExerciseSelector(${step.info.round}, ${step.info.exercise}, ${step.info.set}, '${exName}')" 
                                      style="cursor:pointer; text-decoration:underline; font-size:14px; font-weight:bold; color:#fff;">
-                                     ${step.info.set === 1 ? `${step.info.round}.${step.info.exercise} ` : ''}${exName}
+                                     ${exName}
                                 </div>
                             </div>
 
@@ -3240,6 +3255,7 @@
                 tdDur.innerText = step.time;
 
                 tr.appendChild(tdTime);
+                tr.appendChild(tdNr);
                 tr.appendChild(tdContent);
                 tr.appendChild(tdDur);
                 tableBody.appendChild(tr);
@@ -4059,7 +4075,7 @@
                     if (step.type === 'work' && step.info.exercise > 0) {
                         // Prepend Numbering ONLY for Set 1
                         if (step.info.set === 1) {
-                            exName = `${step.info.round}.${step.info.exercise} ${exName}`;
+                            // exName = `${step.info.round}.${step.info.exercise} ${exName}`; // Deprecated
                         }
 
                         const details = getExerciseDetails(step.label); // Use ORIGINAL label for lookup
@@ -4079,7 +4095,12 @@
                         if (step.info && step.info.round) detailsText += ` (R${step.info.round}/E${step.info.exercise})`;
                     }
 
-                    tableData.push([timeStr, exName, detailsText, { video: videoLink }]); // Modified: Removed shortsLink
+                    let nrStr = "";
+                    if (step.type === 'work' && step.info.exercise > 0 && step.info.set === 1) {
+                        nrStr = `${step.info.round}.${step.info.exercise}`;
+                    }
+
+                    tableData.push([timeStr, nrStr, exName, detailsText, { video: videoLink }]);
                     currentTime.setSeconds(currentTime.getSeconds() + step.time);
                 });
 
@@ -4087,28 +4108,26 @@
                 // We map the rich data to a format suitable for the PDF table, including clickable links.
 
                 const finalBody = tableData.map(row => {
-                    const linkObj = row[3];
+                    const linkObj = row[4];
                     let linkText = "";
                     if (linkObj.video) linkText += "VIDEO";
-                    // if (linkObj.shorts) linkText += (linkText ? "\n\n" : "") + "SHORTS"; // Removed
-                    // Pass object to preserve link data in cell.raw
-                    return [row[0], row[1], row[2], { content: linkText, links: linkObj }];
+                    return [row[0], row[1], row[2], row[3], { content: linkText, links: linkObj }];
                 });
 
                 doc.autoTable({
-                    head: [['Tijd', 'Oefening', 'Details', 'Links']],
+                    head: [['Tijd', 'Nr', 'Oefening', 'Details', 'Links']],
                     body: finalBody,
                     startY: 35,
                     styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
                     columnStyles: {
                         0: { cellWidth: 20 },
-                        1: { cellWidth: 35, fontStyle: 'bold' },
-                        2: { cellWidth: 'auto' },
-                        3: { cellWidth: 25, halign: 'center', textColor: [10, 132, 255] }
+                        1: { cellWidth: 10, fontStyle: 'bold', halign: 'center' },
+                        2: { cellWidth: 35, fontStyle: 'bold' },
+                        3: { cellWidth: 'auto' },
+                        4: { cellWidth: 25, halign: 'center', textColor: [10, 132, 255] }
                     },
                     didDrawCell: function (data) {
-                        if (data.column.index === 3 && data.cell.section === 'body') {
-                            // Safely access embedded link data
+                        if (data.column.index === 4 && data.cell.section === 'body') {
                             const raw = data.cell.raw;
                             if (raw && raw.links && (raw.links.video || raw.links.shorts)) {
                                 const linkObj = raw.links;
