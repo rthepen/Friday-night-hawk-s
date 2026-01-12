@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.250</title>
+    <title>Friday-night-hawk-s Timer v1.31.251</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.250</span>
+                FNH Timer <span class="version-tag">v1.31.251</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3273,6 +3273,7 @@
 
         // --- STATION CARD SELECTION MODAL ---
         // Direct Print Function (No Modal)
+        // Direct Print Function (No Modal)
         function printStationCardsDirectly() {
             // Find all unique station IDs
             let stations = new Set();
@@ -3303,7 +3304,7 @@
         }
 
         async function generateStationCards(stationIds) {
-            // If no list passed, fail (since we removed the UI selection logic)
+            // If no list passed, fail
             if (!stationIds || stationIds.length === 0) {
                 alert("Geen stations geselecteerd.");
                 return;
@@ -3317,136 +3318,144 @@
 
             let firstPage = true;
 
-            // Pre-Calculate Unique Exercises per Station
-            let stationMap = new Map();
+            // Pre-Calculate: Station -> Map<ExerciseLabel, Array<Rounds>>
+            let stationData = new Map();
+
             schedule.forEach(step => {
                 if (step.type === 'work' && step.info && step.info.exercise > 0) {
                     const exIdx = step.info.exercise;
-                    if (!stationMap.has(exIdx)) stationMap.set(exIdx, new Set());
-                    stationMap.get(exIdx).add(step.label);
+                    const round = step.info.round;
+                    const label = step.label;
+
+                    if (!stationData.has(exIdx)) stationData.set(exIdx, new Map());
+
+                    const exMap = stationData.get(exIdx);
+                    if (!exMap.has(label)) exMap.set(label, new Set());
+
+                    exMap.get(label).add(round);
                 }
             });
 
+            // Loop through SORTED Station IDs
             stationIds.forEach((exIdx) => {
-                // const exIdx = parseInt(cb.value); // No longer needed
-                const uniqueLabels = Array.from(stationMap.get(exIdx) || []);
+                const exMap = stationData.get(exIdx);
+                if (!exMap) return;
 
-                if (uniqueLabels.length === 0) return;
+                // entries: [ [label, Set(rounds)], ... ]
+                const entries = Array.from(exMap.entries());
 
-                if (!firstPage) doc.addPage();
-                firstPage = false;
+                // Sort entries by first round appearance for logical order
+                entries.sort((a, b) => {
+                    const minRoundA = Math.min(...Array.from(a[1]));
+                    const minRoundB = Math.min(...Array.from(b[1]));
+                    return minRoundA - minRoundB;
+                });
 
-                // --- DRAW CARD ---
-                const width = doc.internal.pageSize.getWidth();
-                const height = doc.internal.pageSize.getHeight();
+                entries.forEach(([label, roundSet]) => {
+                    const rounds = Array.from(roundSet).sort((a, b) => a - b);
+                    const isSplit = (entries.length > 1); // True if this station has variations
 
-                // --- HEADER ---
-                // Logo at Top Right
-                if (logoImg) {
-                    const imgRatio = logoImg.height / logoImg.width;
-                    const imgW = 40;
-                    const imgH = imgW * imgRatio;
-                    doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
-                }
+                    if (!firstPage) doc.addPage();
+                    firstPage = false;
 
-                // "STATION" Label
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(24);
-                doc.setTextColor(100);
-                doc.text("STATION", 20, 25);
+                    const width = doc.internal.pageSize.getWidth();
+                    const height = doc.internal.pageSize.getHeight();
 
-                // 1. MASSIVE Number (Left/Center aligned or purely Center)
-                // Let's go purely Center for impact
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(350); // HUGE
-                doc.setTextColor(0, 0, 0);
-                // Center roughly in top third
-                doc.text(`${exIdx}`, width / 2, 130, { align: 'center' });
-
-                // 2. Iterate Exercises
-                let yPos = 160;
-
-                uniqueLabels.forEach((label, index) => {
-                    // Check for page overflow
-                    if (yPos > height - 60) {
-                        doc.addPage();
-                        yPos = 40;
-                        if (logoImg) {
-                            const imgRatio = logoImg.height / logoImg.width;
-                            doc.addImage(logoImg, 'JPEG', width - 50, 10, 40, 40 * imgRatio);
-                        }
+                    // --- HEADER ---
+                    // Logo
+                    if (logoImg) {
+                        const imgRatio = logoImg.height / logoImg.width;
+                        const imgW = 40;
+                        const imgH = imgW * imgRatio;
+                        doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
                     }
 
-                    // Separator line if multiple exercises
-                    if (index > 0) {
-                        doc.setDrawColor(200);
-                        doc.setLineWidth(1);
-                        doc.line(20, yPos - 10, width - 20, yPos - 10);
-                        yPos += 15;
-                    }
-
-                    // Exercise Name
-                    doc.setFontSize(32); // Slightly bigger
+                    // "STATION" Label
                     doc.setFont("helvetica", "bold");
-                    doc.setTextColor(0, 0, 0); // Black
+                    doc.setFontSize(24);
+                    doc.setTextColor(100);
+                    doc.text("STATION", 20, 25);
+
+                    // MASSIVE Number
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(350);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`${exIdx}`, width / 2, 130, { align: 'center' });
+
+                    // --- ROUND INFO (If Split) ---
+                    if (isSplit) {
+                        doc.setFontSize(30);
+                        doc.setTextColor(50);
+                        const roundStr = "Ronde " + rounds.join(", ");
+                        doc.text(roundStr, width / 2, 145, { align: 'center' });
+                    }
+
+                    // --- EXERCISE NAME ---
+                    let yPos = isSplit ? 175 : 160;
+
+                    doc.setFontSize(32);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(0, 0, 0);
+
                     const nameLines = doc.splitTextToSize(label, width - 30);
                     doc.text(nameLines, width / 2, yPos, { align: 'center' });
-                    yPos += (nameLines.length * 12) + 5;
+                    yPos += (nameLines.length * 12) + 15;
 
-                    // Details
+                    // --- DETAILS ---
                     const details = getExerciseDetails(label);
-
                     if (details) {
                         const matName = details.material_name || "-";
                         const matDesc = details.material_description || "";
                         const instr = details.instructions || "Geen instructie.";
 
-                        // Clean Layout for details
-                        const detailBoxX = 25;
-                        const detailBoxW = width - 50;
-
-                        // Background Box for details (Optional, maybe too much ink? Let's stick to clean text)
-                        // doc.setFillColor(245, 245, 245);
-                        // doc.rect(detailBoxX, yPos, detailBoxW, 50, 'F');
-
-                        // Material (Icon/Label style)
                         doc.setFontSize(14);
                         doc.setFont("helvetica", "bold");
-                        doc.setTextColor(50);
-                        doc.text("MATERIAAL:", detailBoxX, yPos);
-
-                        doc.setFont("helvetica", "normal");
-                        doc.setTextColor(0);
-                        doc.text(`${matName} ${matDesc ? `(${matDesc})` : ''}`, detailBoxX + 40, yPos);
-                        yPos += 12;
-
-                        // Instructions
-                        doc.setFont("helvetica", "bold");
-                        doc.setTextColor(50);
-                        doc.text("INSTRUCTIE:", detailBoxX, yPos);
+                        doc.setTextColor(100);
+                        doc.text("MATERIAAL:", 25, yPos);
                         yPos += 7;
 
                         doc.setFont("helvetica", "normal");
+                        doc.setFontSize(14);
                         doc.setTextColor(0);
-                        doc.setFontSize(12);
-                        const splitInstr = doc.splitTextToSize(instr, detailBoxW);
-                        doc.text(splitInstr, detailBoxX, yPos);
-                        yPos += (splitInstr.length * 5) + 20; // Buffer
-                    } else {
-                        yPos += 20;
-                    }
-                });
+                        doc.text(matName, 25, yPos);
 
-                // Footer Bar
-                doc.setFillColor(0, 0, 0);
-                doc.rect(0, height - 15, width, 15, 'F');
-                doc.setFontSize(10);
-                doc.setTextColor(255, 255, 255);
-                doc.text(`FRIDAY NIGHT HAWK - Station ${exIdx}`, width / 2, height - 5, { align: 'center' });
-            });
+                        if (matDesc) {
+                            const descW = doc.getTextWidth(matName);
+                            doc.setFont("helvetica", "italic");
+                            doc.setTextColor(100);
+                            doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
+                        }
+                        yPos += 14;
+
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(14);
+                        doc.setTextColor(100);
+                        doc.text("INSTRUCTIE:", 25, yPos);
+                        yPos += 7;
+
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(13);
+                        doc.setTextColor(0);
+                        const instructionLines = doc.splitTextToSize(instr, width - 50);
+                        doc.text(instructionLines, 25, yPos);
+                    }
+
+                    // Footer Bar
+                    doc.setFillColor(0, 0, 0);
+                    doc.rect(0, height - 20, width, 20, 'F');
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 255, 255);
+                    const footerText = isSplit
+                        ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
+                        : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
+
+                    doc.text(footerText, width / 2, height - 8, { align: 'center' });
+
+                }); // End Entries Loop
+            }); // End StationIds Loop
 
             doc.save("FNH-Stationskaarten.pdf");
-            closeStationSelector();
+            // closeStationSelector called previously, but function removed. So just end.
         }
 
 
