@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.257</title>
+    <title>Friday-night-hawk-s Timer v1.31.258</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.257</span>
+                FNH Timer <span class="version-tag">v1.31.258</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5001,18 +5001,19 @@
             buildPlaylists() {
                 this.workQueue = [];
                 this.restQueue = [];
-                // Initialize enabled filters (start inactive if no genres selected, else active)
                 this.enabledGenres = new Set(this.selectedGenres);
 
-                // Use ALL available genres for the pool, not just selected ones
-                const allGenres = Object.keys(musicManifest);
+                // Use ONLY selected genres
+                const activeGenres = this.selectedGenres.length > 0 ? this.selectedGenres : []; // If empty, emptiness ensues
 
-                // 1. Prepare temp buckets
+                if (activeGenres.length === 0) return;
+
+                // 1. Prepare temp buckets & Find Min Length (STOP at shortest)
                 const bucketsWork = {};
                 const bucketsRest = {};
-                let maxLen = 0;
+                let minLen = Infinity;
 
-                allGenres.forEach(genre => {
+                activeGenres.forEach(genre => {
                     bucketsWork[genre] = [];
                     bucketsRest[genre] = [];
                     const db = musicManifest[genre];
@@ -5020,28 +5021,29 @@
                         if (db.werk) db.werk.forEach(t => bucketsWork[genre].push({ track: t, genre: genre }));
                         if (db.rust) db.rust.forEach(t => bucketsRest[genre].push({ track: t, genre: genre }));
 
-                        // Shuffle buckets individually so order is random within genre
                         this.shuffle(bucketsWork[genre]);
                         this.shuffle(bucketsRest[genre]);
 
-                        if (bucketsWork[genre].length > maxLen) maxLen = bucketsWork[genre].length;
+                        if (bucketsWork[genre].length < minLen) minLen = bucketsWork[genre].length;
                     }
                 });
 
-                // 2. Interleave (Round Robin)
-                for (let i = 0; i < maxLen; i++) {
-                    allGenres.forEach(genre => {
+                if (minLen === Infinity) minLen = 0;
+
+                // 2. Interleave (Strict Round Robin)
+                // Stop when ANY genre runs out (minLen) to ensure equal representation
+                for (let i = 0; i < minLen; i++) {
+                    activeGenres.forEach(genre => {
                         // Work Track
                         if (bucketsWork[genre] && bucketsWork[genre][i]) {
                             this.workQueue.push(bucketsWork[genre][i]);
 
-                            // Match Rest Track (wrap around if fewer rest tracks)
+                            // Match Rest Track (wrap if needed, but minLen usually ensures availability)
                             if (bucketsRest[genre] && bucketsRest[genre].length > 0) {
                                 const rIndex = i % bucketsRest[genre].length;
                                 this.restQueue.push(bucketsRest[genre][rIndex]);
                             } else {
-                                // Fallback if no rest tracks for this genre? Should not happen based on manifest, but safety:
-                                this.restQueue.push({ track: 'silence.mp3', genre: genre }); // Placeholder
+                                this.restQueue.push({ track: 'silence.mp3', genre: genre });
                             }
                         }
                     });
@@ -5052,291 +5054,296 @@
                 this.justFinishedWork = false;
             }
 
-            // Helper to find next/prev enabled index
-            getEnabledIndex(currentIndex, direction) {
-                let idx = currentIndex;
-                const queue = (this.workQueue.length > 0) ? this.workQueue : [];                // queue is Master Queue. Length should be safe.
-                if (queue.length === 0) return 0;
-
-                let attempts = 0;
-                do {
-                    idx = (idx + direction + queue.length) % queue.length;
-                    attempts++;
-                    const item = queue[idx];
-                    if (this.enabledGenres.has(item.genre)) return idx;
-                } while (attempts < queue.length);
-
-                return currentIndex; // No enabled tracks found
+                // 3. Reset Indices
+                this.playlistIndex = 0;
+        this.justFinishedWork = false;
             }
 
-            // Check if current index is enabled, if not separate find next
-            ensureValidIndex() {
-                if (this.workQueue.length === 0) return;
-                // Handle safe index wrapper
-                this.playlistIndex = (this.playlistIndex || 0) % this.workQueue.length;
+        // Helper to find next/prev enabled index
+        getEnabledIndex(currentIndex, direction) {
+            let idx = currentIndex;
+            const queue = (this.workQueue.length > 0) ? this.workQueue : [];                // queue is Master Queue. Length should be safe.
+            if (queue.length === 0) return 0;
 
-                const item = this.workQueue[this.playlistIndex];
-                if (!item || !this.enabledGenres.has(item.genre)) {
-                    this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
-                }
+            let attempts = 0;
+            do {
+                idx = (idx + direction + queue.length) % queue.length;
+                attempts++;
+                const item = queue[idx];
+                if (this.enabledGenres.has(item.genre)) return idx;
+            } while (attempts < queue.length);
+
+            return currentIndex; // No enabled tracks found
+        }
+
+        // Check if current index is enabled, if not separate find next
+        ensureValidIndex() {
+            if (this.workQueue.length === 0) return;
+            // Handle safe index wrapper
+            this.playlistIndex = (this.playlistIndex || 0) % this.workQueue.length;
+
+            const item = this.workQueue[this.playlistIndex];
+            if (!item || !this.enabledGenres.has(item.genre)) {
+                this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
             }
+        }
 
-            toggleGenre(genre, isEnabled) {
-                if (isEnabled) {
-                    this.enabledGenres.add(genre);
-                    // Auto-start if it was silenced?
-                    if (this.audio.paused && this.hasStartedForWorkout && this.enabledGenres.size > 0) {
-                        // Force a "refresh" of the current state
-                        const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
-                        if (queue.length > 0) {
-                            // Try to find a valid track
-                            this.ensureValidIndex();
-                            const item = queue[this.playlistIndex];
-                            // If valid, play
-                            if (item && this.enabledGenres.has(item.genre)) {
-                                const path = `muziek/${item.genre}/${this.currentType === 'werk' ? 'werk' : 'rust'}/${item.track}`;
-                                this.audio.src = path;
-                                this.audio.play().catch(e => console.log("Resume play error", e));
-                                this.showNowPlaying(item.track, item.genre, this.currentType === 'werk' ? 'work' : 'rest');
-                            }
+        toggleGenre(genre, isEnabled) {
+            if (isEnabled) {
+                this.enabledGenres.add(genre);
+                // Auto-start if it was silenced?
+                if (this.audio.paused && this.hasStartedForWorkout && this.enabledGenres.size > 0) {
+                    // Force a "refresh" of the current state
+                    const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
+                    if (queue.length > 0) {
+                        // Try to find a valid track
+                        this.ensureValidIndex();
+                        const item = queue[this.playlistIndex];
+                        // If valid, play
+                        if (item && this.enabledGenres.has(item.genre)) {
+                            const path = `muziek/${item.genre}/${this.currentType === 'werk' ? 'werk' : 'rust'}/${item.track}`;
+                            this.audio.src = path;
+                            this.audio.play().catch(e => console.log("Resume play error", e));
+                            this.showNowPlaying(item.track, item.genre, this.currentType === 'werk' ? 'work' : 'rest');
                         }
                     }
-                } else {
-                    this.enabledGenres.delete(genre);
-                    // IMMEDIATE STOP if empty
-                    if (this.enabledGenres.size === 0) {
-                        this.audio.pause();
-                        this.hideNowPlaying();
-                        // Allow return, but ensure we save state first!
-                    }
                 }
-
-                // FIXED: Persist Selection
-                this.selectedGenres = Array.from(this.enabledGenres);
-                localStorage.setItem('fnh_selected_genres', JSON.stringify(this.selectedGenres));
-
-                if (this.enabledGenres.size === 0) return; // Exit after saving if empty
-
-                this.ensureValidIndex();
-
-                // Refresh Playlist UI if visible
-                const nowEl = document.getElementById('gym-now-playing');
-                if (nowEl) {
-                    const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
-                    const item = queue[this.playlistIndex];
-                    if (item) this.showNowPlaying(item.track, item.genre, this.currentType === 'werk' ? 'work' : 'rest');
-                }
-            }
-
-            shuffle(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-            }
-
-            stopWorkout() {
-                this.audio.pause();
-                this.audio.currentTime = 0;
-                this.hasStartedForWorkout = false;
-                this.hideNowPlaying();
-            }
-
-            refillQueue() {
-                // No-op in new system, master queue is cyclic
-            }
-
-            getNextGenre() {
-                return null; // Deprecated
-            }
-
-            playPhase(phase) {
-                // CANCEL ANY ACTIVE FADE (Fix for Work Music not starting)
-                if (this.fadeInterval) {
-                    clearInterval(this.fadeInterval);
-                    this.fadeInterval = null;
-                }
-
-                // if (this.selectedGenres.length === 0) return; // REMOVED!
-
-                // VOLUME LOGIC
-                const targetVol = (phase === 'work') ? this.volWork : this.volRest;
-                this.audio.volume = targetVol;
-
-                this.currentType = (phase === 'work') ? 'werk' : 'rust';
-
-                // CONTINUOUS MODE
-                if (this.continuousMode && !this.audio.paused) {
-                    // Start of FIX for "Only Rest Music Playing":
-                    const isRestTrack = this.audio.src.includes('/rust/');
-                    if (phase === 'work' && isRestTrack) {
-                        console.log("Continuous Mode: Switching from Rest to Work track");
-                        // Allow fall-through to switch track
-                    } else {
-                        return; // Logic as before: don't interrupt
-                    }
-                }
-
-                // FIXED GENRE ORDER: "Rest should always precede Work"
-                // This means we advance the genre index ONLY when transitioning from WORK to REST.
-                // So: Rest(A) -> Work(A) -> [Next] Rest(B) -> Work(B)
-                if (phase !== 'work' && this.currentType === 'werk') {
-                    this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
-                }
-
-                // Removed old "justFinishedWork" logic which was causing "Work -> Rest" order (Work B -> Rest B)
-                // if (phase === 'work') { ... }
-
-                this.ensureValidIndex();
-
-                const queue = (phase === 'work') ? this.workQueue : this.restQueue;
-                if (queue.length === 0) return;
-
-                this.playlistIndex = this.playlistIndex % queue.length;
-                const item = queue[this.playlistIndex];
-
-                if (!item) return;
-
-                // CRITICAL CHECK: Is this item actually enabled?
-                // If ensureValidIndex failed to find an enabled track (e.g. all disabled), it returns current.
-                // So we must check again.
-                if (!this.enabledGenres.has(item.genre)) {
-                    // All genres disabled (or logic issue). Stop/Pause.
+            } else {
+                this.enabledGenres.delete(genre);
+                // IMMEDIATE STOP if empty
+                if (this.enabledGenres.size === 0) {
                     this.audio.pause();
                     this.hideNowPlaying();
-                    // Don't advance state or volume
-                    return;
-                }
-
-                const path = `muziek/${item.genre}/${phase === 'work' ? 'werk' : 'rust'}/${item.track}`;
-                this.audio.src = path;
-                this.audio.play().catch(e => console.log("Play Error", e));
-                this.showNowPlaying(item.track, item.genre, phase === 'work' ? 'work' : 'rest');
-
-                if (phase === 'work') {
-                    this.justFinishedWork = true;
+                    // Allow return, but ensure we save state first!
                 }
             }
 
-            renderGenreToggles(targetId = null) {
-                // Find or create container in audio settings
-                let containerId = targetId || 'audio-settings-genres';
-                let container = document.getElementById(containerId);
+            // FIXED: Persist Selection
+            this.selectedGenres = Array.from(this.enabledGenres);
+            localStorage.setItem('fnh_selected_genres', JSON.stringify(this.selectedGenres));
 
-                if (!container && !targetId) {
-                    // Create it after volume controls (Default behavior)
-                    const parent = document.getElementById('active-volume-panel'); // ... existing creation logic ...
-                    // (Simplified for this edit: reuse existing if possible, or fail gracefully if custom ID missing)
-                    if (parent) {
-                        container = document.createElement('div');
-                        container.id = 'audio-settings-genres';
-                        container.style.marginTop = "15px";
-                        container.style.borderTop = "1px solid rgba(255,255,255,0.1)";
-                        container.style.paddingTop = "10px";
-                        // Insert before playlist-view if exists
-                        const playlist = document.getElementById('playlist-view');
-                        if (playlist) parent.insertBefore(container, playlist);
-                        else parent.appendChild(container); // Append at end
-                    }
-                }
-                if (!container) return;
+            if (this.enabledGenres.size === 0) return; // Exit after saving if empty
 
-                if (!targetId) {
-                    container.innerHTML = "<div style='font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;'>GENRES (LIVE)</div>";
+            this.ensureValidIndex();
+
+            // Refresh Playlist UI if visible
+            const nowEl = document.getElementById('gym-now-playing');
+            if (nowEl) {
+                const queue = (this.currentType === 'werk') ? this.workQueue : this.restQueue;
+                const item = queue[this.playlistIndex];
+                if (item) this.showNowPlaying(item.track, item.genre, this.currentType === 'werk' ? 'work' : 'rest');
+            }
+        }
+
+        shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        stopWorkout() {
+            this.audio.pause();
+            this.audio.currentTime = 0;
+            this.hasStartedForWorkout = false;
+            this.hideNowPlaying();
+        }
+
+        refillQueue() {
+            // No-op in new system, master queue is cyclic
+        }
+
+        getNextGenre() {
+            return null; // Deprecated
+        }
+
+        playPhase(phase) {
+            // CANCEL ANY ACTIVE FADE (Fix for Work Music not starting)
+            if (this.fadeInterval) {
+                clearInterval(this.fadeInterval);
+                this.fadeInterval = null;
+            }
+
+            // if (this.selectedGenres.length === 0) return; // REMOVED!
+
+            // VOLUME LOGIC
+            const targetVol = (phase === 'work') ? this.volWork : this.volRest;
+            this.audio.volume = targetVol;
+
+            this.currentType = (phase === 'work') ? 'werk' : 'rust';
+
+            // CONTINUOUS MODE
+            if (this.continuousMode && !this.audio.paused) {
+                // Start of FIX for "Only Rest Music Playing":
+                const isRestTrack = this.audio.src.includes('/rust/');
+                if (phase === 'work' && isRestTrack) {
+                    console.log("Continuous Mode: Switching from Rest to Work track");
+                    // Allow fall-through to switch track
                 } else {
-                    container.innerHTML = ""; // Clear custom container
+                    return; // Logic as before: don't interrupt
                 }
+            }
 
-                // Show ALL manifest genres so user can enable music even if started with none.
-                const allGenres = Object.keys(musicManifest);
+            // FIXED GENRE ORDER: "Rest should always precede Work"
+            // This means we advance the genre index ONLY when transitioning from WORK to REST.
+            // So: Rest(A) -> Work(A) -> [Next] Rest(B) -> Work(B)
+            if (phase !== 'work' && this.currentType === 'werk') {
+                this.playlistIndex = this.getEnabledIndex(this.playlistIndex, 1);
+            }
 
-                allGenres.forEach(genre => {
-                    const row = document.createElement('div');
-                    row.style.display = "flex";
-                    row.style.alignItems = "center";
-                    row.style.marginBottom = "5px";
+            // Removed old "justFinishedWork" logic which was causing "Work -> Rest" order (Work B -> Rest B)
+            // if (phase === 'work') { ... }
 
-                    const cb = document.createElement('input');
-                    cb.type = "checkbox";
-                    cb.checked = this.enabledGenres.has(genre);
-                    cb.style.marginRight = "8px";
-                    cb.style.cursor = "pointer";
+            this.ensureValidIndex();
 
-                    cb.onchange = (e) => {
-                        this.toggleGenre(genre, e.target.checked);
+            const queue = (phase === 'work') ? this.workQueue : this.restQueue;
+            if (queue.length === 0) return;
+
+            this.playlistIndex = this.playlistIndex % queue.length;
+            const item = queue[this.playlistIndex];
+
+            if (!item) return;
+
+            // CRITICAL CHECK: Is this item actually enabled?
+            // If ensureValidIndex failed to find an enabled track (e.g. all disabled), it returns current.
+            // So we must check again.
+            if (!this.enabledGenres.has(item.genre)) {
+                // All genres disabled (or logic issue). Stop/Pause.
+                this.audio.pause();
+                this.hideNowPlaying();
+                // Don't advance state or volume
+                return;
+            }
+
+            const path = `muziek/${item.genre}/${phase === 'work' ? 'werk' : 'rust'}/${item.track}`;
+            this.audio.src = path;
+            this.audio.play().catch(e => console.log("Play Error", e));
+            this.showNowPlaying(item.track, item.genre, phase === 'work' ? 'work' : 'rest');
+
+            if (phase === 'work') {
+                this.justFinishedWork = true;
+            }
+        }
+
+        renderGenreToggles(targetId = null) {
+            // Find or create container in audio settings
+            let containerId = targetId || 'audio-settings-genres';
+            let container = document.getElementById(containerId);
+
+            if (!container && !targetId) {
+                // Create it after volume controls (Default behavior)
+                const parent = document.getElementById('active-volume-panel'); // ... existing creation logic ...
+                // (Simplified for this edit: reuse existing if possible, or fail gracefully if custom ID missing)
+                if (parent) {
+                    container = document.createElement('div');
+                    container.id = 'audio-settings-genres';
+                    container.style.marginTop = "15px";
+                    container.style.borderTop = "1px solid rgba(255,255,255,0.1)";
+                    container.style.paddingTop = "10px";
+                    // Insert before playlist-view if exists
+                    const playlist = document.getElementById('playlist-view');
+                    if (playlist) parent.insertBefore(container, playlist);
+                    else parent.appendChild(container); // Append at end
+                }
+            }
+            if (!container) return;
+
+            if (!targetId) {
+                container.innerHTML = "<div style='font-size:12px; font-weight:bold; color:#888; margin-bottom:5px;'>GENRES (LIVE)</div>";
+            } else {
+                container.innerHTML = ""; // Clear custom container
+            }
+
+            // Show ALL manifest genres so user can enable music even if started with none.
+            const allGenres = Object.keys(musicManifest);
+
+            allGenres.forEach(genre => {
+                const row = document.createElement('div');
+                row.style.display = "flex";
+                row.style.alignItems = "center";
+                row.style.marginBottom = "5px";
+
+                const cb = document.createElement('input');
+                cb.type = "checkbox";
+                cb.checked = this.enabledGenres.has(genre);
+                cb.style.marginRight = "8px";
+                cb.style.cursor = "pointer";
+
+                cb.onchange = (e) => {
+                    this.toggleGenre(genre, e.target.checked);
+                };
+
+                const lbl = document.createElement('span');
+                lbl.innerText = genre;
+                lbl.style.fontSize = "14px";
+
+                row.appendChild(cb);
+                row.appendChild(lbl);
+                container.appendChild(row);
+            });
+        }
+
+        showNowPlaying(trackName, genre, type) {
+            const nowEl = document.getElementById('gym-now-playing');
+            const listEl = document.getElementById('gym-queue-list');
+
+            if (nowEl) {
+                const cleanTitle = trackName.replace('.mp3', '');
+                nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
+            }
+
+            if (listEl) {
+                listEl.innerHTML = "";
+                const queue = (type === 'work' || type === 'work') ? this.workQueue : this.restQueue;
+                // Note: 'werk' vs 'work' consistency fix handled by '||' logic usually, 
+                // but here passed 'type' comes from call.
+                // playPhase sends 'work'/'rest'.
+
+                let displayIndex = 1;
+
+                queue.forEach((item, i) => {
+                    // FILTER: Only show enabled genres
+                    if (!this.enabledGenres.has(item.genre)) return;
+
+                    const div = document.createElement('div');
+                    div.style.padding = "4px 8px";
+                    div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+                    div.style.cursor = "pointer";
+                    div.className = "playlist-item";
+
+                    const cleanTrack = item.track.replace('.mp3', '');
+
+                    if (i === this.playlistIndex) {
+                        div.style.color = "#30D158";
+                        div.style.fontWeight = "bold";
+                        div.innerText = `▶ ${cleanTrack} (${item.genre})`;
+                    } else {
+                        div.style.color = "#aaa";
+                        div.innerText = `${displayIndex}. ${cleanTrack} (${item.genre})`;
+                    }
+                    displayIndex++;
+
+                    div.onclick = () => {
+                        this.playlistIndex = i;
+                        this.playSpecificTrack(item, (type === 'work' || type === 'work') ? 'werk' : 'rust');
+                        // Note: playSpecificTrack is legacy. Ideally should call playPhase-like logic?
+                        // But playSpecificTrack is: audio.src = ...
+                        // We should maintain it or update it.
+                        // See logic below.
                     };
 
-                    const lbl = document.createElement('span');
-                    lbl.innerText = genre;
-                    lbl.style.fontSize = "14px";
-
-                    row.appendChild(cb);
-                    row.appendChild(lbl);
-                    container.appendChild(row);
+                    listEl.appendChild(div);
                 });
             }
+        }
 
-            showNowPlaying(trackName, genre, type) {
-                const nowEl = document.getElementById('gym-now-playing');
-                const listEl = document.getElementById('gym-queue-list');
+        hideNowPlaying() {
+            const txt = document.getElementById('gym-now-playing');
+            if (txt) txt.innerHTML = "";
 
-                if (nowEl) {
-                    const cleanTitle = trackName.replace('.mp3', '');
-                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
-                }
-
-                if (listEl) {
-                    listEl.innerHTML = "";
-                    const queue = (type === 'work' || type === 'work') ? this.workQueue : this.restQueue;
-                    // Note: 'werk' vs 'work' consistency fix handled by '||' logic usually, 
-                    // but here passed 'type' comes from call.
-                    // playPhase sends 'work'/'rest'.
-
-                    let displayIndex = 1;
-
-                    queue.forEach((item, i) => {
-                        // FILTER: Only show enabled genres
-                        if (!this.enabledGenres.has(item.genre)) return;
-
-                        const div = document.createElement('div');
-                        div.style.padding = "4px 8px";
-                        div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-                        div.style.cursor = "pointer";
-                        div.className = "playlist-item";
-
-                        const cleanTrack = item.track.replace('.mp3', '');
-
-                        if (i === this.playlistIndex) {
-                            div.style.color = "#30D158";
-                            div.style.fontWeight = "bold";
-                            div.innerText = `▶ ${cleanTrack} (${item.genre})`;
-                        } else {
-                            div.style.color = "#aaa";
-                            div.innerText = `${displayIndex}. ${cleanTrack} (${item.genre})`;
-                        }
-                        displayIndex++;
-
-                        div.onclick = () => {
-                            this.playlistIndex = i;
-                            this.playSpecificTrack(item, (type === 'work' || type === 'work') ? 'werk' : 'rust');
-                            // Note: playSpecificTrack is legacy. Ideally should call playPhase-like logic?
-                            // But playSpecificTrack is: audio.src = ...
-                            // We should maintain it or update it.
-                            // See logic below.
-                        };
-
-                        listEl.appendChild(div);
-                    });
-                }
-            }
-
-            hideNowPlaying() {
-                const txt = document.getElementById('gym-now-playing');
-                if (txt) txt.innerHTML = "";
-
-                const list = document.getElementById('gym-queue-list');
-                if (list) list.innerHTML = "";
-            }
+            const list = document.getElementById('gym-queue-list');
+            if (list) list.innerHTML = "";
+        }
         }
 
         const bgMusicManager = new BackgroundMusicManager();
