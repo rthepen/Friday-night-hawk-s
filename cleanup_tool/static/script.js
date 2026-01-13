@@ -52,8 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error(err);
-                analyzeBtn.textContent = 'Fout (Zie Console)';
-                alert("Analysis failed: " + err.message);
+                analyzeBtn.textContent = 'Fout';
+                analyzeBtn.style.background = 'var(--danger)';
+
+                // Show error in a more visible way if possible, or just alert
+                const errDiv = document.createElement('div');
+                errDiv.className = 'error-banner';
+                errDiv.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:red; color:white; padding:15px; border-radius:8px; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.2);';
+                errDiv.textContent = 'Fout bij analyseren: ' + err.message;
+                document.body.appendChild(errDiv);
+                setTimeout(() => errDiv.remove(), 5000);
+
                 analyzeBtn.disabled = false;
             });
     });
@@ -108,11 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
             else scoreColor = 'var(--success)';
         }
 
+        // Dark gray placeholder SVG
+        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='68' viewBox='0 0 120 68'%3E%3Crect width='120' height='68' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%23aaa'%3EGeen Video%3C/text%3E%3C/svg%3E";
+
         const div = document.createElement('div');
         div.className = 'workout-item';
         div.innerHTML = `
             <div class="workout-header" onclick="toggleDetails(this, '${workout.id}', '${workout.exercise_name.replace(/'/g, "\\'")}')">
-                <img src="${workout.thumbnail || ''}" class="current-thumb" onerror="this.src='https://via.placeholder.com/120x68?text=No+Thumb'">
+                <img src="${workout.thumbnail || fallbackImage}" class="current-thumb" onerror="this.onerror=null; this.src='${fallbackImage}'">
                 <div class="workout-info">
                     <h3>${workout.exercise_name} 
                         ${matchScore !== null ? `<span style="font-size:0.8em; color:${scoreColor}">(${matchScore}% Match)</span>` : ''}
