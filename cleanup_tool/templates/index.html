@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Database Cleanup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <h1>Cleanup Tool</h1>
+            <div class="controls">
+                <input type="text" id="searchBar" placeholder="Search workouts...">
+                <select id="materialFilter">
+                    <option value="all">All Materials</option>
+                    <!-- Options populated via JS -->
+                </select>
+                <div class="toggle-container">
+                    <input type="checkbox" id="matchSort">
+                    <label for="matchSort">Missing Video Only</label>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div id="workoutList" class="workout-list">
+                <!-- Workouts will be injected here -->
+            </div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="videoModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div id="videoPlayerContainer"></div>
+                <div class="modal-actions">
+                    <input type="text" id="customVideoUrl" placeholder="Enter custom video URL">
+                    <button id="useCustomUrlBtn">Use Custom URL</button>
+                    <button id="confirmSelectionBtn" class="primary-btn">Save Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
