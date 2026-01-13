@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.279</title>
+    <title>Friday-night-hawk-s Timer v1.31.280</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.279</span>
+                FNH Timer <span class="version-tag">v1.31.280</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2310,6 +2310,66 @@
                 </ul>
             </div>
 
+            <!-- Station Selection & Preview Modal -->
+            <div id="print-station-modal" class="modal">
+                <div class="modal-content" style="max-width: 800px; height: 85vh; display:flex; flex-direction:column;">
+                    <div class="modal-header">
+                        <h2>🖨️ Print Stationskaarten</h2>
+                        <span class="close-btn" onclick="closePrintStationModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" style="flex:1; overflow-y:auto; padding: 20px;">
+
+                        <!-- STEP 1: SELECT -->
+                        <div id="print-step-select">
+                            <h3>1. Selecteer Stations</h3>
+                            <div style="margin-bottom: 15px;">
+                                <button class="btn-primary" onclick="toggleSelectAllStations(true)">Alles
+                                    Selecteren</button>
+                                <button class="btn-secondary" onclick="toggleSelectAllStations(false)">Niets
+                                    Selecteren</button>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label
+                                    style="cursor:pointer; display:flex; align-items:center; color:#333; font-weight:bold;">
+                                    <input type="checkbox" id="print-opt-thumbnails" checked
+                                        onchange="/* Optional: Refresh Checkbox UI if needed, but Preview is separate step */"
+                                        style="transform:scale(1.5); margin-right:10px;">
+                                    Toon Afbeeldingen op Kaart
+                                </label>
+                            </div>
+                            <div id="station-checklist"
+                                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                                <!-- Checkboxes injected here -->
+                            </div>
+                            <div style="margin-top: 20px; text-align: right;">
+                                <button class="btn-action" onclick="showPrintPreview()">Naar Voorbeeld ➡️</button>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: PREVIEW -->
+                        <div id="print-step-preview" style="display:none;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <h3>2. Voorbeeld</h3>
+                                <button class="btn-secondary" onclick="backToPrintSelection()">⬅️ Terug</button>
+                            </div>
+
+                            <div id="station-preview-container"
+                                style="background:#f0f0f0; padding:20px; text-align:center; border-radius:8px; min-height:300px;">
+                                <!-- Preview Card injected here -->
+                                <p>Laden...</p>
+                            </div>
+
+                            <div style="margin-top: 20px; text-align: right;">
+                                <button class="btn-success" onclick="downloadSelectedStationsPDF()">🖨️ Download
+                                    PDF</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
             <!-- Validation Modal -->
             <div id="validation-modal" class="modal" style="display:none;">
                 <div class="modal-content">
@@ -2641,8 +2701,8 @@
             console.log("Dit is een iOS apparaat (iPhone of iPad)");
         }
 
-        // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
-        // --- ROBUUSTE FUNCTIE OM DATA TE LADEN ---
+        // --- ROBUSTE FUNCTIE OM DATA TE LADEN ---
+        // --- ROBUSTE FUNCTIE OM DATA TE LADEN ---
         async function initApp() {
             const select = document.getElementById('coach-preset-live'); // UPDATED: Target Live Select
             if (select) {
@@ -3295,22 +3355,200 @@
         // --- STATION CARD SELECTION MODAL ---
         // Direct Print Function (No Modal)
         // Direct Print Function (No Modal)
-        function printStationCardsDirectly() {
-            // Find all unique station IDs
-            let stations = new Set();
+        // --- NEW PRINT STATION MODAL LOGIC ---
+        let selectedStationIds = new Set();
+        let uniqueStationsForPrint = [];
+
+        function openPrintStationModal() {
+            // 1. Identify unique exercises in schedule
+            const stationMap = new Map();
+
             schedule.forEach(step => {
-                if (step.type === 'work' && step.info && step.info.exercise > 0) {
-                    stations.add(step.info.exercise);
+                if (step.type === 'work' && step.info.exercise > 0) {
+                    const exId = step.label; // Use label as ID/Key
+                    // Just store one instance
+                    if (!stationMap.has(exId)) {
+                        stationMap.set(exId, step);
+                    }
                 }
             });
 
-            const sortedIds = Array.from(stations).sort((a, b) => a - b);
-            if (sortedIds.length === 0) {
-                alert("Geen oefeningen gevonden om te printen.");
+            uniqueStationsForPrint = Array.from(stationMap.values());
+            if (uniqueStationsForPrint.length === 0) {
+                alert("Geen stations gevonden in het schema.");
                 return;
             }
 
-            generateStationCards(sortedIds);
+            // 2. Select IDs
+            selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.label));
+
+            // 3. Render UI
+            renderStationChecklist();
+
+            // 4. Show Step 1, Hide Step 2
+            document.getElementById('print-step-select').style.display = 'block';
+            document.getElementById('print-step-preview').style.display = 'none';
+
+            // Reset Toggle (Default On)
+            document.getElementById('print-opt-thumbnails').checked = true;
+
+            document.getElementById('print-station-modal').style.display = 'block';
+        }
+
+        function closePrintStationModal() {
+            document.getElementById('print-station-modal').style.display = 'none';
+        }
+
+        function renderStationChecklist() {
+            const container = document.getElementById('station-checklist');
+            container.innerHTML = '';
+
+            uniqueStationsForPrint.forEach((step, index) => {
+                const exName = step.label;
+
+                const div = document.createElement('div');
+                div.style.cssText = "background:#333; padding:10px; border-radius:5px; display:flex; align-items:center; cursor:pointer;";
+                div.onclick = (e) => {
+                    // Prevent check toggle when clicking checkbox itself (handled natively)
+                    if (e.target.type !== 'checkbox') {
+                        toggleStationSelection(exName);
+                    }
+                };
+
+                const check = document.createElement('input');
+                check.type = 'checkbox';
+                check.checked = selectedStationIds.has(exName);
+                check.value = exName;
+                check.style.transform = "scale(1.5)";
+                check.style.marginRight = "10px";
+                check.onchange = () => toggleStationSelection(exName);
+
+                const label = document.createElement('span');
+                label.textContent = exName;
+                label.style.color = "white";
+
+                div.appendChild(check);
+                div.appendChild(label);
+                container.appendChild(div);
+            });
+        }
+
+        function toggleStationSelection(id) {
+            if (selectedStationIds.has(id)) {
+                selectedStationIds.delete(id);
+            } else {
+                selectedStationIds.add(id);
+            }
+            renderStationChecklist();
+        }
+
+        function toggleSelectAllStations(selectAll) {
+            if (selectAll) {
+                selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.label));
+            } else {
+                selectedStationIds.clear();
+            }
+            renderStationChecklist();
+        }
+
+        function backToPrintSelection() {
+            document.getElementById('print-step-select').style.display = 'block';
+            document.getElementById('print-step-preview').style.display = 'none';
+        }
+
+        function showPrintPreview() {
+            if (selectedStationIds.size === 0) {
+                alert("Selecteer ten minste één station.");
+                return;
+            }
+
+            document.getElementById('print-step-select').style.display = 'none';
+            document.getElementById('print-step-preview').style.display = 'block';
+
+            // Render PREVIEW of the FIRST selected card (just HTML representation)
+            renderPreviewCard();
+        }
+
+        function renderPreviewCard() {
+            const container = document.getElementById('station-preview-container');
+            container.innerHTML = '';
+
+            // Get first selected item
+            const firstId = Array.from(selectedStationIds)[0];
+            const details = getExerciseDetails(firstId);
+
+            if (!details) {
+                container.innerHTML = "<p>Kan voorbeeld niet laden.</p>";
+                return;
+            }
+
+            // Create a scale-down HTML card
+            const card = document.createElement('div');
+            card.style.cssText = "width:300px; background:white; color:black; margin:0 auto; padding:15px; border:1px solid #ccc; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; font-family:sans-serif;";
+
+            // Header
+            card.innerHTML += `<div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:bold;">STATION X</span>
+                <span style="font-size:10px; color:#555;">FNH Timer</span>
+            </div>`;
+
+            // Title
+            card.innerHTML += `<h2 style="font-size:20px; text-align:center; margin:10px 0; color:#005eff;">${firstId}</h2>`;
+
+            // Thumbnail (The Real Test!)
+            const showThumbnails = document.getElementById('print-opt-thumbnails').checked;
+
+            if (showThumbnails && details.thumbnail) {
+                card.innerHTML += `<div style="text-align:center; margin-bottom:10px;">
+                    <img src="${details.thumbnail}" style="max-width:100%; height:auto; border:1px solid #eee;" alt="Thumbnail Test" onload="console.log('Preview Img Loaded')" onerror="console.log('Preview Img Error')">
+               </div>`;
+            } else if (!showThumbnails) {
+                card.innerHTML += `<div style="text-align:center; padding:10px; color:#999; margin-bottom:10px; font-size:12px; font-style:italic;">(Afbeelding verborgen)</div>`;
+            } else {
+                card.innerHTML += `<div style="text-align:center; padding:20px; background:#eee; margin-bottom:10px; font-size:12px;">Geen Afbeelding</div>`;
+            }
+
+            // Details
+            const matName = details.material_name || "-";
+            const instr = details.instructions || "-";
+
+            card.innerHTML += `<div style="font-size:11px;">
+                <p><strong>Materiaal:</strong><br>${matName}</p>
+                <p><strong>Instructie:</strong><br>${instr.substring(0, 100)}...</p>
+            </div>`;
+
+            // Note
+            container.appendChild(card);
+
+            const note = document.createElement('p');
+            note.style.cssText = "margin-top:10px; color:#666; font-size:12px;";
+            note.textContent = `(Dit is een voorbeeld van 1 van de ${selectedStationIds.size} geselecteerde kaarten)`;
+            container.appendChild(note);
+        }
+
+        async function downloadSelectedStationsPDF() {
+            // Trigger the existing robust generator with ONLY selected items
+            // Convert Set to Array
+            const ids = Array.from(selectedStationIds);
+            const includeThumbnails = document.getElementById('print-opt-thumbnails').checked;
+
+            if (ids.length === 0) return;
+
+            // Show loading state
+            const btn = document.querySelector('#print-step-preview .btn-success');
+            const originalText = btn.textContent;
+            btn.textContent = "⏳ Genereren...";
+            btn.disabled = true;
+
+            try {
+                await generateStationCards(ids, includeThumbnails);
+            } catch (e) {
+                alert("Fout bij genereren: " + e.message);
+                console.error(e);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         }
 
         // Helper to load image for PDF
@@ -3345,7 +3583,7 @@
             }
         }
 
-        async function generateStationCards(stationIds) {
+        async function generateStationCards(stationIds, includeThumbnails = true) {
             try {
                 // If no list passed, fail
                 if (!stationIds || stationIds.length === 0) {
@@ -3412,7 +3650,7 @@
 
                 uniqueCards.forEach(card => {
                     const details = getExerciseDetails(card.label);
-                    if (details && details.thumbnail) {
+                    if (includeThumbnails && details && details.thumbnail) {
                         if (!thumbMap.has(details.thumbnail)) {
                             thumbMap.set(details.thumbnail, null);
                             imagePromises.push(loadImage(details.thumbnail).then(img => {
