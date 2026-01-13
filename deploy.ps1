@@ -19,6 +19,9 @@ if ($content -match 'v(\d+)\.(\d+)\.(\d+)') {
     # Replace in content
     # Note: escaping the dot in oldVersion for regex replacement safety
     $content = $content -replace [regex]::Escape($oldVersion), $newVersion
+
+    # Force update visible version tag in case it was out of sync
+    $content = $content -replace '<span class="version-tag">.*?</span>', "<span class=""version-tag"">$newVersion</span>"
     Set-Content $file $content -Encoding UTF8 -NoNewline
     
     Write-Host "Bumped version: $oldVersion -> $newVersion" -ForegroundColor Green
