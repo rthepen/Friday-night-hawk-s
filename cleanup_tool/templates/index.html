@@ -21,10 +21,15 @@
                     <option value="all">All Materials</option>
                     <!-- Options populated via JS -->
                 </select>
-                <div class="toggle-container">
-                    <input type="checkbox" id="matchSort">
-                    <label for="matchSort">Missing Video Only</label>
-                </div>
+                <select id="sortOption">
+                    <option value="name">Sort by Name</option>
+                    <option value="match_asc">Match Score (Low to High)</option>
+                    <option value="match_desc">Match Score (High to Low)</option>
+                </select>
+                <input type="password" id="apiKey" placeholder="YouTube API Key" style="width: 150px;"
+                    title="Enter YouTube API Key">
+                <button id="analyzeBtn" class="primary-btn"
+                    style="background: var(--accent); color: white;">Analyzeren</button>
             </div>
         </header>
 
