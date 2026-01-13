@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.266</title>
+    <title>Friday-night-hawk-s Timer v1.31.267</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -2339,8 +2339,12 @@
                 </div>
 
                 <a id="detail-vid-btn" href="#" target="_blank" class="modal-btn"
-                    style="background:#5856D6; color:white; text-decoration:none; display:flex; justify-content:center; align-items:center; margin-bottom:20px; flex-shrink:0;">
-                    📺 Bekijk Video
+                    style="text-decoration:none; display:flex; justify-content:center; align-items:center; margin-bottom:20px; flex-shrink:0; padding:0; background:transparent; border:none; position:relative;">
+                    <img id="detail-vid-thumb"
+                        style="width:100%; border-radius:8px; display:none; object-fit:cover; aspect-ratio:16/9; border:1px solid #333;" />
+                    <span id="detail-vid-fallback"
+                        style="background:#5856D6; color:white; width:100%; padding:15px; border-radius:12px; text-align:center;">📺
+                        Bekijk Video</span>
                 </a>
 
 
@@ -3588,9 +3592,21 @@
             document.getElementById('detail-desc').innerText = item.instructions || "Geen instructies.";
 
             const vidBtn = document.getElementById('detail-vid-btn');
+            const vidThumb = document.getElementById('detail-vid-thumb');
+            const vidFallback = document.getElementById('detail-vid-fallback');
+
             if (item.video_search_url) {
                 vidBtn.style.display = 'flex';
                 vidBtn.href = item.video_search_url;
+
+                if (item.thumbnail) {
+                    vidThumb.src = item.thumbnail;
+                    vidThumb.style.display = 'block';
+                    vidFallback.style.display = 'none';
+                } else {
+                    vidThumb.style.display = 'none';
+                    vidFallback.style.display = 'block';
+                }
             } else {
                 vidBtn.style.display = 'none';
             }
