@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.271</title>
+    <title>Friday-night-hawk-s Timer v1.31.272</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.271</span>
+                FNH Timer <span class="version-tag">v1.31.272</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3334,6 +3334,24 @@
                 const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
 
                 // 1. Determine Unique Cards needed
+                // Pre-Calculate: Station -> Map<ExerciseLabel, Array<Rounds>>
+                let stationData = new Map();
+
+                schedule.forEach(step => {
+                    if (step.type === 'work' && step.info && step.info.exercise > 0) {
+                        const exIdx = step.info.exercise;
+                        const round = step.info.round;
+                        const label = step.label;
+
+                        if (!stationData.has(exIdx)) stationData.set(exIdx, new Map());
+
+                        const exMap = stationData.get(exIdx);
+                        if (!exMap.has(label)) exMap.set(label, new Set());
+
+                        exMap.get(label).add(round);
+                    }
+                });
+
                 const uniqueCards = [];
 
                 // Loop through SORTED Station IDs
