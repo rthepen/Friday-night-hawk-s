@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.269</title>
+    <title>Friday-night-hawk-s Timer v1.31.270</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.269</span>
+                FNH Timer <span class="version-tag">v1.31.270</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3318,193 +3318,202 @@
         }
 
         async function generateStationCards(stationIds) {
-            // If no list passed, fail
-            if (!stationIds || stationIds.length === 0) {
-                alert("Geen stations geselecteerd.");
-                return;
-            }
+            try {
+                // If no list passed, fail
+                if (!stationIds || stationIds.length === 0) {
+                    alert("Geen stations geselecteerd.");
+                    return;
+                }
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
+                if (!window.jspdf) {
+                    alert("PDF library niet geladen. Herlaad de pagina.");
+                    return;
+                }
 
-            // 1. Determine Unique Cards needed
-            const uniqueCards = [];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
 
-            // Loop through SORTED Station IDs
-            stationIds.forEach((exIdx) => {
-                const exMap = stationData.get(exIdx);
-                if (!exMap) return;
+                // 1. Determine Unique Cards needed
+                const uniqueCards = [];
 
-                const entries = Array.from(exMap.entries());
-                // Sort by first round appearance
-                entries.sort((a, b) => {
-                    const minRoundA = Math.min(...Array.from(a[1]));
-                    const minRoundB = Math.min(...Array.from(b[1]));
-                    return minRoundA - minRoundB;
-                });
+                // Loop through SORTED Station IDs
+                stationIds.forEach((exIdx) => {
+                    const exMap = stationData.get(exIdx);
+                    if (!exMap) return;
 
-                entries.forEach(([label, roundSet]) => {
-                    uniqueCards.push({
-                        exIdx: exIdx,
-                        label: label,
-                        roundSet: roundSet,
-                        isSplit: (entries.length > 1)
+                    const entries = Array.from(exMap.entries());
+                    // Sort by first round appearance
+                    entries.sort((a, b) => {
+                        const minRoundA = Math.min(...Array.from(a[1]));
+                        const minRoundB = Math.min(...Array.from(b[1]));
+                        return minRoundA - minRoundB;
+                    });
+
+                    entries.forEach(([label, roundSet]) => {
+                        uniqueCards.push({
+                            exIdx: exIdx,
+                            label: label,
+                            roundSet: roundSet,
+                            isSplit: (entries.length > 1)
+                        });
                     });
                 });
-            });
 
-            // 2. Pre-load Images (Logo + Thumbnails)
-            const logoImg = await loadImage('FNH logo.jpg');
-            const thumbMap = new Map();
-            const imagePromises = [];
+                // 2. Pre-load Images (Logo + Thumbnails)
+                const logoImg = await loadImage('FNH logo.jpg');
+                const thumbMap = new Map();
+                const imagePromises = [];
 
-            uniqueCards.forEach(card => {
-                const details = getExerciseDetails(card.label);
-                if (details && details.thumbnail) {
-                    if (!thumbMap.has(details.thumbnail)) {
-                        thumbMap.set(details.thumbnail, null);
-                        imagePromises.push(loadImage(details.thumbnail).then(img => {
-                            if (img) thumbMap.set(details.thumbnail, img);
-                        }));
+                uniqueCards.forEach(card => {
+                    const details = getExerciseDetails(card.label);
+                    if (details && details.thumbnail) {
+                        if (!thumbMap.has(details.thumbnail)) {
+                            thumbMap.set(details.thumbnail, null);
+                            imagePromises.push(loadImage(details.thumbnail).then(img => {
+                                if (img) thumbMap.set(details.thumbnail, img);
+                            }));
+                        }
                     }
-                }
-            });
+                });
 
-            await Promise.all(imagePromises);
+                await Promise.all(imagePromises);
 
-            // 3. Generate PDF
-            uniqueCards.forEach((card, index) => {
-                const { exIdx, label, roundSet, isSplit } = card;
-                const rounds = Array.from(roundSet).sort((a, b) => a - b);
+                // 3. Generate PDF
+                uniqueCards.forEach((card, index) => {
+                    const { exIdx, label, roundSet, isSplit } = card;
+                    const rounds = Array.from(roundSet).sort((a, b) => a - b);
 
-                if (index > 0) doc.addPage();
+                    if (index > 0) doc.addPage();
 
-                const width = doc.internal.pageSize.getWidth();
-                const height = doc.internal.pageSize.getHeight();
+                    const width = doc.internal.pageSize.getWidth();
+                    const height = doc.internal.pageSize.getHeight();
 
-                // --- HEADER ---
-                // Logo
-                if (logoImg) {
-                    const imgRatio = logoImg.height / logoImg.width;
-                    const imgW = 40;
-                    const imgH = imgW * imgRatio;
-                    doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
-                }
-
-                // "STATION" Label
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(24);
-                doc.setTextColor(100);
-                doc.text("STATION", 20, 25);
-
-                // MASSIVE Number
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(350);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`${exIdx}`, width / 2, 130, { align: 'center' }); // Lowered slightly to make room
-
-                // --- ROUND INFO (If Split) ---
-                if (isSplit) {
-                    doc.setFontSize(30);
-                    doc.setTextColor(50);
-                    const roundStr = "Ronde " + rounds.join(", ");
-                    doc.text(roundStr, width / 2, 145, { align: 'center' });
-                }
-
-                // --- EXERCISE NAME ---
-                let yPos = isSplit ? 175 : 160;
-
-                doc.setFontSize(32);
-                doc.setFont("helvetica", "bold");
-                doc.setTextColor(0, 0, 0);
-
-                const nameLines = doc.splitTextToSize(label, width - 30);
-                doc.text(nameLines, width / 2, yPos, { align: 'center' });
-                yPos += (nameLines.length * 12) + 15;
-
-                // --- DETAILS ---
-                const details = getExerciseDetails(label);
-
-                // --- THUMBNAIL IMAGE ---
-                // Try to render thumbnail between Title and Details if space permits, or to the side?
-                // Given the massive number, maybe put it at the bottom or top right?
-                // Let's float it: Top Right below logo? Or just above details.
-                // Best spot: Above details, center.
-
-                if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
-                    const img = thumbMap.get(details.thumbnail);
-                    const imgW = 120; // nice big image
-                    const imgH = (imgW * 9) / 16;
-
-                    // Check if yPos + imgH exceeds page?
-                    // Station cards are A4 portrait.
-                    // 175 (Y) + Text ~ 200. + Img 70 ~ 270. Page is 297. Tight.
-                    // Let's try to fit it.
-
-                    // Optimization: If ID is massive (350pt), it takes up most of center.
-                    // Maybe put image *over* the number with opacity? No.
-                    // Small thumbnail next to "STATION" label?
-                    // Or, just put it below the name.
-
-                    if (yPos + imgH < height - 60) {
-                        doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
-                        yPos += imgH + 15;
+                    // --- HEADER ---
+                    // Logo
+                    if (logoImg) {
+                        const imgRatio = logoImg.height / logoImg.width;
+                        const imgW = 40;
+                        const imgH = imgW * imgRatio;
+                        doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
                     }
-                }
 
-                if (details) {
-                    const matName = details.material_name || "-";
-                    const matDesc = details.material_description || "";
-                    const instr = details.instructions || "Geen instructie.";
-
-                    doc.setFontSize(14);
+                    // "STATION" Label
                     doc.setFont("helvetica", "bold");
+                    doc.setFontSize(24);
                     doc.setTextColor(100);
-                    doc.text("MATERIAAL:", 25, yPos);
-                    yPos += 7;
+                    doc.text("STATION", 20, 25);
 
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(14);
-                    doc.setTextColor(0);
-                    doc.text(matName, 25, yPos);
+                    // MASSIVE Number
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(350);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`${exIdx}`, width / 2, 130, { align: 'center' }); // Lowered slightly to make room
 
-                    if (matDesc) {
-                        const descW = doc.getTextWidth(matName);
-                        doc.setFont("helvetica", "italic");
+                    // --- ROUND INFO (If Split) ---
+                    if (isSplit) {
+                        doc.setFontSize(30);
+                        doc.setTextColor(50);
+                        const roundStr = "Ronde " + rounds.join(", ");
+                        doc.text(roundStr, width / 2, 145, { align: 'center' });
+                    }
+
+                    // --- EXERCISE NAME ---
+                    let yPos = isSplit ? 175 : 160;
+
+                    doc.setFontSize(32);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(0, 0, 0);
+
+                    const nameLines = doc.splitTextToSize(label, width - 30);
+                    doc.text(nameLines, width / 2, yPos, { align: 'center' });
+                    yPos += (nameLines.length * 12) + 15;
+
+                    // --- DETAILS ---
+                    const details = getExerciseDetails(label);
+
+                    // --- THUMBNAIL IMAGE ---
+                    // Try to render thumbnail between Title and Details if space permits, or to the side?
+                    // Given the massive number, maybe put it at the bottom or top right?
+                    // Let's float it: Top Right below logo? Or just above details.
+                    // Best spot: Above details, center.
+
+                    if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
+                        const img = thumbMap.get(details.thumbnail);
+                        const imgW = 120; // nice big image
+                        const imgH = (imgW * 9) / 16;
+
+                        // Check if yPos + imgH exceeds page?
+                        // Station cards are A4 portrait.
+                        // 175 (Y) + Text ~ 200. + Img 70 ~ 270. Page is 297. Tight.
+                        // Let's try to fit it.
+
+                        // Optimization: If ID is massive (350pt), it takes up most of center.
+                        // Maybe put image *over* the number with opacity? No.
+                        // Small thumbnail next to "STATION" label?
+                        // Or, just put it below the name.
+
+                        if (yPos + imgH < height - 60) {
+                            doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
+                            yPos += imgH + 15;
+                        }
+                    }
+
+                    if (details) {
+                        const matName = details.material_name || "-";
+                        const matDesc = details.material_description || "";
+                        const instr = details.instructions || "Geen instructie.";
+
+                        doc.setFontSize(14);
+                        doc.setFont("helvetica", "bold");
                         doc.setTextColor(100);
-                        doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
+                        doc.text("MATERIAAL:", 25, yPos);
+                        yPos += 7;
+
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(14);
+                        doc.setTextColor(0);
+                        doc.text(matName, 25, yPos);
+
+                        if (matDesc) {
+                            const descW = doc.getTextWidth(matName);
+                            doc.setFont("helvetica", "italic");
+                            doc.setTextColor(100);
+                            doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
+                        }
+                        yPos += 14;
+
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(14);
+                        doc.setTextColor(100);
+                        doc.text("INSTRUCTIE:", 25, yPos);
+                        yPos += 7;
+
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(13);
+                        doc.setTextColor(0);
+                        const instructionLines = doc.splitTextToSize(instr, width - 50);
+                        doc.text(instructionLines, 25, yPos);
                     }
-                    yPos += 14;
 
-                    doc.setFont("helvetica", "bold");
-                    doc.setFontSize(14);
-                    doc.setTextColor(100);
-                    doc.text("INSTRUCTIE:", 25, yPos);
-                    yPos += 7;
+                    // Footer Bar
+                    doc.setFillColor(0, 0, 0);
+                    doc.rect(0, height - 20, width, 20, 'F');
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 255, 255);
+                    const footerText = isSplit
+                        ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
+                        : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
 
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(13);
-                    doc.setTextColor(0);
-                    const instructionLines = doc.splitTextToSize(instr, width - 50);
-                    doc.text(instructionLines, 25, yPos);
-                }
+                    doc.text(footerText, width / 2, height - 8, { align: 'center' });
 
-                // Footer Bar
-                doc.setFillColor(0, 0, 0);
-                doc.rect(0, height - 20, width, 20, 'F');
-                doc.setFontSize(10);
-                doc.setTextColor(255, 255, 255);
-                const footerText = isSplit
-                    ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
-                    : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
-
-                doc.text(footerText, width / 2, height - 8, { align: 'center' });
-
-            }); // End UniqueCards Loop
+                }); // End UniqueCards Loop
 
 
-            doc.save("FNH-Stationskaarten.pdf");
-            // closeStationSelector called previously, but function removed. So just end.
+                doc.save("FNH-Stationskaarten.pdf");
+            } catch (e) {
+                console.error("PDF Fout:", e);
+                alert("Er ging iets mis bij het genereren van de kaarten:\n" + e.message);
+            }
         }
 
 
