@@ -1938,5 +1938,75 @@
     "material_description": "Eigen lichaamsgewicht",
     "instructions": "Jump Squats: Zak in een squat en spring zo hoog mogelijk. Land zachtjes en ga direct weer door in de volgende squat.",
     "video_search_url": "https://www.youtube.com/embed/J1Z6X3_6l9Q"
+  },
+  {
+    "check_number": 195,
+    "id": "in_fietsen_warming_up",
+    "exercise_name": "In Fietsen (Warming-Up)",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min. Positie: Handpositie 1 of 2 (zittend). Uitleg: Begin met lichte weerstand en een soepele cadans (80-90 RPM). Focus op ronde trapbewegingen (duwen en trekken). Adem diep in om het lichaam voor te bereiden. Verhoog de weerstand lichtjes elke minuut om de hartslag te laten stijgen.",
+    "video_search_url": "https://www.youtube.com/watch?v=rEqRmKAQ5xM"
+  },
+  {
+    "check_number": 196,
+    "id": "zit_staan_transities_jumps",
+    "exercise_name": "Zit/Staan Transities (Jumps) met Weerstand",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min (wissels elke 40s). Positie: Wissel Handpositie 2 (Zit) naar 2 of 3 (Staan). Uitleg: Elke 40 seconden: draai een slag weerstand bij en kom uit het zadel. Gebruik de benen om te liften, niet de armen. Houd de heupen stil boven het zadel ('hover') alvorens volledig te staan. Zorg voor een vloeiende overgang zonder 'plof' terug in het zadel.",
+    "video_search_url": "https://www.youtube.com/watch?v=SASKkP12Deg"
+  },
+  {
+    "check_number": 197,
+    "id": "progressieve_staande_klim",
+    "exercise_name": "Progressieve Staande Klim",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min (weerstand elke 40s). Positie: Handpositie 3. Uitleg: Blijf continu staand. Elke 40 seconden een slag erbij. Houd de heupen ver naar achteren boven het zadel in een 'V'-vorm met de schouders. De cadans zal dalen naarmate de weerstand toeneemt. Gebruik lichaamsgewicht om de pedalen rond te krijgen.",
+    "video_search_url": "https://www.youtube.com/watch?v=NPMdHIL7ks8"
+  },
+  {
+    "check_number": 198,
+    "id": "staande_klim_met_freeze",
+    "exercise_name": "Staande Klim met Freeze (Isolatie)",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min (40s actief, 15s freeze). Positie: Handpositie 3. Uitleg: Tijdens een zware staande klim, 'bevries' het bovenlichaam gedurende 15 seconden. Geen gewaggel of geschommel. Alle kracht moet uit de benen en core komen. Let op: Houd de knieën licht gebogen en heupen naar achteren om blessures te voorkomen.",
+    "video_search_url": "https://www.youtube.com/watch?v=2fytdxLZ3qw"
+  },
+  {
+    "check_number": 199,
+    "id": "hoog_tempo_sprints",
+    "exercise_name": "Hoog Tempo (Sprints)",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min (in intervallen). Positie: Handpositie 2 (Zit) of 3 (Staande Aanval). Uitleg: Explosieve versnelling. Cadans tussen 90-110 RPM. Zorg voor voldoende weerstand zodat u niet stuitert in het zadel. Trek de knieën actief omhoog. Focus op snelheid en power.",
+    "video_search_url": "https://www.youtube.com/watch?v=tVYcuQNmfkM"
+  },
+  {
+    "check_number": 200,
+    "id": "complexe_interval_positie_wissel",
+    "exercise_name": "Complexe Interval (Positie Wissel 2/3)",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3 min + afbouw (4 min totaal). Positie: Wissel Pos 2 <-> Pos 3. Uitleg: 'De Ladder'. Start in Pos 2. Na 30s: ga naar Pos 3 (staand) EN voeg een halve slag toe. Na 30s: terug naar Pos 2 (zittend) EN voeg weer een halve slag toe. Herhaal tot 3 minuten (totaal 3 hele slagen erbij). Daarna afbouwen (weerstand eraf, rustig trappen).",
+    "video_search_url": "https://www.youtube.com/watch?v=UE8yxty2_Jg"
+  },
+  {
+    "check_number": 201,
+    "id": "uit_fietsen_cooling_down",
+    "exercise_name": "Uit Fietsen (Cooling-Down)",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "Spinningfiets",
+    "instructions": "Duur: 3-5 min. Positie: Handpositie 1 of 2. Uitleg: Verwijder alle zware weerstand. Trap rustig uit (cadans <80 RPM). Adem diep in en uit om de hartslag te laten zakken. Voer rekoefeningen uit voor quadriceps, hamstrings en bovenlichaam (triceps/borst) op de fiets of ernaast.",
+    "video_search_url": "https://www.youtube.com/watch?v=XY-k-m5K7Mg"
   }
 ]
