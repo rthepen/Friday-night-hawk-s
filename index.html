@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.277</title>
+    <title>Friday-night-hawk-s Timer v1.31.278</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.277</span>
+                FNH Timer <span class="version-tag">v1.31.278</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3314,14 +3314,22 @@
         }
 
         // Helper to load image for PDF
-        function loadImage(url) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.src = url;
-                img.onload = () => resolve(img);
-                img.onerror = () => resolve(null); // Fail gracefully
-            });
+        // Helper to load image for PDF (Base64 to avoid CORS/Canvas issues)
+        async function loadImage(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Network response was not ok");
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.warn("Failed to load image (Base64):", url, error);
+                return null;
+            }
         }
 
         async function generateStationCards(stationIds) {
