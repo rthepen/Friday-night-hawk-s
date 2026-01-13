@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.268</title>
+    <title>Friday-night-hawk-s Timer v1.31.269</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.268</span>
+                FNH Timer <span class="version-tag">v1.31.269</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3201,11 +3201,21 @@
                             videoLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(step.label + " shorts")}`;
                         }
 
+
                         // Buttons HTML
-                        videoBtnHtml = `
-                        <div style="margin-top:5px; display:flex; gap:5px;">
-                             <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">▶ Video</a>
-                        </div>`;
+                        if (details.thumbnail) {
+                            videoBtnHtml = `
+                            <div style="margin-top:5px;">
+                                 <a href="${videoLink}" target="_blank" style="display:block; width:100%; border-radius:8px; overflow:hidden; border:1px solid #333;">
+                                    <img src="${details.thumbnail}" style="width:100%; display:block; object-fit:cover; aspect-ratio:16/9;">
+                                 </a>
+                            </div>`;
+                        } else {
+                            videoBtnHtml = `
+                            <div style="margin-top:5px; display:flex; gap:5px;">
+                                 <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">▶ Video</a>
+                            </div>`;
+                        }
                     }
 
                     // New Labeled Structure
@@ -3317,38 +3327,16 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
 
-            // Load Logo
-            const logoImg = await loadImage('FNH logo.jpg');
-
-            let firstPage = true;
-
-            // Pre-Calculate: Station -> Map<ExerciseLabel, Array<Rounds>>
-            let stationData = new Map();
-
-            schedule.forEach(step => {
-                if (step.type === 'work' && step.info && step.info.exercise > 0) {
-                    const exIdx = step.info.exercise;
-                    const round = step.info.round;
-                    const label = step.label;
-
-                    if (!stationData.has(exIdx)) stationData.set(exIdx, new Map());
-
-                    const exMap = stationData.get(exIdx);
-                    if (!exMap.has(label)) exMap.set(label, new Set());
-
-                    exMap.get(label).add(round);
-                }
-            });
+            // 1. Determine Unique Cards needed
+            const uniqueCards = [];
 
             // Loop through SORTED Station IDs
             stationIds.forEach((exIdx) => {
                 const exMap = stationData.get(exIdx);
                 if (!exMap) return;
 
-                // entries: [ [label, Set(rounds)], ... ]
                 const entries = Array.from(exMap.entries());
-
-                // Sort entries by first round appearance for logical order
+                // Sort by first round appearance
                 entries.sort((a, b) => {
                     const minRoundA = Math.min(...Array.from(a[1]));
                     const minRoundB = Math.min(...Array.from(b[1]));
@@ -3356,107 +3344,164 @@
                 });
 
                 entries.forEach(([label, roundSet]) => {
-                    const rounds = Array.from(roundSet).sort((a, b) => a - b);
-                    const isSplit = (entries.length > 1); // True if this station has variations
+                    uniqueCards.push({
+                        exIdx: exIdx,
+                        label: label,
+                        roundSet: roundSet,
+                        isSplit: (entries.length > 1)
+                    });
+                });
+            });
 
-                    if (!firstPage) doc.addPage();
-                    firstPage = false;
+            // 2. Pre-load Images (Logo + Thumbnails)
+            const logoImg = await loadImage('FNH logo.jpg');
+            const thumbMap = new Map();
+            const imagePromises = [];
 
-                    const width = doc.internal.pageSize.getWidth();
-                    const height = doc.internal.pageSize.getHeight();
-
-                    // --- HEADER ---
-                    // Logo
-                    if (logoImg) {
-                        const imgRatio = logoImg.height / logoImg.width;
-                        const imgW = 40;
-                        const imgH = imgW * imgRatio;
-                        doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
+            uniqueCards.forEach(card => {
+                const details = getExerciseDetails(card.label);
+                if (details && details.thumbnail) {
+                    if (!thumbMap.has(details.thumbnail)) {
+                        thumbMap.set(details.thumbnail, null);
+                        imagePromises.push(loadImage(details.thumbnail).then(img => {
+                            if (img) thumbMap.set(details.thumbnail, img);
+                        }));
                     }
+                }
+            });
 
-                    // "STATION" Label
+            await Promise.all(imagePromises);
+
+            // 3. Generate PDF
+            uniqueCards.forEach((card, index) => {
+                const { exIdx, label, roundSet, isSplit } = card;
+                const rounds = Array.from(roundSet).sort((a, b) => a - b);
+
+                if (index > 0) doc.addPage();
+
+                const width = doc.internal.pageSize.getWidth();
+                const height = doc.internal.pageSize.getHeight();
+
+                // --- HEADER ---
+                // Logo
+                if (logoImg) {
+                    const imgRatio = logoImg.height / logoImg.width;
+                    const imgW = 40;
+                    const imgH = imgW * imgRatio;
+                    doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
+                }
+
+                // "STATION" Label
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(24);
+                doc.setTextColor(100);
+                doc.text("STATION", 20, 25);
+
+                // MASSIVE Number
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(350);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${exIdx}`, width / 2, 130, { align: 'center' }); // Lowered slightly to make room
+
+                // --- ROUND INFO (If Split) ---
+                if (isSplit) {
+                    doc.setFontSize(30);
+                    doc.setTextColor(50);
+                    const roundStr = "Ronde " + rounds.join(", ");
+                    doc.text(roundStr, width / 2, 145, { align: 'center' });
+                }
+
+                // --- EXERCISE NAME ---
+                let yPos = isSplit ? 175 : 160;
+
+                doc.setFontSize(32);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
+
+                const nameLines = doc.splitTextToSize(label, width - 30);
+                doc.text(nameLines, width / 2, yPos, { align: 'center' });
+                yPos += (nameLines.length * 12) + 15;
+
+                // --- DETAILS ---
+                const details = getExerciseDetails(label);
+
+                // --- THUMBNAIL IMAGE ---
+                // Try to render thumbnail between Title and Details if space permits, or to the side?
+                // Given the massive number, maybe put it at the bottom or top right?
+                // Let's float it: Top Right below logo? Or just above details.
+                // Best spot: Above details, center.
+
+                if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
+                    const img = thumbMap.get(details.thumbnail);
+                    const imgW = 120; // nice big image
+                    const imgH = (imgW * 9) / 16;
+
+                    // Check if yPos + imgH exceeds page?
+                    // Station cards are A4 portrait.
+                    // 175 (Y) + Text ~ 200. + Img 70 ~ 270. Page is 297. Tight.
+                    // Let's try to fit it.
+
+                    // Optimization: If ID is massive (350pt), it takes up most of center.
+                    // Maybe put image *over* the number with opacity? No.
+                    // Small thumbnail next to "STATION" label?
+                    // Or, just put it below the name.
+
+                    if (yPos + imgH < height - 60) {
+                        doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
+                        yPos += imgH + 15;
+                    }
+                }
+
+                if (details) {
+                    const matName = details.material_name || "-";
+                    const matDesc = details.material_description || "";
+                    const instr = details.instructions || "Geen instructie.";
+
+                    doc.setFontSize(14);
                     doc.setFont("helvetica", "bold");
-                    doc.setFontSize(24);
                     doc.setTextColor(100);
-                    doc.text("STATION", 20, 25);
+                    doc.text("MATERIAAL:", 25, yPos);
+                    yPos += 7;
 
-                    // MASSIVE Number
-                    doc.setFont("helvetica", "bold");
-                    doc.setFontSize(350);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(`${exIdx}`, width / 2, 130, { align: 'center' });
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(14);
+                    doc.setTextColor(0);
+                    doc.text(matName, 25, yPos);
 
-                    // --- ROUND INFO (If Split) ---
-                    if (isSplit) {
-                        doc.setFontSize(30);
-                        doc.setTextColor(50);
-                        const roundStr = "Ronde " + rounds.join(", ");
-                        doc.text(roundStr, width / 2, 145, { align: 'center' });
-                    }
-
-                    // --- EXERCISE NAME ---
-                    let yPos = isSplit ? 175 : 160;
-
-                    doc.setFontSize(32);
-                    doc.setFont("helvetica", "bold");
-                    doc.setTextColor(0, 0, 0);
-
-                    const nameLines = doc.splitTextToSize(label, width - 30);
-                    doc.text(nameLines, width / 2, yPos, { align: 'center' });
-                    yPos += (nameLines.length * 12) + 15;
-
-                    // --- DETAILS ---
-                    const details = getExerciseDetails(label);
-                    if (details) {
-                        const matName = details.material_name || "-";
-                        const matDesc = details.material_description || "";
-                        const instr = details.instructions || "Geen instructie.";
-
-                        doc.setFontSize(14);
-                        doc.setFont("helvetica", "bold");
+                    if (matDesc) {
+                        const descW = doc.getTextWidth(matName);
+                        doc.setFont("helvetica", "italic");
                         doc.setTextColor(100);
-                        doc.text("MATERIAAL:", 25, yPos);
-                        yPos += 7;
-
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(14);
-                        doc.setTextColor(0);
-                        doc.text(matName, 25, yPos);
-
-                        if (matDesc) {
-                            const descW = doc.getTextWidth(matName);
-                            doc.setFont("helvetica", "italic");
-                            doc.setTextColor(100);
-                            doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
-                        }
-                        yPos += 14;
-
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(14);
-                        doc.setTextColor(100);
-                        doc.text("INSTRUCTIE:", 25, yPos);
-                        yPos += 7;
-
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(13);
-                        doc.setTextColor(0);
-                        const instructionLines = doc.splitTextToSize(instr, width - 50);
-                        doc.text(instructionLines, 25, yPos);
+                        doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
                     }
+                    yPos += 14;
 
-                    // Footer Bar
-                    doc.setFillColor(0, 0, 0);
-                    doc.rect(0, height - 20, width, 20, 'F');
-                    doc.setFontSize(10);
-                    doc.setTextColor(255, 255, 255);
-                    const footerText = isSplit
-                        ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
-                        : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(14);
+                    doc.setTextColor(100);
+                    doc.text("INSTRUCTIE:", 25, yPos);
+                    yPos += 7;
 
-                    doc.text(footerText, width / 2, height - 8, { align: 'center' });
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(13);
+                    doc.setTextColor(0);
+                    const instructionLines = doc.splitTextToSize(instr, width - 50);
+                    doc.text(instructionLines, 25, yPos);
+                }
 
-                }); // End Entries Loop
-            }); // End StationIds Loop
+                // Footer Bar
+                doc.setFillColor(0, 0, 0);
+                doc.rect(0, height - 20, width, 20, 'F');
+                doc.setFontSize(10);
+                doc.setTextColor(255, 255, 255);
+                const footerText = isSplit
+                    ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
+                    : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
+
+                doc.text(footerText, width / 2, height - 8, { align: 'center' });
+
+            }); // End UniqueCards Loop
+
 
             doc.save("FNH-Stationskaarten.pdf");
             // closeStationSelector called previously, but function removed. So just end.
@@ -4046,6 +4091,31 @@
                 doc.setFontSize(10);
                 doc.text(`Gegenereerd op: ${new Date().toLocaleString('nl-NL')}`, 14, 26);
 
+                // Pre-load images for the PDF
+                const imagePromises = [];
+                // Map to store loaded images: videoUrl -> imgBase64 or imgObject
+                const thumbMap = new Map();
+
+                schedule.forEach(step => {
+                    if (step.type === 'work' && step.info.exercise > 0) {
+                        const details = getExerciseDetails(step.label);
+                        if (details && details.thumbnail) {
+                            if (!thumbMap.has(details.thumbnail)) {
+                                // Add placeholder to avoid double loading
+                                thumbMap.set(details.thumbnail, null);
+                                imagePromises.push(
+                                    loadImage(details.thumbnail).then(img => {
+                                        if (img) thumbMap.set(details.thumbnail, img);
+                                    })
+                                );
+                            }
+                        }
+                    }
+                });
+
+                await Promise.all(imagePromises);
+
+
                 const tableData = [];
                 let currentTime = new Date();
 
@@ -4057,7 +4127,7 @@
                     let exName = step.label;
                     let detailsText = "";
                     let videoLink = "";
-                    let shortsLink = "";
+                    let thumbImg = null;
 
                     if (step.type === 'work' && step.info.exercise > 0) {
                         // Prepend Numbering ONLY for Set 1
@@ -4074,8 +4144,10 @@
                             detailsText = `MATERIAAL: ${matName}\n\n${matDesc}\n\nINSTRUCTIE:\n${instr}`;
 
                             // Links
-                            const vidUrl = details.video_search_url || "";
-                            videoLink = vidUrl; // Modified: Removed the "shorts" fallback
+                            videoLink = details.video_search_url || "";
+                            if (details.thumbnail && thumbMap.get(details.thumbnail)) {
+                                thumbImg = thumbMap.get(details.thumbnail);
+                            }
                         }
                     } else {
                         detailsText = step.label;
@@ -4087,48 +4159,65 @@
                         nrStr = `${step.info.round}.${step.info.exercise}`;
                     }
 
-                    tableData.push([timeStr, nrStr, exName, detailsText, { video: videoLink }]);
+                    // Push data with image object
+                    tableData.push([timeStr, nrStr, exName, detailsText, { video: videoLink, img: thumbImg }]);
                     currentTime.setSeconds(currentTime.getSeconds() + step.time);
                 });
 
                 // Generate Table Data for PDF
-                // We map the rich data to a format suitable for the PDF table, including clickable links.
-
                 const finalBody = tableData.map(row => {
                     const linkObj = row[4];
-                    let linkText = "";
-                    if (linkObj.video) linkText += "VIDEO";
-                    return [row[0], row[1], row[2], row[3], { content: linkText, links: linkObj }];
+                    let content = "";
+                    if (!linkObj.img && linkObj.video) content = "VIDEO"; // Text fallback if no image
+
+                    return [row[0], row[1], row[2], row[3], { content: content, links: linkObj }];
                 });
 
                 doc.autoTable({
                     head: [['Tijd', 'Nr', 'Oefening', 'Details', 'Links']],
                     body: finalBody,
                     startY: 35,
-                    styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+                    styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak', minCellHeight: 20 }, // Increased min height
                     columnStyles: {
                         0: { cellWidth: 20 },
                         1: { cellWidth: 10, fontStyle: 'bold', halign: 'center' },
                         2: { cellWidth: 35, fontStyle: 'bold' },
                         3: { cellWidth: 'auto' },
-                        4: { cellWidth: 25, halign: 'center', textColor: [10, 132, 255] }
+                        4: { cellWidth: 35, halign: 'center', textColor: [10, 132, 255] }
                     },
                     didDrawCell: function (data) {
                         if (data.column.index === 4 && data.cell.section === 'body') {
                             const raw = data.cell.raw;
-                            if (raw && raw.links && (raw.links.video || raw.links.shorts)) {
-                                const linkObj = raw.links;
+                            const linkObj = raw.links;
+
+                            if (linkObj) {
                                 const x = data.cell.x;
                                 const y = data.cell.y;
                                 const w = data.cell.width;
                                 const h = data.cell.height;
 
-                                // Link Areas
-                                if (linkObj.video) {
-                                    doc.link(x, y, w, h / 2, { url: linkObj.video });
-                                }
-                                if (linkObj.shorts) {
-                                    doc.link(x, y + h / 2, w, h / 2, { url: linkObj.shorts });
+                                // Draw Image if available
+                                if (linkObj.img) {
+                                    // Fit image in cell (maintain 16:9 roughly, or crop)
+                                    // Padding 2px
+                                    const imgW = w - 4;
+                                    const imgH = (imgW * 9) / 16;
+
+                                    // Center vertically
+                                    const imgY = y + (h - imgH) / 2;
+
+                                    try {
+                                        doc.addImage(linkObj.img, 'JPEG', x + 2, imgY, imgW, imgH);
+                                        // Make image clickable
+                                        if (linkObj.video) {
+                                            doc.link(x + 2, imgY, imgW, imgH, { url: linkObj.video });
+                                        }
+                                    } catch (e) {
+                                        console.warn("Img draw fail", e);
+                                    }
+                                } else if (linkObj.video) {
+                                    // Text Link Fallback already drawn by content, just add link
+                                    doc.link(x, y, w, h, { url: linkObj.video });
                                 }
                             }
                         }
