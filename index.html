@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.288</title>
+    <title>Friday-night-hawk-s Timer v1.31.289</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.288</span>
+                FNH Timer <span class="version-tag">v1.31.289</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3358,33 +3358,69 @@
         // --- NEW PRINT STATION MODAL LOGIC ---
         let selectedStationIds = new Set();
         let uniqueStationsForPrint = [];
+        let stationCardOverrides = {}; // New: Store manual edits
 
-        function openPrintStationModal() {
-            // 1. Identify unique exercises in schedule by INDEX
-            const stationMap = new Map();
+        // Helper to get ALL unique cards (Exercise + Label combinations)
+        function getUniqueStationCards(scheduleSource) {
+            const stationData = new Map();
 
-            schedule.forEach(step => {
+            scheduleSource.forEach(step => {
                 if (step.type === 'work' && step.info && step.info.exercise > 0) {
-                    const idx = step.info.exercise;
-                    // Just store one instance per Index
-                    if (!stationMap.has(idx)) {
-                        stationMap.set(idx, step);
-                    }
+                    const exIdx = step.info.exercise;
+                    const round = step.info.round;
+                    const label = step.label;
+
+                    if (!stationData.has(exIdx)) stationData.set(exIdx, new Map());
+
+                    const exMap = stationData.get(exIdx);
+                    if (!exMap.has(label)) exMap.set(label, new Set());
+
+                    exMap.get(label).add(round);
                 }
             });
 
-            // uniqueStationsForPrint will be array of steps
-            uniqueStationsForPrint = Array.from(stationMap.values());
-            // Sort by Index
-            uniqueStationsForPrint.sort((a, b) => a.info.exercise - b.info.exercise);
+            const uniqueCards = [];
+
+            // Flat Map to List
+            // Sort by Ex Index first
+            const sortedStationIds = Array.from(stationData.keys()).sort((a, b) => a - b);
+
+            sortedStationIds.forEach((exIdx) => {
+                const exMap = stationData.get(exIdx);
+                const entries = Array.from(exMap.entries());
+
+                // Sort inside station by First Round occurrence
+                entries.sort((a, b) => {
+                    const minRoundA = Math.min(...Array.from(a[1]));
+                    const minRoundB = Math.min(...Array.from(b[1]));
+                    return minRoundA - minRoundB;
+                });
+
+                entries.forEach(([label, roundSet]) => {
+                    uniqueCards.push({
+                        exIdx: exIdx,
+                        label: label,
+                        roundSet: roundSet,
+                        isSplit: (entries.length > 1)
+                    });
+                });
+            });
+
+            return uniqueCards;
+        }
+
+        function openPrintStationModal() {
+            // 1. Identify unique cards
+            uniqueStationsForPrint = getUniqueStationCards(schedule);
 
             if (uniqueStationsForPrint.length === 0) {
                 alert("Geen stations gevonden in het schema.");
                 return;
             }
 
-            // 2. Select IDs (Default All)
-            selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.info.exercise));
+            // 2. Select IDs (Default All unique Ex Indexes)
+            // We select by STATION ID (Integer), ensuring all variants of that station are selected/deselected together
+            selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.exIdx));
 
             // 3. Render UI
             renderStationChecklist();
@@ -3407,10 +3443,25 @@
             const container = document.getElementById('station-checklist');
             container.innerHTML = '';
 
-            uniqueStationsForPrint.forEach((step) => {
-                const exIdx = step.info.exercise;
-                const exName = step.label;
-                const displayName = `${exIdx}. ${exName}`;
+            // Group by ExIdx to show one checkbox per Station
+            const stationGroups = new Map();
+            uniqueStationsForPrint.forEach(card => {
+                if (!stationGroups.has(card.exIdx)) stationGroups.set(card.exIdx, []);
+                stationGroups.get(card.exIdx).push(card);
+            });
+
+            stationGroups.forEach((cards, exIdx) => {
+                // Determine Display Name
+                let displayName = `${exIdx}. `;
+                if (cards.length === 1) {
+                    displayName += cards[0].label;
+                } else {
+                    // Start of Multi
+                    const names = cards.map(c => c.label).join(", ");
+                    displayName += names;
+                    // Optional: indicate multiple
+                    // displayName += ` (${cards.length} Varianten)`; 
+                }
 
                 const div = document.createElement('div');
                 div.style.cssText = "background:#333; padding:10px; border-radius:5px; display:flex; align-items:center; cursor:pointer;";
@@ -3431,6 +3482,8 @@
                 const label = document.createElement('span');
                 label.textContent = displayName;
                 label.style.color = "white";
+                // If multiple, maybe italic or smaller?
+                if (cards.length > 1) label.style.fontSize = "13px";
 
                 div.appendChild(check);
                 div.appendChild(label);
@@ -3451,7 +3504,7 @@
 
         function toggleSelectAllStations(selectAll) {
             if (selectAll) {
-                selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.info.exercise));
+                selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.exIdx));
             } else {
                 selectedStationIds.clear();
             }
@@ -3476,28 +3529,38 @@
             renderPreviewCard();
         }
 
+        function updateStationOverride(exIdx, overrideKey, field, value) {
+            // overrideKey is unique string: "ID|LABEL"
+            if (!stationCardOverrides[overrideKey]) stationCardOverrides[overrideKey] = {};
+            stationCardOverrides[overrideKey][field] = value;
+        }
+
         function renderPreviewCard() {
             const container = document.getElementById('station-preview-container');
             container.innerHTML = '';
 
-            // Render ALL selected items
-            // selectedStationIds are Integers now
-            const ids = Array.from(selectedStationIds);
+            // Filter unique cards by selected IDs
+            const cardsToRender = uniqueStationsForPrint.filter(c => selectedStationIds.has(c.exIdx));
 
-            // Sort numeric
-            ids.sort((a, b) => a - b);
+            // Sort by ExIdx then Label (implicit in original order)
+            // original order in uniqueStationsForPrint is redundant since filter preserves order
 
-            ids.forEach(exIdx => {
-                // Find label for this index
-                const step = uniqueStationsForPrint.find(s => s.info.exercise === exIdx);
-                const labelName = step ? step.label : `Station ${exIdx}`;
+            cardsToRender.forEach(cardItem => {
+                const { exIdx, label, roundSet, isSplit } = cardItem;
+                const overrideKey = `${exIdx}|${label}`;
 
-                let details = getExerciseDetails(labelName);
+                let details = getExerciseDetails(label);
+
+                // --- OVERRIDE INITIALIZATION ---
+                const ovr = stationCardOverrides[overrideKey] || {};
+                const displayLabel = ovr.label !== undefined ? ovr.label : label;
+                const displayMat = ovr.material !== undefined ? ovr.material : (details ? (details.material_name || "-") : "-");
+                const displayInstr = ovr.instructions !== undefined ? ovr.instructions : (details ? (details.instructions || "Geen instructie.") : "-");
 
                 // Fallback for placeholders or missing data
                 if (!details) {
                     details = {
-                        name: labelName,
+                        name: label, // use original label
                         material_name: "Onbekend Materiaal",
                         instructions: "Geen instructies beschikbaar voor deze oefening.",
                         thumbnail: null
@@ -3510,15 +3573,16 @@
 
                 // Header
                 card.innerHTML += `<div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:bold;">STATION ${exIdx}</span>
+                    <span style="font-size:12px; font-weight:bold;">STATION ${exIdx}${isSplit ? ' (' + Array.from(roundSet).join(',') + ')' : ''}</span>
                     <span style="font-size:10px; color:#555;">FNH Timer</span>
                 </div>`;
 
                 // Title / Big Number (SHOW NUMBER NOW)
                 card.innerHTML += `<div style="font-size:120px; font-weight:bold; line-height:1; color:#000; text-align:center;">${exIdx}</div>`;
 
-                // Add Name below number
-                card.innerHTML += `<div style="font-size:18px; font-weight:bold; text-align:center; margin-bottom:10px;">${labelName}</div>`;
+                // Add Name below number (EDITABLE)
+                // Use overrideKey!
+                card.innerHTML += `<input type="text" value="${displayLabel}" oninput="updateStationOverride(${exIdx}, '${overrideKey}', 'label', this.value)" style="display:block; width:100%; font-size:18px; font-weight:bold; text-align:center; margin-bottom:10px; border:1px dashed #ccc; padding:5px;">`;
 
                 // Thumbnail
                 const showThumbnails = document.getElementById('print-opt-thumbnails').checked;
@@ -3533,13 +3597,13 @@
                     card.innerHTML += `<div style="text-align:center; padding:20px; background:#eee; margin-bottom:10px; font-size:12px;">Geen Afbeelding</div>`;
                 }
 
-                // Details
-                const matName = details.material_name || "-";
-                const instr = details.instructions || "-";
-
+                // Details (EDITABLE)
                 card.innerHTML += `<div style="font-size:11px;">
-                    <p><strong>Materiaal:</strong><br>${matName}</p>
-                    <p><strong>Instructie:</strong><br>${instr}</p>
+                    <p><strong>Materiaal:</strong><br>
+                    <textarea oninput="updateStationOverride(${exIdx}, '${overrideKey}', 'material', this.value)" style="width:100%; font-family:sans-serif; border:1px dashed #ccc; padding:5px; font-size:11px;">${displayMat}</textarea></p>
+                    
+                    <p><strong>Instructie:</strong><br>
+                    <textarea oninput="updateStationOverride(${exIdx}, '${overrideKey}', 'instructions', this.value)" style="width:100%; height:60px; font-family:sans-serif; border:1px dashed #ccc; padding:5px; font-size:11px;">${displayInstr}</textarea></p>
                 </div>`;
 
                 container.appendChild(card);
@@ -3547,7 +3611,7 @@
 
             const note = document.createElement('p');
             note.style.cssText = "margin-top:10px; color:#666; font-size:12px;";
-            note.textContent = `(Totaal: ${ids.length} kaarten)`;
+            note.textContent = `(Totaal: ${cardsToRender.length} kaarten)`;
             container.appendChild(note);
         }
 
@@ -3621,52 +3685,12 @@
                     return;
                 }
 
-                const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'portrait', format: 'a4' });
 
                 // 1. Determine Unique Cards needed
-                // Pre-Calculate: Station -> Map<ExerciseLabel, Array<Rounds>>
-                let stationData = new Map();
-
-                schedule.forEach(step => {
-                    if (step.type === 'work' && step.info && step.info.exercise > 0) {
-                        const exIdx = step.info.exercise;
-                        const round = step.info.round;
-                        const label = step.label;
-
-                        if (!stationData.has(exIdx)) stationData.set(exIdx, new Map());
-
-                        const exMap = stationData.get(exIdx);
-                        if (!exMap.has(label)) exMap.set(label, new Set());
-
-                        exMap.get(label).add(round);
-                    }
-                });
-
-                const uniqueCards = [];
-
-                // Loop through SORTED Station IDs
-                stationIds.forEach((exIdx) => {
-                    const exMap = stationData.get(exIdx);
-                    if (!exMap) return;
-
-                    const entries = Array.from(exMap.entries());
-                    // Sort by first round appearance
-                    entries.sort((a, b) => {
-                        const minRoundA = Math.min(...Array.from(a[1]));
-                        const minRoundB = Math.min(...Array.from(b[1]));
-                        return minRoundA - minRoundB;
-                    });
-
-                    entries.forEach(([label, roundSet]) => {
-                        uniqueCards.push({
-                            exIdx: exIdx,
-                            label: label,
-                            roundSet: roundSet,
-                            isSplit: (entries.length > 1)
-                        });
-                    });
-                });
+                // Use the shared Helper, filtering by selection
+                const allUnique = getUniqueStationCards(schedule); // Or reuse uniqueStationsForPrint if sync
+                const uniqueCards = allUnique.filter(c => stationIds.includes(c.exIdx));
 
                 // 2. Pre-load Images (Logo + Thumbnails)
                 const logoImg = await loadImage('FNH logo.jpg');
@@ -3733,7 +3757,16 @@
                     doc.setFont("helvetica", "bold");
                     doc.setTextColor(0, 0, 0);
 
-                    const nameLines = doc.splitTextToSize(label, width - 30);
+                    // --- DETAILS ---
+                    const details = getExerciseDetails(label);
+
+                    // CHECK OVERRIDES
+                    // Use composite key!
+                    const overrideKey = `${exIdx}|${label}`;
+                    const ovr = stationCardOverrides[overrideKey] || {};
+                    const finalLabel = ovr.label !== undefined ? ovr.label : label;
+
+                    const nameLines = doc.splitTextToSize(finalLabel, width - 30);
                     doc.text(nameLines, width / 2, yPos, { align: 'center' });
                     yPos += (nameLines.length * 12) + 15;
 
@@ -3757,54 +3790,56 @@
                         }
                     }
                     if (details) {
-                        const matName = details.material_name || "-";
-                        const matDesc = details.material_description || "";
-                        const instr = details.instructions || "Geen instructie.";
+                        if (details || ovr) {
+                            const matName = ovr.material !== undefined ? ovr.material : (details ? (details.material_name || "-") : "-");
+                            // If user overrides material text manually, assume they include everything they want; suppress the separate description.
+                            const matDesc = (ovr.material !== undefined) ? "" : (details ? (details.material_description || "") : "");
+                            const instr = ovr.instructions !== undefined ? ovr.instructions : (details ? (details.instructions || "Geen instructie.") : "Geen instructie.");
 
-                        doc.setFontSize(14);
-                        doc.setFont("helvetica", "bold");
-                        doc.setTextColor(100);
-                        doc.text("MATERIAAL:", 25, yPos);
-                        yPos += 7;
-
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(14);
-                        doc.setTextColor(0);
-                        doc.text(matName, 25, yPos);
-
-                        if (matDesc) {
-                            const descW = doc.getTextWidth(matName);
-                            doc.setFont("helvetica", "italic");
+                            doc.setFontSize(14);
+                            doc.setFont("helvetica", "bold");
                             doc.setTextColor(100);
-                            doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
+                            doc.text("MATERIAAL:", 25, yPos);
+                            yPos += 7;
+
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(14);
+                            doc.setTextColor(0);
+                            doc.text(matName, 25, yPos);
+
+                            if (matDesc) {
+                                const descW = doc.getTextWidth(matName);
+                                doc.setFont("helvetica", "italic");
+                                doc.setTextColor(100);
+                                doc.text(` - ${matDesc}`, 25 + descW + 2, yPos);
+                            }
+                            yPos += 14;
+
+                            doc.setFont("helvetica", "bold");
+                            doc.setFontSize(14);
+                            doc.setTextColor(100);
+                            doc.text("INSTRUCTIE:", 25, yPos);
+                            yPos += 7;
+
+                            doc.setFont("helvetica", "normal");
+                            doc.setFontSize(13);
+                            doc.setTextColor(0);
+                            const instructionLines = doc.splitTextToSize(instr, width - 50);
+                            doc.text(instructionLines, 25, yPos);
                         }
-                        yPos += 14;
 
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(14);
-                        doc.setTextColor(100);
-                        doc.text("INSTRUCTIE:", 25, yPos);
-                        yPos += 7;
+                        // Footer Bar
+                        doc.setFillColor(0, 0, 0);
+                        doc.rect(0, height - 20, width, 20, 'F');
+                        doc.setFontSize(10);
+                        doc.setTextColor(255, 255, 255);
+                        const footerText = isSplit
+                            ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
+                            : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
 
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(13);
-                        doc.setTextColor(0);
-                        const instructionLines = doc.splitTextToSize(instr, width - 50);
-                        doc.text(instructionLines, 25, yPos);
-                    }
+                        doc.text(footerText, width / 2, height - 8, { align: 'center' });
 
-                    // Footer Bar
-                    doc.setFillColor(0, 0, 0);
-                    doc.rect(0, height - 20, width, 20, 'F');
-                    doc.setFontSize(10);
-                    doc.setTextColor(255, 255, 255);
-                    const footerText = isSplit
-                        ? `FRIDAY NIGHT HAWK - STATION ${exIdx} (Ronde ${rounds.join(', ')})`
-                        : `FRIDAY NIGHT HAWK - STATION ${exIdx}`;
-
-                    doc.text(footerText, width / 2, height - 8, { align: 'center' });
-
-                }); // End UniqueCards Loop
+                    }); // End UniqueCards Loop
 
 
                 doc.save("FNH-Stationskaarten.pdf");
