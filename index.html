@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.274</title>
+    <title>Friday-night-hawk-s Timer v1.31.275</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.274</span>
+                FNH Timer <span class="version-tag">v1.31.275</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2596,6 +2596,13 @@
         let timerInterval;
         let isPaused = false;
         window.lastStepChangeTime = 0; // SAFETY: Initialize global anchor
+
+        // Load Database
+        // Cache-busting: append timestamp
+        // Check for local file protocol
+        if (window.location.protocol === 'file:') {
+            alert("⚠️ LET OP: Je opent de app lokaal (file://).\n\nVanwege beveiliging in browsers kan de database NIET geladen worden.\nGebruik de online versie of een lokale webserver.");
+        }
 
         // Load Database
         // Cache-busting: append timestamp
