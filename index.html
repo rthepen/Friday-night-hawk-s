@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.285</title>
+    <title>Friday-night-hawk-s Timer v1.31.286</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.285</span>
+                FNH Timer <span class="version-tag">v1.31.286</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3473,61 +3473,66 @@
             const container = document.getElementById('station-preview-container');
             container.innerHTML = '';
 
-            // Get first selected item
-            const firstId = Array.from(selectedStationIds)[0];
-            let details = getExerciseDetails(firstId);
+            // Render ALL selected items
+            const ids = Array.from(selectedStationIds);
 
-            // Fallback for placeholders or missing data
-            if (!details) {
-                details = {
-                    name: firstId,
-                    material_name: "Onbekend Materiaal",
-                    instructions: "Geen instructies beschikbaar voor deze oefening.",
-                    thumbnail: null // Will trigger 'Geen Afbeelding'
-                };
-            }
+            // Sort them to match PDF order (numeric)
+            ids.sort((a, b) => parseFloat(a) - parseFloat(b));
 
-            // Create a scale-down HTML card
-            const card = document.createElement('div');
-            card.style.cssText = "width:300px; background:white; color:black; margin:0 auto; padding:15px; border:1px solid #ccc; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; font-family:sans-serif;";
+            ids.forEach(id => {
+                let details = getExerciseDetails(id);
 
-            // Header
-            card.innerHTML += `<div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:12px; font-weight:bold;">STATION X</span>
-                <span style="font-size:10px; color:#555;">FNH Timer</span>
-            </div>`;
+                // Fallback for placeholders or missing data
+                if (!details) {
+                    details = {
+                        name: id,
+                        material_name: "Onbekend Materiaal",
+                        instructions: "Geen instructies beschikbaar voor deze oefening.",
+                        thumbnail: null
+                    };
+                }
 
-            // Title
-            card.innerHTML += `<h2 style="font-size:20px; text-align:center; margin:10px 0; color:#005eff;">${firstId}</h2>`;
+                // Create a scale-down HTML card
+                const card = document.createElement('div');
+                card.style.cssText = "width:300px; background:white; color:black; margin:0 auto 20px auto; padding:15px; border:1px solid #ccc; box-shadow:0 0 10px rgba(0,0,0,0.1); text-align:left; font-family:sans-serif; page-break-inside: avoid;";
 
-            // Thumbnail (The Real Test!)
-            const showThumbnails = document.getElementById('print-opt-thumbnails').checked;
+                // Header
+                card.innerHTML += `<div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:bold;">STATION ${id}</span>
+                    <span style="font-size:10px; color:#555;">FNH Timer</span>
+                </div>`;
 
-            if (showThumbnails && details.thumbnail) {
-                card.innerHTML += `<div style="text-align:center; margin-bottom:10px;">
-                    <img src="${details.thumbnail}" style="max-width:100%; height:auto; border:1px solid #eee;" alt="Thumbnail Test" onload="console.log('Preview Img Loaded')" onerror="console.log('Preview Img Error')">
-               </div>`;
-            } else if (!showThumbnails) {
-                card.innerHTML += `<div style="text-align:center; padding:10px; color:#999; margin-bottom:10px; font-size:12px; font-style:italic;">(Afbeelding verborgen)</div>`;
-            } else {
-                card.innerHTML += `<div style="text-align:center; padding:20px; background:#eee; margin-bottom:10px; font-size:12px;">Geen Afbeelding</div>`;
-            }
+                // Title / Big Number
+                card.innerHTML += `<div style="font-size:120px; font-weight:bold; line-height:1; color:#000; text-align:center;">${id}</div>`;
 
-            // Details
-            const matName = details.material_name || "-";
-            const instr = details.instructions || "-";
+                // Thumbnail
+                const showThumbnails = document.getElementById('print-opt-thumbnails').checked;
 
-            card.innerHTML += `<div style="font-size:11px;">
-                <p><strong>Materiaal:</strong><br>${matName}</p>
-                <p><strong>Instructie:</strong><br>${instr.substring(0, 100)}...</p>
-            </div>`;
+                if (showThumbnails && details.thumbnail) {
+                    card.innerHTML += `<div style="text-align:center; margin-bottom:10px;">
+                        <img src="${details.thumbnail}" style="max-width:150px; height:auto; border:1px solid #eee;" alt="Thumbnail" onload="console.log('Preview Img Loaded')" onerror="console.log('Preview Img Error')">
+                   </div>`;
+                } else if (!showThumbnails) {
+                    card.innerHTML += `<div style="text-align:center; padding:10px; color:#999; margin-bottom:10px; font-size:12px; font-style:italic;">(Afbeelding verborgen)</div>`;
+                } else {
+                    card.innerHTML += `<div style="text-align:center; padding:20px; background:#eee; margin-bottom:10px; font-size:12px;">Geen Afbeelding</div>`;
+                }
 
-            // Note
-            container.appendChild(card);
+                // Details
+                const matName = details.material_name || "-";
+                const instr = details.instructions || "-";
+
+                card.innerHTML += `<div style="font-size:11px;">
+                    <p><strong>Materiaal:</strong><br>${matName}</p>
+                    <p><strong>Instructie:</strong><br>${instr.substring(0, 100)}...</p>
+                </div>`;
+
+                container.appendChild(card);
+            });
 
             const note = document.createElement('p');
             note.style.cssText = "margin-top:10px; color:#666; font-size:12px;";
-            note.textContent = `(Dit is een voorbeeld van 1 van de ${selectedStationIds.size} geselecteerde kaarten)`;
+            note.textContent = `(Totaal: ${ids.length} kaarten)`;
             container.appendChild(note);
         }
 
@@ -3694,9 +3699,9 @@
 
                     // MASSIVE Number
                     doc.setFont("helvetica", "bold");
-                    doc.setFontSize(350);
+                    doc.setFontSize(450);
                     doc.setTextColor(0, 0, 0);
-                    doc.text(`${exIdx}`, width / 2, 130, { align: 'center' }); // Lowered slightly to make room
+                    doc.text(`${exIdx}`, width / 2, 145, { align: 'center' }); // Lowered slightly to make room
 
                     // --- ROUND INFO (If Split) ---
                     if (isSplit) {
@@ -3728,7 +3733,7 @@
 
                     if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
                         const imgObj = thumbMap.get(details.thumbnail);
-                        const imgW = 120; // nice big image
+                        const imgW = 60; // smaller image
                         const imgH = (imgW * 9) / 16; /* Standard 16:9 for YouTube */
 
                         if (yPos + imgH < height - 60) {
