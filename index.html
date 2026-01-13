@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.278</title>
+    <title>Friday-night-hawk-s Timer v1.31.279</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.278</span>
+                FNH Timer <span class="version-tag">v1.31.279</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3315,6 +3315,7 @@
 
         // Helper to load image for PDF
         // Helper to load image for PDF (Base64 to avoid CORS/Canvas issues)
+        // Returns object { data: base64String, width: nm, height: num } or null
         async function loadImage(url) {
             try {
                 const response = await fetch(url);
@@ -3322,7 +3323,19 @@
                 const blob = await response.blob();
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
+                    reader.onloadend = () => {
+                        const base64data = reader.result;
+                        const img = new Image();
+                        img.onload = () => {
+                            resolve({
+                                data: base64data,
+                                width: img.width,
+                                height: img.height
+                            });
+                        };
+                        img.onerror = () => resolve(null);
+                        img.src = base64data;
+                    };
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
                 });
@@ -3427,7 +3440,7 @@
                         const imgRatio = logoImg.height / logoImg.width;
                         const imgW = 40;
                         const imgH = imgW * imgRatio;
-                        doc.addImage(logoImg, 'JPEG', width - imgW - 10, 10, imgW, imgH);
+                        doc.addImage(logoImg.data, 'JPEG', width - imgW - 10, 10, imgW, imgH);
                     }
 
                     // "STATION" Label
@@ -3471,12 +3484,12 @@
                     // Best spot: Above details, center.
 
                     if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
-                        const img = thumbMap.get(details.thumbnail);
+                        const imgObj = thumbMap.get(details.thumbnail);
                         const imgW = 120; // nice big image
-                        const imgH = (imgW * 9) / 16;
+                        const imgH = (imgW * 9) / 16; /* Standard 16:9 for YouTube */
 
                         if (yPos + imgH < height - 60) {
-                            doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
+                            doc.addImage(imgObj.data, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
                             yPos += imgH + 15;
                         }
                     }
@@ -4238,7 +4251,7 @@
                                     const imgY = y + (h - imgH) / 2;
 
                                     try {
-                                        doc.addImage(linkObj.img, 'JPEG', x + 2, imgY, imgW, imgH);
+                                        doc.addImage(linkObj.img.data, 'JPEG', x + 2, imgY, imgW, imgH);
                                         // Make image clickable
                                         if (linkObj.video) {
                                             doc.link(x + 2, imgY, imgW, imgH, { url: linkObj.video });
