@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.272</title>
+    <title>Friday-night-hawk-s Timer v1.31.273</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.272</span>
+                FNH Timer <span class="version-tag">v1.31.273</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3308,12 +3308,13 @@
 
         // Helper to load image for PDF
         function loadImage(url) {
+            console.log("Loading image:", url);
             return new Promise((resolve) => {
                 const img = new Image();
                 img.crossOrigin = "Anonymous";
                 img.src = url;
-                img.onload = () => resolve(img);
-                img.onerror = () => resolve(null); // Fail gracefully
+                img.onload = () => { console.log("Loaded:", url); resolve(img); };
+                img.onerror = (e) => { console.error("Failed to load:", url, e); resolve(null); };
             });
         }
 
@@ -3378,6 +3379,7 @@
                 });
 
                 // 2. Pre-load Images (Logo + Thumbnails)
+                console.log("Starting image preload...");
                 const logoImg = await loadImage('FNH logo.jpg');
                 const thumbMap = new Map();
                 const imagePromises = [];
@@ -3386,15 +3388,20 @@
                     const details = getExerciseDetails(card.label);
                     if (details && details.thumbnail) {
                         if (!thumbMap.has(details.thumbnail)) {
+                            console.log("Queueing thumbnail:", details.thumbnail);
                             thumbMap.set(details.thumbnail, null);
                             imagePromises.push(loadImage(details.thumbnail).then(img => {
-                                if (img) thumbMap.set(details.thumbnail, img);
+                                if (img) {
+                                    console.log("Stored in map:", details.thumbnail);
+                                    thumbMap.set(details.thumbnail, img);
+                                }
                             }));
                         }
                     }
                 });
 
                 await Promise.all(imagePromises);
+                console.log("All images loaded. Map size:", thumbMap.size);
 
                 // 3. Generate PDF
                 uniqueCards.forEach((card, index) => {
@@ -3455,27 +3462,29 @@
                     // Let's float it: Top Right below logo? Or just above details.
                     // Best spot: Above details, center.
 
-                    if (details && details.thumbnail && thumbMap.get(details.thumbnail)) {
-                        const img = thumbMap.get(details.thumbnail);
-                        const imgW = 120; // nice big image
-                        const imgH = (imgW * 9) / 16;
+                    if (details && details.thumbnail) {
+                        console.log(`Checking thumbnail for ${label}:`, details.thumbnail);
+                        if (thumbMap.get(details.thumbnail)) {
+                            console.log("Image found in map, attempting to draw...");
+                            const img = thumbMap.get(details.thumbnail);
+                            const imgW = 120; // nice big image
+                            const imgH = (imgW * 9) / 16;
 
-                        // Check if yPos + imgH exceeds page?
-                        // Station cards are A4 portrait.
-                        // 175 (Y) + Text ~ 200. + Img 70 ~ 270. Page is 297. Tight.
-                        // Let's try to fit it.
-
-                        // Optimization: If ID is massive (350pt), it takes up most of center.
-                        // Maybe put image *over* the number with opacity? No.
-                        // Small thumbnail next to "STATION" label?
-                        // Or, just put it below the name.
-
-                        if (yPos + imgH < height - 60) {
-                            doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
-                            yPos += imgH + 15;
+                            if (yPos + imgH < height - 60) {
+                                try {
+                                    doc.addImage(img, 'JPEG', (width - imgW) / 2, yPos, imgW, imgH);
+                                    console.log("DRAW SUCCESS");
+                                    yPos += imgH + 15;
+                                } catch (err) {
+                                    console.error("DRAW ERROR:", err);
+                                }
+                            } else {
+                                console.log("Skipping image: Not enough space");
+                            }
+                        } else {
+                            console.log("Image NOT found in map for", details.thumbnail);
                         }
                     }
-
                     if (details) {
                         const matName = details.material_name || "-";
                         const matDesc = details.material_description || "";
