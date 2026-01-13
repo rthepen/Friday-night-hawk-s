@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.286</title>
+    <title>Friday-night-hawk-s Timer v1.31.287</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.286</span>
+                FNH Timer <span class="version-tag">v1.31.287</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3360,27 +3360,31 @@
         let uniqueStationsForPrint = [];
 
         function openPrintStationModal() {
-            // 1. Identify unique exercises in schedule
+            // 1. Identify unique exercises in schedule by INDEX
             const stationMap = new Map();
 
             schedule.forEach(step => {
-                if (step.type === 'work' && step.info.exercise > 0) {
-                    const exId = step.label; // Use label as ID/Key
-                    // Just store one instance
-                    if (!stationMap.has(exId)) {
-                        stationMap.set(exId, step);
+                if (step.type === 'work' && step.info && step.info.exercise > 0) {
+                    const idx = step.info.exercise;
+                    // Just store one instance per Index
+                    if (!stationMap.has(idx)) {
+                        stationMap.set(idx, step);
                     }
                 }
             });
 
+            // uniqueStationsForPrint will be array of steps
             uniqueStationsForPrint = Array.from(stationMap.values());
+            // Sort by Index
+            uniqueStationsForPrint.sort((a, b) => a.info.exercise - b.info.exercise);
+
             if (uniqueStationsForPrint.length === 0) {
                 alert("Geen stations gevonden in het schema.");
                 return;
             }
 
-            // 2. Select IDs
-            selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.label));
+            // 2. Select IDs (Default All)
+            selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.info.exercise));
 
             // 3. Render UI
             renderStationChecklist();
@@ -3403,28 +3407,29 @@
             const container = document.getElementById('station-checklist');
             container.innerHTML = '';
 
-            uniqueStationsForPrint.forEach((step, index) => {
+            uniqueStationsForPrint.forEach((step) => {
+                const exIdx = step.info.exercise;
                 const exName = step.label;
+                const displayName = `${exIdx}. ${exName}`;
 
                 const div = document.createElement('div');
                 div.style.cssText = "background:#333; padding:10px; border-radius:5px; display:flex; align-items:center; cursor:pointer;";
                 div.onclick = (e) => {
-                    // Prevent check toggle when clicking checkbox itself (handled natively)
                     if (e.target.type !== 'checkbox') {
-                        toggleStationSelection(exName);
+                        toggleStationSelection(exIdx);
                     }
                 };
 
                 const check = document.createElement('input');
                 check.type = 'checkbox';
-                check.checked = selectedStationIds.has(exName);
-                check.value = exName;
+                check.checked = selectedStationIds.has(exIdx);
+                check.value = exIdx;
                 check.style.transform = "scale(1.5)";
                 check.style.marginRight = "10px";
-                check.onchange = () => toggleStationSelection(exName);
+                check.onchange = () => toggleStationSelection(exIdx);
 
                 const label = document.createElement('span');
-                label.textContent = exName;
+                label.textContent = displayName;
                 label.style.color = "white";
 
                 div.appendChild(check);
@@ -3434,17 +3439,19 @@
         }
 
         function toggleStationSelection(id) {
-            if (selectedStationIds.has(id)) {
-                selectedStationIds.delete(id);
+            // ID is now Integer
+            const numericId = parseInt(id);
+            if (selectedStationIds.has(numericId)) {
+                selectedStationIds.delete(numericId);
             } else {
-                selectedStationIds.add(id);
+                selectedStationIds.add(numericId);
             }
             renderStationChecklist();
         }
 
         function toggleSelectAllStations(selectAll) {
             if (selectAll) {
-                selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.label));
+                selectedStationIds = new Set(uniqueStationsForPrint.map(s => s.info.exercise));
             } else {
                 selectedStationIds.clear();
             }
@@ -3474,18 +3481,23 @@
             container.innerHTML = '';
 
             // Render ALL selected items
+            // selectedStationIds are Integers now
             const ids = Array.from(selectedStationIds);
 
-            // Sort them to match PDF order (numeric)
-            ids.sort((a, b) => parseFloat(a) - parseFloat(b));
+            // Sort numeric
+            ids.sort((a, b) => a - b);
 
-            ids.forEach(id => {
-                let details = getExerciseDetails(id);
+            ids.forEach(exIdx => {
+                // Find label for this index
+                const step = uniqueStationsForPrint.find(s => s.info.exercise === exIdx);
+                const labelName = step ? step.label : `Station ${exIdx}`;
+
+                let details = getExerciseDetails(labelName);
 
                 // Fallback for placeholders or missing data
                 if (!details) {
                     details = {
-                        name: id,
+                        name: labelName,
                         material_name: "Onbekend Materiaal",
                         instructions: "Geen instructies beschikbaar voor deze oefening.",
                         thumbnail: null
@@ -3498,12 +3510,15 @@
 
                 // Header
                 card.innerHTML += `<div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:bold;">STATION ${id}</span>
+                    <span style="font-size:12px; font-weight:bold;">STATION ${exIdx}</span>
                     <span style="font-size:10px; color:#555;">FNH Timer</span>
                 </div>`;
 
-                // Title / Big Number
-                card.innerHTML += `<div style="font-size:120px; font-weight:bold; line-height:1; color:#000; text-align:center;">${id}</div>`;
+                // Title / Big Number (SHOW NUMBER NOW)
+                card.innerHTML += `<div style="font-size:120px; font-weight:bold; line-height:1; color:#000; text-align:center;">${exIdx}</div>`;
+
+                // Add Name below number
+                card.innerHTML += `<div style="font-size:18px; font-weight:bold; text-align:center; margin-bottom:10px;">${labelName}</div>`;
 
                 // Thumbnail
                 const showThumbnails = document.getElementById('print-opt-thumbnails').checked;
