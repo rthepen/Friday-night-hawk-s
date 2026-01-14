@@ -2485,7 +2485,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.373";
+        const APP_VERSION = "1.31.375";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4881,6 +4881,17 @@
                 copyBtn.innerText = '📋';
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
+
+                // Shuffle Button (Small Dice next to Copy)
+                const shuffleBtn = document.createElement('button');
+                shuffleBtn.className = 'btn-header';
+                shuffleBtn.style.position = 'absolute';
+                shuffleBtn.style.right = '80px'; // Next to Copy (40px)
+                shuffleBtn.style.top = '10px';
+                shuffleBtn.innerText = '🎲';
+                shuffleBtn.title = "Hussel deze ronde (Oefeningen)";
+                shuffleBtn.onclick = () => shuffleRound(index);
+                card.appendChild(shuffleBtn);
 
                 // (Redundant Copy/Edit/Title logic removed)
 
