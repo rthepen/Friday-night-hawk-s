@@ -2470,7 +2470,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.345";
+        const APP_VERSION = "1.31.346";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -6136,6 +6136,19 @@
                     overlay.style.display = 'flex';
                     if (startInfoEl) startInfoEl.innerText = `STARTTIJD: ${startStr}`;
 
+                    // NEW: Show Jump In button if start was in the past (wraps to tomorrow)
+                    const jumpBtn = document.getElementById('btn-jump-in');
+                    if (jumpBtn) {
+                        const originalTarget = new Date();
+                        originalTarget.setHours(h, m, 0, 0);
+                        if (originalTarget < now) {
+                            jumpBtn.style.display = 'block';
+                            jumpBtn.setAttribute('data-original-start', originalTarget.getTime());
+                        } else {
+                            jumpBtn.style.display = 'none';
+                        }
+                    }
+
                     // AUDIO CONTROLS INIT (PRE-WORKOUT)
                     const volWorkPre = document.getElementById('vol-music-pre');
                     const volRestPre = document.getElementById('vol-rest-pre');
@@ -6295,6 +6308,70 @@
             }
 
             runStep();
+        }
+
+        }
+
+        function startSyncWorkout() {
+            const jumpBtn = document.getElementById('btn-jump-in');
+            const originalStartMs = parseInt(jumpBtn.getAttribute('data-original-start'));
+            if (!originalStartMs) return;
+
+            const now = Date.now();
+            let elapsedSec = Math.floor((now - originalStartMs) / 1000);
+
+            // 1. Prepare Workout
+            calculateRealTime();
+            generateScheduleData(true);
+            populateJumpMenus();
+
+            // 2. Find Sync Point
+            let foundIdx = 0;
+            let cumulativeSec = 0;
+            for (let i = 0; i < schedule.length; i++) {
+                const stepTime = schedule[i].time;
+                if (cumulativeSec + stepTime > elapsedSec) {
+                    foundIdx = i;
+                    break;
+                }
+                cumulativeSec += stepTime;
+                foundIdx = i; // Fallback to last if totally over
+            }
+
+            // 3. Jump to that point
+            currentIndex = foundIdx;
+            const remainingInStep = (cumulativeSec + schedule[foundIdx].time) - elapsedSec;
+
+            // 4. Perform Start
+            document.getElementById('pre-workout-overlay').style.display = 'none';
+            if (preWorkoutInterval) clearInterval(preWorkoutInterval);
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(console.log);
+            if (audioMode === 'beep') { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); }
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            const ts = document.getElementById('timer-screen');
+            ts.style.cssText = '';
+            ts.style.display = 'block';
+
+            workoutStartTime = new Date(originalStartMs);
+            const [h, m] = document.getElementById('endTimeValue').value.split(':');
+            targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
+
+            updateEndTimeDisplay();
+            audioPlaylists = {};
+            failedAudioKeys.clear();
+            milestonesTriggered = { m25: false, m50: false, m75: false };
+
+            // Start Step with remaining time
+            stepEndTime = Date.now() + (remainingInStep * 1000);
+            renderLiveSchedule();
+
+            if (!bgMusicManager.hasStartedForWorkout) {
+                bgMusicManager.startWorkout();
+            }
+
+            runStep();
+            triggerAudio('manual_override', "Ingehaakt op huidige moment");
         }
 
         function populateJumpMenus() {
@@ -8416,6 +8493,11 @@
         <button onclick="previewEarlyStartOptions()" class="action-btn"
             style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
             🚀 NU BEGINNEN (OVERSLAAN)
+        </button>
+
+        <button id="btn-jump-in" onclick="startSyncWorkout()" class="action-btn"
+            style="display:none; margin-top:15px; padding:15px 40px; background:rgba(48,209,88,0.2); border:1px solid rgba(48,209,88,0.4); backdrop-filter:blur(10px); width:auto; color:#30D158;">
+            ⏱️ IN HAKEN (MOMENTEEL BEZIG)
         </button>
         <script>
             function getFingerprint() {
