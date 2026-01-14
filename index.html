@@ -1741,11 +1741,11 @@
                 FNH Timer <span class="version-tag"></span>
             </div>
             <div class="header-buttons">
-                <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">?? Reset</button>
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
-                    onclick="applyTabataPreset()">⏱️ Tabata</button>
-                <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
-                <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
+                    onclick="applyTabataPreset()">?? Tabata</button>
+                <button class="btn-header btn-save" onclick="shareSettings()">?? Save</button>
+                <button class="btn-header btn-share-app" onclick="shareApp()">?? Delen</button>
             </div>
         </div>
 
@@ -1793,14 +1793,14 @@
 
         <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
 
-        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
+        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">?? Bekijk & Bewerk Schema</button>
 
 
 
         <div class="resume-options" style="display:none;">
             <div class="collapsible-header resume-header open" onclick="toggleSection('sec-resume')">
                 <div>Beginnen vanaf moment in training</div>
-                <span class="arrow">▼</span>
+                <span class="arrow">?</span>
             </div>
             <div id="sec-resume" class="collapsible-content">
                 <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Vul hieronder in waar je wilt starten.</div>
@@ -1834,10 +1834,10 @@
         </div>
 
         <div class="intro-banner">
-            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-title">?? Welcome to the Friday Night Hawks!</div>
             <div class="intro-text">
-                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
-                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+                De legendarische triathlon: <b>Spinning ?? � Bootcamp ??? � Zwemmen ??</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! ????
             </div>
         </div>
 
@@ -1878,31 +1878,31 @@
                 <div class="stats-row-1">
                     <div class="stat-box editable">
                         <select id="jump-round" class="transparent-input" onchange="handleJump()"></select>
-                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
                         <div class="stat-label">Ronde</div>
                         <div class="stat-value" id="val-round">-</div>
                     </div>
                     <div class="stat-box editable">
                         <select id="jump-exercise" class="transparent-input" onchange="handleJump()"></select>
-                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
                         <div class="stat-label">Oefening</div>
                         <div class="stat-value" id="val-exercise">-</div>
                     </div>
                     <div class="stat-box editable">
                         <select id="jump-set" class="transparent-input" onchange="handleJump()"></select>
-                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
                         <div class="stat-label">Set</div>
                         <div class="stat-value" id="val-set">-</div>
                     </div>
                 </div>
                 <div class="stats-row-2">
                     <div class="stat-box editable" onclick="openLiveEndAdjustment()" style="cursor:pointer;">
-                        <div class="edit-icon">🏁</div>
+                        <div class="edit-icon">??</div>
                         <div class="stat-label">Einde</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
                     </div>
                     <div class="stat-box editable" onclick="openLiveWorkAdjustment()" style="cursor:pointer;">
-                        <div class="edit-icon">⏱️</div>
+                        <div class="edit-icon">??</div>
                         <div class="stat-label">Werktijd</div>
                         <div class="stat-value" id="val-worktime">--s</div>
                     </div>
@@ -1911,19 +1911,19 @@
                 <div class="stats-row-3" style="display:flex; justify-content:space-between; margin-top:10px; gap:8px;">
                     <div class="stat-box editable" onclick="openLiveRestAdjustment('rest')"
                         style="cursor:pointer; flex:1;">
-                        <div class="edit-icon">💤</div>
+                        <div class="edit-icon">??</div>
                         <div class="stat-label">Rust</div>
                         <div class="stat-value" id="val-rest">--s</div>
                     </div>
                     <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-exercise')"
                         style="cursor:pointer; flex:1;">
-                        <div class="edit-icon">🔀</div>
+                        <div class="edit-icon">??</div>
                         <div class="stat-label">Wissel</div>
                         <div class="stat-value" id="val-switch">--s</div>
                     </div>
                     <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-long')"
                         style="cursor:pointer; flex:1;">
-                        <div class="edit-icon">☕</div>
+                        <div class="edit-icon">?</div>
                         <div class="stat-label">Pauze Ronde</div>
                         <div class="stat-value" id="val-pause-round">--s</div>
                     </div>
@@ -1938,15 +1938,15 @@
         </div>
 
         <div class="controls-container">
-            <button class="btn-control btn-skip" onclick="handlePrevClick()">⏮</button>
-            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">⏸</button>
-            <button class="btn-control btn-skip" onclick="handleNextClick()">⏭</button>
-            <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
+            <button class="btn-control btn-skip" onclick="handlePrevClick()">?</button>
+            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">?</button>
+            <button class="btn-control btn-skip" onclick="handleNextClick()">?</button>
+            <button class="btn-control btn-stop" onclick="confirmStop()">?</button>
         </div>
 
         <button onclick="toggleLiveEdit()" class="action-btn"
             style="margin-top:20px; background:#333; font-size:14px; padding:10px;">
-            ⚙️ Bewerk Schema (Training loopt door)
+            ?? Bewerk Schema (Training loopt door)
         </button>
 
         <div id="live-schedule-container">
@@ -1974,7 +1974,7 @@
             <button class="modal-btn"
                 style="background: linear-gradient(135deg, #32d74b 0%, #28cd41 100%); color: #000; font-weight: 800; border: none; box-shadow: 0 5px 15px rgba(50, 215, 75, 0.4);"
                 onclick="resolvePause('push')">
-                ✅ Eindtijd verzetten
+                ? Eindtijd verzetten
                 <span class="btn-subtext" id="btn-text-push" style="color: rgba(0,0,0,0.6); font-weight:600;">...</span>
                 <div style="font-size: 11px; font-weight: normal; opacity: 0.8; margin-top: 2px;">Werk- en rusttijden
                     blijven intact</div>
@@ -1982,31 +1982,31 @@
 
             <button class="modal-btn" id="btn-catch-work" style="background: #0A84FF; color: white;"
                 onclick="resolvePause('work')">
-                ⏱️ Inhalen via Werktijd
+                ?? Inhalen via Werktijd
                 <span class="btn-subtext" id="btn-text-work">...</span>
             </button>
 
             <button class="modal-btn" id="btn-catch-rest" style="background: #FF9F0A; color: black;"
                 onclick="resolvePause('rest')">
-                💤 Inhalen via Rust (Set)
+                ?? Inhalen via Rust (Set)
                 <span class="btn-subtext" id="btn-text-rest">...</span>
             </button>
 
             <button class="modal-btn" id="btn-catch-switch" style="background: #BF5AF2; color: white;"
                 onclick="resolvePause('switch')">
-                🔀 Inhalen via Wissels
+                ?? Inhalen via Wissels
                 <span class="btn-subtext" id="btn-text-switch">...</span>
             </button>
 
             <button class="modal-btn" id="btn-catch-round" style="background: #0A84FF; color: white;"
                 onclick="resolvePause('round')">
-                ☕ Inhalen via Ronde Rust
+                ? Inhalen via Ronde Rust
                 <span class="btn-subtext" id="btn-text-round">...</span>
             </button>
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
                 onclick="cancelPause()">
-                ❌ Annuleren (Terug)
+                ? Annuleren (Terug)
             </button>
         </div>
     </div>
@@ -2018,7 +2018,7 @@
             <h3 style="margin-top:0;">Spraak aanpassen</h3>
             <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Gebruik | voor variatie</div>
             <textarea id="speech-edit-area"></textarea>
-            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">💾
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">??
                 Opslaan</button>
             <button class="modal-btn" style="background: #333; color: white; margin-top:10px;"
                 onclick="closeSpeechEdit()">Annuleren</button>
@@ -2042,25 +2042,25 @@
 
             <button class="modal-btn" id="btn-live-work" style="background: #0A84FF; color: white;"
                 onclick="applyLiveEndAdjustment('work')">
-                ⏱️ Verdeel over Werk
+                ?? Verdeel over Werk
                 <span class="btn-subtext" id="sub-live-work">Effect: +/- 0s per set</span>
             </button>
 
             <button class="modal-btn" id="btn-live-rest" style="background: #FF9F0A; color: black;"
                 onclick="applyLiveEndAdjustment('rest')">
-                💤 Verdeel over Rust
+                ?? Verdeel over Rust
                 <span class="btn-subtext" id="sub-live-rest">Effect: +/- 0s per set</span>
             </button>
 
             <button class="modal-btn" id="btn-live-switch" style="background: #BF5AF2; color: white;"
                 onclick="applyLiveEndAdjustment('switch')">
-                🔀 Verdeel over Wissels
+                ?? Verdeel over Wissels
                 <span class="btn-subtext" id="sub-live-switch">Effect: +/- 0s per wissel</span>
             </button>
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
                 onclick="cancelLiveAdjustment()">
-                ❌ Annuleren
+                ? Annuleren
             </button>
         </div>
     </div>
@@ -2088,25 +2088,25 @@
 
             <button class="modal-btn" id="btn-work-push" style="background: #0A84FF; color: white;"
                 onclick="applyLiveWorkAdjustment('push')">
-                🗓️ Verzet Eindtijd
+                ??? Verzet Eindtijd
                 <span class="btn-subtext" id="sub-work-push">Eindtijd schuift op met Xm</span>
             </button>
 
             <button class="modal-btn" id="btn-work-rest" style="background: #FF9F0A; color: black;"
                 onclick="applyLiveWorkAdjustment('rest')">
-                💤 Compenseer met Rust
+                ?? Compenseer met Rust
                 <span class="btn-subtext" id="sub-work-rest">Rust wordt X seconden</span>
             </button>
 
             <button class="modal-btn" id="btn-work-switch" style="background: #BF5AF2; color: white;"
                 onclick="applyLiveWorkAdjustment('switch')">
-                🔀 Compenseer met Wissels
+                ?? Compenseer met Wissels
                 <span class="btn-subtext" id="sub-work-switch">Wissel wordt X seconden</span>
             </button>
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
                 onclick="cancelLiveWorkAdjustment()">
-                ❌ Annuleren
+                ? Annuleren
             </button>
         </div>
     </div>
@@ -2134,19 +2134,19 @@
 
             <button class="modal-btn" id="btn-rest-push" style="background: #0A84FF; color: white;"
                 onclick="applyLiveRestAdjustment('push')">
-                🗓️ Verzet Eindtijd
+                ??? Verzet Eindtijd
                 <span class="btn-subtext" id="sub-rest-push">Eindtijd schuift op met Xm</span>
             </button>
 
             <button class="modal-btn" id="btn-rest-work" style="background: #FF9F0A; color: black;"
                 onclick="applyLiveRestAdjustment('work')">
-                💪 Compenseer met Werk
+                ?? Compenseer met Werk
                 <span class="btn-subtext" id="sub-rest-work">Werk wordt X seconden</span>
             </button>
 
             <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
                 onclick="cancelLiveRestAdjustment()">
-                ❌ Annuleren
+                ? Annuleren
             </button>
         </div>
     </div>
@@ -2159,7 +2159,7 @@
                     <span
                         style="font-size:12px; cursor:pointer; color:#FF453A; font-weight:bold; border:1px solid #FF453A; padding:2px 8px; border-radius:4px;"
                         onclick="resetSchedule()">Reset</span>
-                    <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
+                    <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">�</span>
                 </div>
             </div>
             <div style="font-size:12px; color:#888; margin-bottom:5px;">Klik op een naam om deze te wijzigen.</div>
@@ -2177,7 +2177,7 @@
             <div style="display:flex; gap:8px; margin-top:15px;">
                 <button class="modal-btn"
                     style="flex:1.2; background: #BF5AF2; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px; font-weight:bold;"
-                    onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI Generator</button>
+                    onclick="openGeneratorModal(); closeScheduleModal();">?? AI Generator</button>
                 <button class="modal-btn"
                     style="flex:1; background: #333; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px;"
                     onclick="closeScheduleModal()">Sluiten</button>
@@ -2186,7 +2186,7 @@
                     onclick="shareSchedulePDF()">Print PDF</button>
                 <button class="modal-btn"
                     style="flex:1.2; background: #333; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px; border:1px solid #555;"
-                    onclick="closeScheduleModal(); openPrintStationModal()">🖨️ Stations</button>
+                    onclick="closeScheduleModal(); openPrintStationModal()">??? Stations</button>
             </div>
         </div>
     </div>
@@ -2200,7 +2200,7 @@
             <div
                 style="padding:15px; background:#1c1c1e; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
                 <h3 id="ex-modal-title" style="margin:0; font-size:16px; color:white;">Kies Oefening</h3>
-                <div style="font-size:24px; cursor:pointer; padding:5px;" onclick="closeExerciseSelector()">×</div>
+                <div style="font-size:24px; cursor:pointer; padding:5px;" onclick="closeExerciseSelector()">�</div>
             </div>
 
             <!-- Hidden Inputs (Needed for Logic) -->
@@ -2218,7 +2218,7 @@
                     <select id="filter-category"
                         style="width:100%; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
                         onchange="filterExercises()">
-                        <option value="">Alle Categorieën</option>
+                        <option value="">Alle Categorie�n</option>
                     </select>
                     <select id="filter-material"
                         style="width:100%; padding:8px; border-radius:6px; background:#333; color:white; border:none; font-size:14px;"
@@ -2258,7 +2258,7 @@
                     <img id="detail-vid-thumb"
                         style="width:100%; border-radius:8px; display:none; object-fit:cover; aspect-ratio:16/9; border:1px solid #333;" />
                     <span id="detail-vid-fallback"
-                        style="background:#5856D6; color:white; width:100%; padding:15px; border-radius:12px; text-align:center;">📺
+                        style="background:#5856D6; color:white; width:100%; padding:15px; border-radius:12px; text-align:center;">??
                         Bekijk Video</span>
                 </a>
 
@@ -2311,7 +2311,7 @@
     <div id="print-station-modal" class="modal" style="display:none;">
         <div class="modal-content" style="max-width: 800px; height: 85vh; display:flex; flex-direction:column;">
             <div class="modal-header">
-                <h2>🖨️ Print Stationskaarten</h2>
+                <h2>??? Print Stationskaarten</h2>
                 <span class="close-btn" onclick="closePrintStationModal()">&times;</span>
             </div>
             <div class="modal-body" style="flex:1; overflow-y:auto; padding: 20px;">
@@ -2338,7 +2338,7 @@
                         <!-- Checkboxes injected here -->
                     </div>
                     <div style="margin-top: 20px; text-align: right;">
-                        <button class="btn-action" onclick="showPrintPreview()">Naar Voorbeeld ➡️</button>
+                        <button class="btn-action" onclick="showPrintPreview()">Naar Voorbeeld ??</button>
                     </div>
                 </div>
 
@@ -2346,7 +2346,7 @@
                 <div id="print-step-preview" style="display:none;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3>2. Voorbeeld</h3>
-                        <button class="btn-secondary" onclick="backToPrintSelection()">⬅️ Terug</button>
+                        <button class="btn-secondary" onclick="backToPrintSelection()">?? Terug</button>
                     </div>
 
                     <div id="station-preview-container"
@@ -2356,7 +2356,7 @@
                     </div>
 
                     <div style="margin-top: 20px; text-align: right;">
-                        <button class="btn-success" onclick="downloadSelectedStationsPDF()">🖨️ Download
+                        <button class="btn-success" onclick="downloadSelectedStationsPDF()">??? Download
                             PDF</button>
                     </div>
                 </div>
@@ -2390,8 +2390,8 @@
         <div class="modal-content">
             <div
                 style="padding:15px; background:#1c1c1e; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; font-size:16px; color:white;">⚡ AI Generator</h3>
-                <div style="font-size:24px; cursor:pointer;" onclick="closeGeneratorModal()">×</div>
+                <h3 style="margin:0; font-size:16px; color:white;">? AI Generator</h3>
+                <div style="font-size:24px; cursor:pointer;" onclick="closeGeneratorModal()">�</div>
             </div>
 
             <div style="flex:1; overflow-y:auto;">
@@ -2449,7 +2449,7 @@
                 </div>
             </div>
 
-            <button class="gen-btn-generate" onclick="runGenerator()">✨ Genereer Training</button>
+            <button class="gen-btn-generate" onclick="runGenerator()">? Genereer Training</button>
         </div>
     </div>
 
@@ -2459,8 +2459,8 @@
         <div class="modal-content" style="max-height:80vh; display:flex; flex-direction:column;">
             <div
                 style="padding:15px; background:#1c1c1e; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; font-size:16px; color:white;">🖨️ Print Stationskaarten</h3>
-                <div style="font-size:24px; cursor:pointer;" onclick="closeStationSelector()">×</div>
+                <h3 style="margin:0; font-size:16px; color:white;">??? Print Stationskaarten</h3>
+                <div style="font-size:24px; cursor:pointer;" onclick="closeStationSelector()">�</div>
             </div>
 
             <div style="padding:10px; background:#222; display:flex; gap:10px;">
@@ -2476,7 +2476,7 @@
 
             <button class="action-btn" onclick="generateStationCards()"
                 style="margin:0; border-radius:0; background:#0A84FF;">
-                📄 Genereer PDF
+                ?? Genereer PDF
             </button>
         </div>
     </div>
@@ -2485,7 +2485,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.377";
+        const APP_VERSION = "1.31.378";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -2599,7 +2599,7 @@
         // Cache-busting: append timestamp
         // Check for local file protocol
         if (window.location.protocol === 'file:') {
-            alert("⚠️ LET OP: Je opent de app lokaal (file://).\n\nVanwege beveiliging in browsers kan de database NIET geladen worden.\nGebruik de online versie of een lokale webserver.");
+            alert("?? LET OP: Je opent de app lokaal (file://).\n\nVanwege beveiliging in browsers kan de database NIET geladen worden.\nGebruik de online versie of een lokale webserver.");
         }
 
         // Load Database
@@ -3053,7 +3053,7 @@
                     list.appendChild(li);
                 });
             } else {
-                status.innerText = "Alle audio bestanden zijn aanwezig! ✅";
+                status.innerText = "Alle audio bestanden zijn aanwezig! ?";
                 status.style.color = "#30D158";
                 setTimeout(() => {
                     if (modal.style.display === 'flex') modal.style.display = 'none';
@@ -3159,7 +3159,7 @@
                         } else {
                             videoBtnHtml = `
                             <div style="margin-top:5px; display:flex; gap:5px;">
-                                 <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">▶ Video</a>
+                                 <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">? Video</a>
                             </div>`;
                         }
                     }
@@ -3398,7 +3398,7 @@
 
         function showPrintPreview() {
             if (selectedStationIds.size === 0) {
-                alert("Selecteer ten minste één station.");
+                alert("Selecteer ten minste ��n station.");
                 return;
             }
 
@@ -3506,7 +3506,7 @@
             // Show loading state
             const btn = document.querySelector('#print-step-preview .btn-success');
             const originalText = btn.textContent;
-            btn.textContent = "⏳ Genereren...";
+            btn.textContent = "? Genereren...";
             btn.disabled = true;
 
             try {
@@ -3754,7 +3754,7 @@
             const customLi = document.createElement('li');
             customLi.className = "ex-list-item";
             customLi.style.borderBottom = "2px solid #333";
-            customLi.innerHTML = `<span style="font-weight:bold; color:white;">✏️ Eigen Naam Invoeren...</span>`;
+            customLi.innerHTML = `<span style="font-weight:bold; color:white;">?? Eigen Naam Invoeren...</span>`;
             customLi.onclick = () => {
                 const name = prompt("Voer naam in:", currentName);
                 if (name) {
@@ -3798,7 +3798,7 @@
 
             // Populate Filter Dropdowns
             const catSelect = document.getElementById('filter-category');
-            catSelect.innerHTML = '<option value="">Alle Categorieën</option>';
+            catSelect.innerHTML = '<option value="">Alle Categorie�n</option>';
             Array.from(categories).sort().forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c;
@@ -4097,7 +4097,7 @@
         function wakeUpAudio() {
             if (!audioCtx) return;
             if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
-                audioCtx.resume().then(() => logAudioDebug("⚡ Audio Resumed (WakeUp)"));
+                audioCtx.resume().then(() => logAudioDebug("? Audio Resumed (WakeUp)"));
             }
             // Force silent oscillator to wake up iOS Audio Engine
             try {
@@ -4505,24 +4505,24 @@
 
         function shareApp() {
             const cleanUrl = window.location.origin + window.location.pathname;
-            let text = "🦅 **FNH Timer: De enige timer die terugrekent!**\n\n";
-            text += "🏁 **Jij kiest de eindtijd, de app doet de rest.**\n";
+            let text = "?? **FNH Timer: De enige timer die terugrekent!**\n\n";
+            text += "?? **Jij kiest de eindtijd, de app doet de rest.**\n";
             text += "Hij berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent. Nooit meer gokken of haasten.\n\n";
-            text += "✅ **Waarom deze app?**\n";
-            text += "- ⏳ **Aftellen tot start:** Zie precies hoe lang je nog hebt voor uitleg of warming-up. De training start automatisch!\n";
-            text += "- 🍦 **Trainer Logica:** Snapt bonussen, 'toetjes' en onderscheidt rust vs. wisselen.\n";
-            text += "- 💾 **PDF & Instellingen:** Deel het schema als PDF (voorbereiding) of de link voor directe toegang tot de instellingen.\n";
-            text += "- 🤖 **AI Generator:** Maakt direct een training op basis van jouw materialen.\n";
-            text += "- 🗣️ **Kies je Coach:** Meerdere stijlen met natuurlijk klinkende en gevarieerde spraak.\n";
-            text += "- 🛠️ Pas live tijden aan (zonder rekenen)\n";
-            text += "- 🎧 Muziek blijft aanstaan (Mix-mode)\n";
-            text += "- 📱 **Draait op alles:** Werkt op iOS, Android, Windows en Mac.\n";
-            text += "- 🚀 **Geen installatie:** Werkt direct in je browser (Web App)!\n\n";
-            text += "👇 **Gebruik 'm hier (gratis):**";
+            text += "? **Waarom deze app?**\n";
+            text += "- ? **Aftellen tot start:** Zie precies hoe lang je nog hebt voor uitleg of warming-up. De training start automatisch!\n";
+            text += "- ?? **Trainer Logica:** Snapt bonussen, 'toetjes' en onderscheidt rust vs. wisselen.\n";
+            text += "- ?? **PDF & Instellingen:** Deel het schema als PDF (voorbereiding) of de link voor directe toegang tot de instellingen.\n";
+            text += "- ?? **AI Generator:** Maakt direct een training op basis van jouw materialen.\n";
+            text += "- ??? **Kies je Coach:** Meerdere stijlen met natuurlijk klinkende en gevarieerde spraak.\n";
+            text += "- ??? Pas live tijden aan (zonder rekenen)\n";
+            text += "- ?? Muziek blijft aanstaan (Mix-mode)\n";
+            text += "- ?? **Draait op alles:** Werkt op iOS, Android, Windows en Mac.\n";
+            text += "- ?? **Geen installatie:** Werkt direct in je browser (Web App)!\n\n";
+            text += "?? **Gebruik 'm hier (gratis):**";
 
             if (navigator.share) {
                 navigator.share({
-                    title: "FNH Timer 🦅",
+                    title: "FNH Timer ??",
                     text: text,
                     url: cleanUrl
                 }).catch(console.error);
@@ -4865,7 +4865,7 @@
 
                 if (workoutRounds.length > 1) {
                     const delBtn = document.createElement('div');
-                    delBtn.innerHTML = '🗑️';
+                    delBtn.innerHTML = '???';
                     delBtn.style.cursor = 'pointer';
                     delBtn.onclick = () => removeRound(index);
                     header.appendChild(delBtn);
@@ -4878,7 +4878,7 @@
                 copyBtn.style.position = 'absolute';
                 copyBtn.style.right = '40px';
                 copyBtn.style.top = '10px';
-                copyBtn.innerText = '📋';
+                copyBtn.innerText = '??';
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
 
@@ -4888,7 +4888,7 @@
                 shuffleBtn.style.position = 'absolute';
                 shuffleBtn.style.right = '80px'; // Next to Copy (40px)
                 shuffleBtn.style.top = '10px';
-                shuffleBtn.innerText = '🎲';
+                shuffleBtn.innerText = '??';
                 shuffleBtn.title = "Hussel deze ronde (Oefeningen)";
                 shuffleBtn.onclick = () => shuffleRound(index);
                 card.appendChild(shuffleBtn);
@@ -5023,7 +5023,7 @@
             let selectedCats = Array.from(document.querySelectorAll('input[name="gen_cat"]:checked')).map(cb => cb.value);
 
             if (selectedMats.length === 0 || selectedCats.length === 0) {
-                if (!confirm("Oeps! Geen materialen of categorieën geselecteerd in de generator opties.\nWil je alles resetten naar standaard (alles aan) en husselen?")) return;
+                if (!confirm("Oeps! Geen materialen of categorie�n geselecteerd in de generator opties.\nWil je alles resetten naar standaard (alles aan) en husselen?")) return;
                 populateGeneratorOptions(); // Resets to all checked
                 selectedMats = Array.from(document.querySelectorAll('input[name="gen_mat"]:checked')).map(cb => cb.value);
                 selectedCats = Array.from(document.querySelectorAll('input[name="gen_cat"]:checked')).map(cb => cb.value);
@@ -5111,7 +5111,7 @@
             const btn = document.querySelector(`#round-card-${roundIndex} button[title="Hussel oefeningen voor deze ronde"]`);
             if (btn) {
                 const original = btn.innerText;
-                btn.innerText = "✅";
+                btn.innerText = "?";
                 setTimeout(() => btn.innerText = original, 1000);
             }
 
@@ -5175,7 +5175,7 @@
                         <span style="font-weight:bold; color:#0A84FF; width:30px;">#${e}</span>
                         <span style="color:white; font-weight:500;">${currentName}</span>
                     </div>
-                    <span style="font-size:16px;">✏️</span>
+                    <span style="font-size:16px;">??</span>
                 `;
 
                 item.onclick = () => {
@@ -5202,34 +5202,7 @@
             const exCount = round.exercises;
             const rNum = index + 1;
 
-            // Header for inline section
-            const header = document.createElement('div');
-            header.style.display = 'flex';
-            header.style.justifyContent = 'space-between'; // Dice left, text hidden or right? 
-            // User said "only a small dice top left". 
-            // I'll put dice left. 
-            header.style.alignItems = 'center';
-            header.style.marginBottom = '10px';
-
-            // Dice Left
-            const shuffleDiv = document.createElement('div');
-            shuffleDiv.innerHTML = '🎲';
-            shuffleDiv.style.fontSize = '18px';
-            shuffleDiv.style.cursor = 'pointer';
-            shuffleDiv.title = 'Hussel deze ronde';
-            shuffleDiv.onclick = () => shuffleRound(index);
-            header.appendChild(shuffleDiv);
-
-            // Optional Label or empty? 
-            // "allen al een klein dobeelsteetje" implies JUST the dice.
-            // But having a label "Oefeningen" might be nice.
-            // I'll add the label small to the right or just leave it.
-            // Let's add the label but make it subtle on the right side if they want "links boven" for the dice.
-            // Or just the dice. Let's stick to "Just a small dice".
-            // But I'll keep the structure.
-
-            container.appendChild(header);
-            container.appendChild(header);
+            // Header removed (Shuffle moved to Card Header)
 
             for (let e = 1; e <= exCount; e++) {
                 // Determine current name
@@ -5255,7 +5228,7 @@
                         <span style="font-weight:bold; color:#0A84FF; width:25px;">#${e}</span>
                         <span style="color:white; font-size:14px;">${currentName}</span>
                     </div>
-                    <span style="font-size:14px;">✏️</span>
+                    <span style="font-size:14px;">??</span>
                 `;
 
                 item.onclick = () => {
@@ -5264,11 +5237,9 @@
 
                 container.appendChild(item);
             }
-
-            container.appendChild(item);
         }
 
-        // Shuffle Button removed (Now in Header)
+            // Shuffle Button removed (Now in Header)
 
         function removeRound(index) {
             workoutRounds.splice(index, 1);
@@ -5531,11 +5502,11 @@
                     "Tropical Motion 16.mp3", "Tropical Power 15.mp3", "Tropical Rush 13.mp3", "Tropical Speed 10.mp3"
                 ]
             },
-            "Neue Deutsche Härte": {
+            "Neue Deutsche H�rte": {
                 rust: [
                     "(Ein langes Zischen von Dampf).mp3",
-                    "(Ein tiefer, gedämpfter Beat setzt sofor.mp3",
-                    "(Langsam, Düster, Atmosphärisch).mp3",
+                    "(Ein tiefer, ged�mpfter Beat setzt sofor.mp3",
+                    "(Langsam, D�ster, Atmosph�risch).mp3",
                     "(Sehr langsam, Tief).mp3",
                     "(Tiefes Brummen der Motoren).mp3"
                 ],
@@ -6096,7 +6067,7 @@
 
                 if (nowEl) {
                     const cleanTitle = trackName.replace('.mp3', '');
-                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
+                    nowEl.innerText = `?? ${genre} - ${cleanTitle} (${type})`;
                 }
 
                 if (listEl) {
@@ -6123,7 +6094,7 @@
                         if (i === this.playlistIndex) {
                             div.style.color = "#30D158";
                             div.style.fontWeight = "bold";
-                            div.innerText = `▶ ${cleanTrack} (${item.genre})`;
+                            div.innerText = `? ${cleanTrack} (${item.genre})`;
                         } else {
                             div.style.color = "#aaa";
                             div.innerText = `${displayIndex}. ${cleanTrack} (${item.genre})`;
@@ -6209,7 +6180,7 @@
 
             // Check Cache
             if (audioCache[url]) {
-                logAudioDebug(`✅ WebAudio Cache: ${key} (P${priority})`);
+                logAudioDebug(`? WebAudio Cache: ${key} (P${priority})`);
                 playBuffer(audioCache[url], priority, key);
                 return;
             }
@@ -6223,12 +6194,12 @@
                 .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
                 .then(audioBuffer => {
                     audioCache[url] = audioBuffer;
-                    logAudioDebug(`✅ WebAudio Play: ${key} (P${priority})`);
+                    logAudioDebug(`? WebAudio Play: ${key} (P${priority})`);
                     playBuffer(audioBuffer, priority, key);
                 })
                 .catch(e => {
                     failedAudioKeys.add(key);
-                    logAudioDebug(`❌ WebAudio Fail: ${key}`);
+                    logAudioDebug(`? WebAudio Fail: ${key}`);
                     console.error("WebAudio Error", e);
                 });
         }
@@ -6248,13 +6219,13 @@
                 const shouldOverlap = (isWorkStart && isCountdown);
 
                 if (!shouldOverlap) {
-                    logAudioDebug(`🛑 Stopping ${curKey} for ${newKey}`);
+                    logAudioDebug(`?? Stopping ${curKey} for ${newKey}`);
                     try {
                         currentActiveSource.stop();
                         currentActiveSource = null;
                     } catch (e) { console.log("Stop error", e); }
                 } else {
-                    logAudioDebug(`🔀 Mixing: ${curKey} + ${newKey}`);
+                    logAudioDebug(`?? Mixing: ${curKey} + ${newKey}`);
                 }
             }
 
@@ -6319,7 +6290,7 @@
                 let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
                 const div = document.createElement('div'); div.className = `schedule-item`;
-                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
+                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '?'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '??'; } else if (item.type === 'work') icon = '??'; else if (item.type === 'rest') icon = '??'; else icon = '??';
                 let desc = item.label;
                 // If it's a generic label and we have a custom name, use that?
                 // Actually, generateScheduleData now sets item.label to customNames if available.
@@ -6352,7 +6323,7 @@
 
                 // Check Enable/Disable Toggle
                 if (speechSettings[key] && speechSettings[key].enabled === false) {
-                    logAudioDebug(`🔇 Silenced by user setting: ${key}`);
+                    logAudioDebug(`?? Silenced by user setting: ${key}`);
                     return;
                 }
 
@@ -6382,7 +6353,7 @@
                         finalKey = `${key}_${variantId}`;
                     }
 
-                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${finalKey}.mp3`);
+                    logAudioDebug(`?? Attempting MP3: ${coachId}/${finalKey}.mp3`);
                     const mp3Path = `coaches/${coachId}/${finalKey}.mp3`;
 
                     // ALWAYS USE WEB AUDIO MIX MODE (Better Priority & Overlap Handling)
@@ -6406,7 +6377,7 @@
                     // If P2 comes in -> Stop everything (handled in playBuffer) and Play.
                     // If P1 comes in -> ONLY play if current is 0. If current is 2, IGNORE P1.
                     if (priority === 1 && currentAudioPriority === 2) {
-                        logAudioDebug(`🚫 Skipped Low Priority: ${key} (Busy w/ High)`);
+                        logAudioDebug(`?? Skipped Low Priority: ${key} (Busy w/ High)`);
                         return;
                     }
 
@@ -6418,12 +6389,12 @@
                 return;
             } catch (e) {
                 console.error("Audio Trigger Error", e);
-                logAudioDebug(`⚠️ Audio Error: ${e.message}`);
+                logAudioDebug(`?? Audio Error: ${e.message}`);
             }
         }
 
         function testMixModeSound() {
-            logAudioDebug("🔊 Sound Check Triggered");
+            logAudioDebug("?? Sound Check Triggered");
 
             // Replicate triggerAudio logic regarding Mix Mode
             if (iosMixMode) {
@@ -6431,8 +6402,8 @@
             } else {
                 globalCoachAudio.src = 'sound_check.mp3';
                 globalCoachAudio.play()
-                    .then(() => logAudioDebug("✅ Standard Audio Check"))
-                    .catch(e => logAudioDebug("❌ Standard Audio Fail: " + e.message));
+                    .then(() => logAudioDebug("? Standard Audio Check"))
+                    .catch(e => logAudioDebug("? Standard Audio Fail: " + e.message));
             }
         }
 
@@ -7085,7 +7056,7 @@
             if (!isPaused) {
                 isPaused = true;
                 pauseStartTime = Date.now();
-                if (btn) btn.innerText = "▶️";
+                if (btn) btn.innerText = "??";
                 document.body.classList.add('mode-pause');
                 const titleEl = document.getElementById('gym-phase-title');
                 if (titleEl) titleEl.innerText = "GEPAUZEERD";
@@ -7334,7 +7305,7 @@
             if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
             document.body.classList.remove('mode-pause');
             const btn = document.getElementById('btn-pause');
-            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
 
             // Re-render
             renderLiveSchedule(true);
@@ -7723,7 +7694,7 @@
             if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
             document.body.classList.remove('mode-pause');
             const btn = document.getElementById('btn-pause');
-            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
 
             renderLiveSchedule(true);
         }
@@ -7852,7 +7823,7 @@
             if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
             document.body.classList.remove('mode-pause');
             const btn = document.getElementById('btn-pause');
-            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
 
             renderLiveSchedule(true);
         }
@@ -8090,9 +8061,9 @@
                 // FIX: If we skipped performStart (Jump Mode), we must manually Resume!
                 // Otherwise app stays paused.
                 const btn = document.getElementById('btn-pause');
-                if (btn.innerText === "▶️" || isPaused) {
-                    btn.innerText = "⏸"; btn.classList.remove('paused');
-                    btn.innerText = "⏸"; btn.classList.remove('paused');
+                if (btn.innerText === "??" || isPaused) {
+                    btn.innerText = "?"; btn.classList.remove('paused');
+                    btn.innerText = "?"; btn.classList.remove('paused');
                     isPaused = false;
                     if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
                     document.body.classList.remove('mode-pause');
@@ -8104,8 +8075,8 @@
 
             // STANDARD PAUSE RESOLUTION
             const btn = document.getElementById('btn-pause');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
-            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "?"; btn.classList.remove('paused');
+            btn.innerText = "?"; btn.classList.remove('paused');
             isPaused = false;
             if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
             document.body.classList.remove('mode-pause');
@@ -8286,7 +8257,7 @@
             document.body.className = 'mode-finish';
             document.getElementById('gym-phase-title').innerText = "KLAAR!";
             document.getElementById('gym-phase-title').classList.remove('huge-text');
-            document.getElementById('countdown').innerText = "🎉";
+            document.getElementById('countdown').innerText = "??";
             document.getElementById('gym-stats-container').style.display = 'none';
             document.getElementById('btn-pause').style.display = 'none';
             // Force 100% progress
@@ -8356,7 +8327,7 @@
                 isPaused = false;
                 document.body.classList.remove('mode-pause');
                 const btn = document.getElementById('btn-pause');
-                if (btn) { btn.innerText = "⏸"; btn.classList.remove('paused'); }
+                if (btn) { btn.innerText = "?"; btn.classList.remove('paused'); }
                 triggerAudio('manual_override', "We gaan weer door");
                 if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
             }
@@ -8626,31 +8597,31 @@
         function showAudioPopup(type) {
             if (sessionStorage.getItem("audio_popup_seen")) return;
 
-            let title = "🔈 Geluid Aanzetten";
+            let title = "?? Geluid Aanzetten";
             let msg = "";
             let icon = "";
 
             switch (type) {
                 case "ipad":
                     title = "Instellen";
-                    icon = "📱";
+                    icon = "??";
                     msg = `
                         <b>1. Bedieningspaneel:</b> Veeg rechtsboven omlaag.<br>
-                        <b>2. Belletje:</b> Zorg dat het bel-icoon 🔔 AAN staat.<br>
+                        <b>2. Belletje:</b> Zorg dat het bel-icoon ?? AAN staat.<br>
                         <b>3. Focus:</b> Zet 'Niet Storen' aan.
                     `;
                     break;
                 case "action":
                     title = "Instellen";
-                    icon = "🔘";
+                    icon = "??";
                     msg = `
                         <b>Optie 1:</b> Houd de <b>Actieknop</b> (zijkant) ingedrukt tot 'Stille modus: Uit'.<br>
-                        <b>Optie 2:</b> Via Bedieningspaneel (belletje 🔔).
+                        <b>Optie 2:</b> Via Bedieningspaneel (belletje ??).
                     `;
                     break;
                 case "ambiguous":
                     title = "Instellen";
-                    icon = "📱";
+                    icon = "??";
                     msg = `
                         <b>Heb je een Actieknop?</b><br> Houd ingedrukt tot Stille Modus UIT gaat.<br><br>
                         <b>Heb je een Schakelaar?</b><br> Zet het schuifje links omhoog.
@@ -8658,7 +8629,7 @@
                     break;
                 default:
                     title = "Zet Geluid Aan";
-                    icon = "🔕 ➡️ 🔔";
+                    icon = "?? ?? ??";
                     msg = `
                         <b>De fysieke schakelaar:</b><br>
                         Zet het schuifje aan de linkerkant omhoog.<br>
@@ -8677,11 +8648,11 @@
                     <div style="font-size:13px; color:#ccc; line-height:1.4; text-align:left; margin-bottom:15px;">${msg}</div>
                     
                     <div style="background:rgba(255, 214, 10, 0.1); border:1px solid rgba(255, 214, 10, 0.3); padding:10px; border-radius:8px; text-align:left; margin-bottom:15px;">
-                        <div style="font-size:12px; font-weight:bold; color:#FFD60A; margin-bottom:2px;">🔒 PRO TIP: Begeleide Toegang</div>
+                        <div style="font-size:12px; font-weight:bold; color:#FFD60A; margin-bottom:2px;">?? PRO TIP: Begeleide Toegang</div>
                         <div style="font-size:11px; color:#ddd;">
-                            Voorkomt dat je de app wegveegt én blokkeert notificaties.
+                            Voorkomt dat je de app wegveegt �n blokkeert notificaties.
                             <br><br>
-                            👉 <b>Druk 3x snel op de zijknop</b> om te starten.
+                            ?? <b>Druk 3x snel op de zijknop</b> om te starten.
                         </div>
                     </div>
 
@@ -8691,7 +8662,7 @@
                     </label>
 
                     <button id="btn-audio-ok" style="background:#0A84FF; color:white; border:none; padding:12px 30px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; width:100%;">
-                        Begrepen ✅
+                        Begrepen ?
                     </button>
                 </div>
             `;
@@ -8757,15 +8728,15 @@
 
             div.innerHTML = `
                 <div style="background:#1c1c1e; color:white; padding:25px; border-radius:24px; max-width:340px; text-align:center; border:1px solid #333; box-shadow:0 10px 40px rgba(0,0,0,0.6);">
-                    <div style="font-size:40px; margin-bottom:15px;">📱</div>
+                    <div style="font-size:40px; margin-bottom:15px;">??</div>
                     <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h2>
                     <div style="font-size:14px; color:#ccc; line-height:1.5; text-align:left; margin-bottom:20px;">
                         Op iPhone/iPad werkt dit knopje niet direct in Safari.
                         <br><br>
                         <b>Voor de beste ervaring:</b>
                         <ol style="margin:10px 0; padding-left:20px; color:#fff;">
-                            <li>Tik op de <b style="color:#0A84FF">Deel-knop</b> 🛫 (onderin).</li>
-                            <li>Kies <b style="color:#fff">"Zet op beginscherm"</b> ➕.</li>
+                            <li>Tik op de <b style="color:#0A84FF">Deel-knop</b> ?? (onderin).</li>
+                            <li>Kies <b style="color:#fff">"Zet op beginscherm"</b> ?.</li>
                         </ol>
                         Start de app daarna via het nieuwe icoontje!
                     </div>
@@ -8858,7 +8829,7 @@
             if (!btn) return;
 
             if (isWorkoutActive) {
-                btn.innerText = "⏱️ TERUG NAAR TRAINING";
+                btn.innerText = "?? TERUG NAAR TRAINING";
                 btn.classList.add('active-session-btn'); // CSS for pulsing green?
                 btn.style.background = "#30D158";
                 btn.style.color = "black";
@@ -8940,12 +8911,12 @@
 
         <button onclick="previewEarlyStartOptions()" class="action-btn"
             style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
-            🚀 NU BEGINNEN (OVERSLAAN)
+            ?? NU BEGINNEN (OVERSLAAN)
         </button>
 
         <button id="btn-jump-in" onclick="startSyncWorkout()" class="action-btn"
             style="display:none; margin-top:15px; padding:15px 40px; background:rgba(48,209,88,0.2); border:1px solid rgba(48,209,88,0.4); backdrop-filter:blur(10px); width:auto; color:#30D158;">
-            ⏱️ IN HAKEN (MOMENTEEL BEZIG)
+            ?? IN HAKEN (MOMENTEEL BEZIG)
         </button>
         <script>
             function getFingerprint() {
@@ -9009,7 +8980,7 @@
                 // 2. Inject DOM
                 const ptr = document.createElement('div');
                 ptr.id = 'ptr-spinner';
-                ptr.innerHTML = '<div id="ptr-icon">⬇️</div>';
+                ptr.innerHTML = '<div id="ptr-icon">??</div>';
                 document.body.appendChild(ptr);
 
                 // 3. Variables
@@ -9041,10 +9012,10 @@
                         const icon = document.getElementById('ptr-icon');
                         if (diff > threshold) {
                             icon.style.transform = 'rotate(180deg)';
-                            icon.innerText = "🔄";
+                            icon.innerText = "??";
                         } else {
                             icon.style.transform = 'rotate(0deg)';
-                            icon.innerText = "⬇️";
+                            icon.innerText = "??";
                         }
                     } else {
                         isDragging = false; // Scrolled down
@@ -9098,13 +9069,13 @@
     <div id="global-fullscreen-btn"
         style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
         onclick="toggleFullScreen()">
-        <span style="font-size:20px;">⛶</span>
+        <span style="font-size:20px;">?</span>
     </div>
 
     <div id="global-volume-btn"
         style="position:fixed; top:20px; right:20px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
         onclick="toggleVolumePanel()">
-        <span style="font-size:20px;">🔊</span>
+        <span style="font-size:20px;">??</span>
     </div>
 
     <!-- VOLUME PANEL OVERLAY (Relocated to Body) -->
@@ -9112,21 +9083,21 @@
         style="display:none; position:fixed; top:70px; right:20px; width:280px; max-height:80vh; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; background:rgba(28, 28, 30, 0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); z-index:200001; box-shadow:0 30px 60px rgba(0,0,0,0.8);">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
             <span style="font-size:13px; color:#fff; font-weight:bold; letter-spacing:0.5px;">AUDIO SETTINGS</span>
-            <span style="font-size:24px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
+            <span style="font-size:24px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">�</span>
         </div>
 
         <!-- Playback Controls -->
         <div
             style="display:flex; align-items:center; justify-content:center; gap:25px; margin-bottom:25px; background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
-            <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏮️
+            <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">??
             </div>
             <div onclick="bgMusicManager.togglePlayback()"
-                style="cursor:pointer; font-size:28px; transform:scale(1.1);">⏯️</div>
-            <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏭️</div>
+                style="cursor:pointer; font-size:28px; transform:scale(1.1);">??</div>
+            <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">??</div>
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🎵</span>
+            <span style="font-size:16px; min-width:30px;">??</span>
             <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
                 <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">WERK MUZIEK</span>
                 <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
@@ -9136,7 +9107,7 @@
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🧘</span>
+            <span style="font-size:16px; min-width:30px;">??</span>
             <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
                 <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">RUST MUZIEK</span>
                 <input type="range" id="vol-music-rest-live" min="0" max="1" step="0.1" value="0.2"
@@ -9146,7 +9117,7 @@
         </div>
 
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🗣️</span>
+            <span style="font-size:16px; min-width:30px;">???</span>
             <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
                 <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">COACH VOLUME</span>
                 <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
@@ -9164,7 +9135,7 @@
                 <div
                     style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
                     <div style="display:flex; flex-direction:column; text-align:left;">
-                        <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
+                        <div style="font-size:13px; color:#fff; font-weight:bold;">?? Continuous Mode</div>
                         <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
                     </div>
                     <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
@@ -9222,10 +9193,10 @@
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
                         <button class="toggle-btn active" id="btn-audio-speech-live"
                             onclick="setAudioMode('speech'); updateLiveAudioUI();"
-                            style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
+                            style="flex:1; padding:8px; font-size:11px;">??? SPRAAK</button>
                         <button class="toggle-btn" id="btn-audio-beep-live"
                             onclick="setAudioMode('beep'); updateLiveAudioUI();"
-                            style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
+                            style="flex:1; padding:8px; font-size:11px;">?? PIEPJES</button>
                     </div>
 
                     <select id="coach-preset-live" class="text-input"
