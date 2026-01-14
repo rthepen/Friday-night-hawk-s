@@ -2381,6 +2381,51 @@
     </div>
 
 
+    <!-- Shuffle Filter Modal -->
+    <div id="shuffle-filter-modal" class="modal-overlay"
+        style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width:500px; max-height:80vh; overflow-y:auto;">
+            <div
+                style="padding:15px; background:#1c1c1e; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-size:16px; color:white;">🎲 Hussel Filters</h3>
+                <div style="font-size:24px; cursor:pointer;" onclick="closeShuffleFilterModal()">×</div>
+            </div>
+
+            <div style="padding:20px;">
+                <!-- MATERIALEN -->
+                <div class="gen-section">
+                    <div class="gen-section-title"
+                        style="font-size:14px; font-weight:bold; color:#FF9F0A; margin-bottom:10px;">
+                        Materialen
+                    </div>
+                    <div id="shuffle-filter-materials" class="gen-checkbox-grid"
+                        style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- CATEGORIEËN -->
+                <div class="gen-section">
+                    <div class="gen-section-title"
+                        style="font-size:14px; font-weight:bold; color:#30D158; margin-bottom:10px;">
+                        Categorieën
+                    </div>
+                    <div id="shuffle-filter-categories" class="gen-checkbox-grid"
+                        style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding:15px; background:#1c1c1e; border-top:1px solid #333; display:flex; gap:10px;">
+                <button class="modal-btn" style="flex:1; background:#BF5AF2; color:white;"
+                    onclick="applyShuffleWithFilters()">🎲 Hussel</button>
+                <button class="modal-btn" style="flex:1; background:#333; color:white;"
+                    onclick="closeShuffleFilterModal()">Annuleren</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio Debug Log -->
 
 
@@ -2485,7 +2530,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.380";
+        const APP_VERSION = "1.31.381";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4890,7 +4935,7 @@
                 shuffleBtn.style.top = '10px';
                 shuffleBtn.innerText = '🎲';
                 shuffleBtn.title = "Hussel deze ronde (Oefeningen)";
-                shuffleBtn.onclick = () => shuffleRound(index);
+                shuffleBtn.onclick = () => openShuffleFilterModal(index);
                 card.appendChild(shuffleBtn);
 
                 // (Redundant Copy/Edit/Title logic removed)
@@ -5008,6 +5053,75 @@
             workoutRounds.splice(index + 1, 0, newRound);
             saveRoundsToLocal();
             renderRoundsContainer();
+        }
+
+        // --- SHUFFLE FILTER MODAL ---
+        let currentShuffleRoundIndex = null;
+
+        function openShuffleFilterModal(roundIndex) {
+            currentShuffleRoundIndex = roundIndex;
+
+            // Populate materials
+            const matContainer = document.getElementById('shuffle-filter-materials');
+            matContainer.innerHTML = '';
+            const materials = [...new Set(WORKOUT_DB.map(ex => ex.material_name))].sort();
+            materials.forEach(mat => {
+                const checked = Array.from(document.querySelectorAll('input[name="gen_mat"]:checked')).map(cb => cb.value).includes(mat);
+                const label = document.createElement('label');
+                label.style.display = 'flex';
+                label.style.alignItems = 'center';
+                label.style.gap = '5px';
+                label.style.fontSize = '12px';
+                label.style.color = 'white';
+                label.innerHTML = `<input type="checkbox" name="shuffle_mat" value="${mat}" ${checked ? 'checked' : ''}> ${mat}`;
+                matContainer.appendChild(label);
+            });
+
+            // Populate categories
+            const catContainer = document.getElementById('shuffle-filter-categories');
+            catContainer.innerHTML = '';
+            const categories = [...new Set(WORKOUT_DB.map(ex => ex.category))].sort();
+            categories.forEach(cat => {
+                const checked = Array.from(document.querySelectorAll('input[name="gen_cat"]:checked')).map(cb => cb.value).includes(cat);
+                const label = document.createElement('label');
+                label.style.display = 'flex';
+                label.style.alignItems = 'center';
+                label.style.gap = '5px';
+                label.style.fontSize = '12px';
+                label.style.color = 'white';
+                label.innerHTML = `<input type="checkbox" name="shuffle_cat" value="${cat}" ${checked ? 'checked' : ''}> ${cat}`;
+                catContainer.appendChild(label);
+            });
+
+            document.getElementById('shuffle-filter-modal').style.display = 'flex';
+        }
+
+        function closeShuffleFilterModal() {
+            document.getElementById('shuffle-filter-modal').style.display = 'none';
+            currentShuffleRoundIndex = null;
+        }
+
+        function applyShuffleWithFilters() {
+            if (currentShuffleRoundIndex === null) return;
+
+            // Get selected materials and categories
+            const selectedMats = Array.from(document.querySelectorAll('input[name="shuffle_mat"]:checked')).map(cb => cb.value);
+            const selectedCats = Array.from(document.querySelectorAll('input[name="shuffle_cat"]:checked')).map(cb => cb.value);
+
+            if (selectedMats.length === 0 || selectedCats.length === 0) {
+                alert('Selecteer minimaal 1 materiaal en 1 categorie!');
+                return;
+            }
+
+            // Apply filters to generator options temporarily
+            document.querySelectorAll('input[name="gen_mat"]').forEach(cb => cb.checked = selectedMats.includes(cb.value));
+            document.querySelectorAll('input[name="gen_cat"]').forEach(cb => cb.checked = selectedCats.includes(cb.value));
+
+            // Execute shuffle
+            shuffleRound(currentShuffleRoundIndex);
+
+            // Close modal
+            closeShuffleFilterModal();
         }
 
         function shuffleRound(roundIndex) {
