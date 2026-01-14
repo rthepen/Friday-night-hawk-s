@@ -2482,32 +2482,10 @@
     </div>
 
     <!-- EDIT ROUND MODAL -->
-    <div id="edit-round-modal" class="modal-overlay"
-        style="display:none; align-items:center; justify-content:center; z-index: 1100;">
-        <div class="modal-content"
-            style="width: 90%; max-width: 500px; max-height:85vh; display:flex; flex-direction:column;">
-            <div
-                style="padding:15px; background:#1c1c1e; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="edit-round-title" style="margin:0; font-size:16px; color:white;">Ronde Bewerken</h3>
-                <div style="font-size:24px; cursor:pointer;" onclick="closeEditRoundModal()">×</div>
-            </div>
-
-            <div id="edit-round-list"
-                style="flex:1; overflow-y:auto; padding:15px; display: flex; flex-direction: column; gap: 10px;">
-                <!-- List of exercises goes here -->
-            </div>
-
-            <div style="padding:15px; border-top:1px solid #333; display:flex; justify-content:center;">
-                <button id="edit-round-shuffle-btn" class="action-btn"
-                    style="background: #FF9500; font-size: 16px; width: 100%;">
-                    🎲 Hussel deze ronde
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.366";
+        const APP_VERSION = "1.31.367";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3983,10 +3961,11 @@
             saveToLocal();
             // document.getElementById('edit-scope-modal').style.display = 'none'; // OLD MODAL REMOVED - Fixed crash
 
-            // Refresh Edit Round Modal if open
-            const editModal = document.getElementById('edit-round-modal');
-            if (editModal && editModal.style.display !== 'none' && currentEditingRoundIndex !== null) {
-                renderEditRoundList(currentEditingRoundIndex);
+            // Refresh inline list if open for the relevant round
+            const rIdx = r - 1; // r is 1-based index from ID
+            const inlineCont = document.getElementById(`round-inline-edit-${rIdx}`);
+            if (inlineCont && inlineCont.style.display !== 'none') {
+                renderInlineRoundList(rIdx);
             }
 
             // showScheduleModal(); // Handled by caller
@@ -4906,25 +4885,25 @@
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
 
-                // Edit Button (New - Popup)
+                // Edit Button (Toggle Inline)
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn-header';
                 editBtn.style.position = 'absolute';
                 editBtn.style.right = '80px';
                 editBtn.style.top = '10px';
                 editBtn.innerText = '📝';
-                editBtn.title = "Bewerk oefeningen van deze ronde";
-                editBtn.onclick = () => openEditRoundModal(index);
+                editBtn.title = "Bewerk oefeningen";
+                editBtn.onclick = () => toggleInlineRoundEdit(index);
                 card.appendChild(editBtn);
 
-                // Shuffle Button
+                // Shuffle Button (Direct)
                 const shuffleBtn = document.createElement('button');
                 shuffleBtn.className = 'btn-header';
                 shuffleBtn.style.position = 'absolute';
-                shuffleBtn.style.right = '120px'; // Shifted left of Edit
+                shuffleBtn.style.right = '120px';
                 shuffleBtn.style.top = '10px';
                 shuffleBtn.innerText = '🎲';
-                shuffleBtn.title = "Hussel oefeningen voor deze ronde";
+                shuffleBtn.title = "Snel husselen";
                 shuffleBtn.onclick = () => shuffleRound(index);
                 card.appendChild(shuffleBtn);
 
@@ -4964,6 +4943,16 @@
                     </div>
                 `;
                 card.appendChild(grid);
+
+                // INLINE EXERCISES CONTAINER
+                const inlineContainer = document.createElement('div');
+                inlineContainer.id = `round-inline-edit-${index}`;
+                inlineContainer.style.display = 'none'; // Hidden by default
+                inlineContainer.style.marginTop = '15px';
+                inlineContainer.style.background = '#222';
+                inlineContainer.style.borderRadius = '8px';
+                inlineContainer.style.padding = '10px';
+                card.appendChild(inlineContainer);
 
                 // container.appendChild(card) moved to end of loop iteration
 
@@ -5214,6 +5203,83 @@
 
                 list.appendChild(item);
             }
+        }
+
+        // --- INLINE EDIT ROUND LOGIC ---
+        function toggleInlineRoundEdit(index) {
+            const container = document.getElementById(`round-inline-edit-${index}`);
+            if (!container) return;
+
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                renderInlineRoundList(index);
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function renderInlineRoundList(index) {
+            const container = document.getElementById(`round-inline-edit-${index}`);
+            if (!container) return;
+            container.innerHTML = '';
+
+            const round = workoutRounds[index];
+            const exCount = round.exercises;
+            const rNum = index + 1;
+
+            // Header for inline section
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.marginBottom = '10px';
+            header.innerHTML = `<span style="color:#aaa; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Oefeningen Bewerken</span>`;
+            container.appendChild(header);
+
+            for (let e = 1; e <= exCount; e++) {
+                // Determine current name
+                const key = `r${rNum}-e${e}-s1`;
+                const currentName = customNames[key] || `Oefening ${e}`;
+
+                const item = document.createElement('div');
+                item.style.padding = '10px';
+                item.style.background = '#333';
+                item.style.marginBottom = '5px';
+                item.style.borderRadius = '6px';
+                item.style.cursor = 'pointer';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.border = '1px solid transparent';
+
+                item.onmouseover = () => item.style.borderColor = '#0A84FF';
+                item.onmouseout = () => item.style.borderColor = 'transparent';
+
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        <span style="font-weight:bold; color:#0A84FF; width:25px;">#${e}</span>
+                        <span style="color:white; font-size:14px;">${currentName}</span>
+                    </div>
+                    <span style="font-size:14px;">✏️</span>
+                `;
+
+                item.onclick = () => {
+                    openExerciseSelector(rNum, e, 1, currentName);
+                };
+
+                container.appendChild(item);
+            }
+
+            // Inline Shuffle Button
+            const shuffleBtn = document.createElement('button');
+            shuffleBtn.className = 'action-btn';
+            shuffleBtn.style.width = '100%';
+            shuffleBtn.style.marginTop = '10px';
+            shuffleBtn.style.background = '#FF9500';
+            shuffleBtn.style.fontSize = '14px';
+            shuffleBtn.innerText = '🎲 Hussel deze ronde';
+            shuffleBtn.onclick = () => shuffleRound(index);
+            container.appendChild(shuffleBtn);
         }
 
         function removeRound(index) {
