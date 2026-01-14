@@ -2485,7 +2485,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.370";
+        const APP_VERSION = "1.31.372";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -5194,10 +5194,30 @@
             // Header for inline section
             const header = document.createElement('div');
             header.style.display = 'flex';
-            header.style.justifyContent = 'space-between';
+            header.style.justifyContent = 'space-between'; // Dice left, text hidden or right? 
+            // User said "only a small dice top left". 
+            // I'll put dice left. 
             header.style.alignItems = 'center';
             header.style.marginBottom = '10px';
-            header.innerHTML = `<span style="color:#aaa; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Oefeningen Bewerken</span>`;
+
+            // Dice Left
+            const shuffleDiv = document.createElement('div');
+            shuffleDiv.innerHTML = '🎲';
+            shuffleDiv.style.fontSize = '18px';
+            shuffleDiv.style.cursor = 'pointer';
+            shuffleDiv.title = 'Hussel deze ronde';
+            shuffleDiv.onclick = () => shuffleRound(index);
+            header.appendChild(shuffleDiv);
+
+            // Optional Label or empty? 
+            // "allen al een klein dobeelsteetje" implies JUST the dice.
+            // But having a label "Oefeningen" might be nice.
+            // I'll add the label small to the right or just leave it.
+            // Let's add the label but make it subtle on the right side if they want "links boven" for the dice.
+            // Or just the dice. Let's stick to "Just a small dice".
+            // But I'll keep the structure.
+
+            container.appendChild(header);
             container.appendChild(header);
 
             for (let e = 1; e <= exCount; e++) {
@@ -5234,16 +5254,10 @@
                 container.appendChild(item);
             }
 
-            // Inline Shuffle Button
-            const shuffleBtn = document.createElement('button');
-            shuffleBtn.className = 'action-btn';
-            shuffleBtn.style.width = '100%';
-            shuffleBtn.style.marginTop = '10px';
-            shuffleBtn.style.background = '#FF9500';
-            shuffleBtn.style.fontSize = '14px';
-            shuffleBtn.innerText = '🎲 Hussel deze ronde';
-            shuffleBtn.onclick = () => shuffleRound(index);
-            container.appendChild(shuffleBtn);
+            container.appendChild(item);
+        }
+
+            // Shuffle Button removed (Now in Header)
         }
 
         function removeRound(index) {
