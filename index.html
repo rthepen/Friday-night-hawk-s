@@ -2484,7 +2484,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.351";
+        const APP_VERSION = "1.31.352";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4836,7 +4836,17 @@
                 header.style.display = 'flex';
                 header.style.justifyContent = 'space-between';
                 header.style.marginBottom = '10px';
-                header.innerHTML = `<div style="font-weight:bold; color:#30D158;">RONDE ${roundNum}</div>`;
+                const defaultName = "RONDE " + roundNum;
+                const roundName = round.name || defaultName;
+
+                header.innerHTML = `
+                    <div style="flex:1;">
+                        <input type="text" value="${roundName}" 
+                               onchange="updateRound(${index}, 'name', this.value)"
+                               placeholder="${defaultName}"
+                               style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; width:100%; font-family:'Outfit',sans-serif;">
+                    </div>
+                `;
 
                 if (workoutRounds.length > 1) {
                     const delBtn = document.createElement('div');
@@ -4931,7 +4941,11 @@
 
         function updateRound(index, field, value) {
             if (index >= 0 && index < workoutRounds.length) {
-                workoutRounds[index][field] = parseInt(value) || 0;
+                if (field === 'name') {
+                    workoutRounds[index][field] = value;
+                } else {
+                    workoutRounds[index][field] = parseInt(value) || 0;
+                }
                 saveRoundsToLocal();
                 calculateRealTime(); // Update total time
                 generateScheduleData(false); // Update preview 
@@ -5149,7 +5163,8 @@
 
                         // Construct Label
                         let key = `r${roundNum}-e${e}-s${s}`;
-                        let label = customNames[key] || `Ronde ${roundNum} - Oefening ${e}.${s}`;
+                        let prefix = round.name || `Ronde ${roundNum}`;
+                        let label = customNames[key] || `${prefix} - Oefening ${e}.${s}`;
 
                         // Add Work
                         schedule.push({
