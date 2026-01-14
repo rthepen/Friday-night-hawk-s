@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.362";
+        const APP_VERSION = "1.31.364";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4871,6 +4871,17 @@
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
 
+                // Shuffle Button (New)
+                const shuffleBtn = document.createElement('button');
+                shuffleBtn.className = 'btn-header';
+                shuffleBtn.style.position = 'absolute';
+                shuffleBtn.style.right = '80px'; // Shifted left of Copy
+                shuffleBtn.style.top = '10px';
+                shuffleBtn.innerText = '🎲';
+                shuffleBtn.title = "Hussel oefeningen voor deze ronde";
+                shuffleBtn.onclick = () => shuffleRound(index);
+                card.appendChild(shuffleBtn);
+
                 // Controls
                 // Grid Container
                 const grid = document.createElement('div');
@@ -4977,6 +4988,112 @@
             workoutRounds.splice(index + 1, 0, newRound);
             saveRoundsToLocal();
             renderRoundsContainer();
+        }
+
+        function shuffleRound(roundIndex) {
+            if (typeof WORKOUT_DB === 'undefined') { alert("Database niet geladen."); return; }
+
+            // 1. Ensure Generator Options are Populated (for filters)
+            if (document.querySelectorAll('input[name="gen_mat"]').length === 0) {
+                populateGeneratorOptions();
+            }
+
+            // 2. Get Filters & Shuffle
+            let selectedMats = Array.from(document.querySelectorAll('input[name="gen_mat"]:checked')).map(cb => cb.value);
+            let selectedCats = Array.from(document.querySelectorAll('input[name="gen_cat"]:checked')).map(cb => cb.value);
+
+            if (selectedMats.length === 0 || selectedCats.length === 0) {
+                if (!confirm("Oeps! Geen materialen of categorieën geselecteerd in de generator opties.\nWil je alles resetten naar standaard (alles aan) en husselen?")) return;
+                populateGeneratorOptions(); // Resets to all checked
+                selectedMats = Array.from(document.querySelectorAll('input[name="gen_mat"]:checked')).map(cb => cb.value);
+                selectedCats = Array.from(document.querySelectorAll('input[name="gen_cat"]:checked')).map(cb => cb.value);
+            }
+
+            selectedMats = shuffleArray(selectedMats);
+            selectedCats = shuffleArray(selectedCats);
+
+            // 3. Clear existing custom names for THIS round
+            const rNum = roundIndex + 1;
+            Object.keys(customNames).forEach(k => {
+                // Key format: rX-eY-sZ
+                if (k.startsWith(`r${rNum}-`)) {
+                    delete customNames[k];
+                }
+            });
+
+            const round = workoutRounds[roundIndex];
+            const exPerRound = round.exercises;
+            const sets = round.sets;
+            const usedIds = new Set();
+
+            // Helper (Duplicated from runGenerator to be safe)
+            const getCandidate = (mat, catList, excludeIds) => {
+                let candidates = WORKOUT_DB.filter(item => item.material_name === mat && catList.includes(item.category) && !excludeIds.has(item.id));
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
+
+                candidates = WORKOUT_DB.filter(item => item.material_name === mat && catList.includes(item.category));
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
+
+                candidates = WORKOUT_DB.filter(item => catList.includes(item.category));
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
+                return null;
+            };
+
+            const getCandidateWithFallback = (prefMat, catList, excludeIds) => {
+                let candidate = getCandidate(prefMat, catList, excludeIds);
+                if (!candidate) {
+                    for (let m of selectedMats) {
+                        if (m === prefMat) continue;
+                        candidate = getCandidate(m, catList, excludeIds);
+                        if (candidate) break;
+                    }
+                }
+                return candidate;
+            };
+
+            // 4. Generate New Exercises
+            for (let e = 1; e <= exPerRound; e++) {
+                // Material Cycle
+                const matIndex = (e - 1) % selectedMats.length;
+                const targetMat = selectedMats[matIndex];
+
+                // Determine Set 1
+                let exForSet1 = getCandidateWithFallback(targetMat, selectedCats, usedIds);
+                let set1Name = exForSet1 ? exForSet1.exercise_name : `Geen Oefening`;
+                if (exForSet1) usedIds.add(exForSet1.id);
+
+                // Set 1
+                const key1 = `r${rNum}-e${e}-s1`;
+                customNames[key1] = set1Name;
+
+                // Subsequent Sets
+                for (let s = 2; s <= sets; s++) {
+                    // Check Logic settings (global var genLogic or need to read UI? 
+                    // genLogic var is available globally)
+                    if (genLogic.set === 'same') {
+                        const key = `r${rNum}-e${e}-s${s}`;
+                        customNames[key] = set1Name;
+                    } else {
+                        let exNext = getCandidateWithFallback(targetMat, selectedCats, usedIds);
+                        let nextName = exNext ? exNext.exercise_name : `Geen Oefening`;
+                        if (exNext) usedIds.add(exNext.id);
+                        const key = `r${rNum}-e${e}-s${s}`;
+                        customNames[key] = nextName;
+                    }
+                }
+            }
+
+            // 5. Save and Refresh
+            saveToLocal(); // Saves customNames
+            calculateRealTime(); // Updates valid/invalid states if any
+
+            // Visual Feedback
+            const btn = document.querySelector(`#round-card-${roundIndex} button[title="Hussel oefeningen voor deze ronde"]`);
+            if (btn) {
+                const original = btn.innerText;
+                btn.innerText = "✅";
+                setTimeout(() => btn.innerText = original, 1000);
+            }
         }
 
         function removeRound(index) {
