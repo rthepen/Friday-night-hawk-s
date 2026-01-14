@@ -2162,18 +2162,20 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <button class="modal-btn"
-                style="background: #BF5AF2; color: white; margin-top:15px; width:100%; font-weight:bold;"
-                onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI TRAINING GENERATOR</button>
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="modal-btn" style="flex:1; background: #333; color: white; margin-top:0;"
+            <div style="display:flex; gap:8px; margin-top:15px;">
+                <button class="modal-btn"
+                    style="flex:1.2; background: #BF5AF2; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px; font-weight:bold;"
+                    onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI Generator</button>
+                <button class="modal-btn"
+                    style="flex:1; background: #333; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px;"
                     onclick="closeScheduleModal()">Sluiten</button>
-                <button class="modal-btn" style="flex:1; background: #0A84FF; color: white; margin-top:0;"
+                <button class="modal-btn"
+                    style="flex:1; background: #0A84FF; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px;"
                     onclick="shareSchedulePDF()">Print PDF</button>
+                <button class="modal-btn"
+                    style="flex:1.2; background: #333; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px; border:1px solid #555;"
+                    onclick="closeScheduleModal(); openPrintStationModal()">🖨️ Stations</button>
             </div>
-            <button class="modal-btn"
-                style="background: #333; color: white; margin-top:10px; width:100%; border:1px solid #555;"
-                onclick="closeScheduleModal(); openPrintStationModal()">🖨️ Print Stationskaarten</button>
         </div>
     </div>
 
@@ -2468,7 +2470,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.342";
+        const APP_VERSION = "1.31.343";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
