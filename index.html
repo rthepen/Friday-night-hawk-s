@@ -1741,11 +1741,11 @@
                 FNH Timer <span class="version-tag"></span>
             </div>
             <div class="header-buttons">
-                <button class="btn-header btn-reset" onclick="resetToDefaults()">?? Reset</button>
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
-                    onclick="applyTabataPreset()">?? Tabata</button>
-                <button class="btn-header btn-save" onclick="shareSettings()">?? Save</button>
-                <button class="btn-header btn-share-app" onclick="shareApp()">?? Delen</button>
+                    onclick="applyTabataPreset()">⚡ Tabata</button>
+                <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
+                <button class="btn-header btn-share-app" onclick="shareApp()">🔗 Delen</button>
             </div>
         </div>
 
@@ -1793,7 +1793,7 @@
 
         <button class="action-btn btn-start" id="btn-start-app" onclick="startWorkout()">START TRAINING</button>
 
-        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">?? Bekijk & Bewerk Schema</button>
+        <button class="action-btn btn-view-schedule" onclick="showScheduleModal()">📅 Bekijk & Bewerk Schema</button>
 
 
 
@@ -1834,7 +1834,7 @@
         </div>
 
         <div class="intro-banner">
-            <div class="intro-title">?? Welcome to the Friday Night Hawks!</div>
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
             <div class="intro-text">
                 De legendarische triathlon: <b>Spinning ?? � Bootcamp ??? � Zwemmen ??</b>.
                 <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! ????
@@ -1897,7 +1897,7 @@
                 </div>
                 <div class="stats-row-2">
                     <div class="stat-box editable" onclick="openLiveEndAdjustment()" style="cursor:pointer;">
-                        <div class="edit-icon">??</div>
+                        <div class="edit-icon">✏️</div>
                         <div class="stat-label">Einde</div>
                         <div class="stat-value" id="val-endtime">--:--</div>
                     </div>
@@ -2177,7 +2177,7 @@
             <div style="display:flex; gap:8px; margin-top:15px;">
                 <button class="modal-btn"
                     style="flex:1.2; background: #BF5AF2; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px; font-weight:bold;"
-                    onclick="openGeneratorModal(); closeScheduleModal();">?? AI Generator</button>
+                    onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI Generator</button>
                 <button class="modal-btn"
                     style="flex:1; background: #333; color: white; margin:0; font-size:11px; text-align:center; padding: 12px 2px;"
                     onclick="closeScheduleModal()">Sluiten</button>
@@ -2485,7 +2485,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.379";
+        const APP_VERSION = "1.31.380";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4865,7 +4865,7 @@
 
                 if (workoutRounds.length > 1) {
                     const delBtn = document.createElement('div');
-                    delBtn.innerHTML = '???';
+                    delBtn.innerHTML = '❌';
                     delBtn.style.cursor = 'pointer';
                     delBtn.onclick = () => removeRound(index);
                     header.appendChild(delBtn);
@@ -4878,7 +4878,7 @@
                 copyBtn.style.position = 'absolute';
                 copyBtn.style.right = '40px';
                 copyBtn.style.top = '10px';
-                copyBtn.innerText = '??';
+                copyBtn.innerText = '📋';
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
 
@@ -4888,7 +4888,7 @@
                 shuffleBtn.style.position = 'absolute';
                 shuffleBtn.style.right = '80px'; // Next to Copy (40px)
                 shuffleBtn.style.top = '10px';
-                shuffleBtn.innerText = '??';
+                shuffleBtn.innerText = '🎲';
                 shuffleBtn.title = "Hussel deze ronde (Oefeningen)";
                 shuffleBtn.onclick = () => shuffleRound(index);
                 card.appendChild(shuffleBtn);
@@ -5228,7 +5228,7 @@
                         <span style="font-weight:bold; color:#0A84FF; width:25px;">#${e}</span>
                         <span style="color:white; font-size:14px;">${currentName}</span>
                     </div>
-                    <span style="font-size:14px;">??</span>
+                    <span style="font-size:14px;">✏️</span>
                 `;
 
                 item.onclick = () => {
@@ -5239,7 +5239,7 @@
             }
         }
 
-            // Shuffle Button removed (Now in Header)
+        // Shuffle Button removed (Now in Header)
 
         function removeRound(index) {
             workoutRounds.splice(index, 1);
