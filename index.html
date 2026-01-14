@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.338</title>
+    <title>Friday-night-hawk-s Timer v1.31.339</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -4208,9 +4208,23 @@
                         const matIndex = (e - 1) % selectedMats.length;
                         const targetMat = selectedMats[matIndex];
 
+                        // Helper to get candidate from primary material OR any other selected material
+                        const getCandidateWithFallback = (prefMat, catList, excludeIds) => {
+                            let candidate = getCandidate(prefMat, catList, excludeIds);
+                            if (!candidate) {
+                                // Fallback: Try all other selected materials
+                                for (let m of selectedMats) {
+                                    if (m === prefMat) continue;
+                                    candidate = getCandidate(m, catList, excludeIds);
+                                    if (candidate) break;
+                                }
+                            }
+                            return candidate;
+                        };
+
                         // Determine Sets
-                        let exForSet1 = getCandidate(targetMat, selectedCats, usedIds);
-                        let set1Name = exForSet1 ? exForSet1.exercise_name : `Geen Oefening (${targetMat})`;
+                        let exForSet1 = getCandidateWithFallback(targetMat, selectedCats, usedIds);
+                        let set1Name = exForSet1 ? exForSet1.exercise_name : `Geen Oefening`;
 
                         if (exForSet1) usedIds.add(exForSet1.id);
 
@@ -4221,8 +4235,8 @@
                             if (genLogic.set === 'same') {
                                 setNames.push(set1Name);
                             } else {
-                                let exNext = getCandidate(targetMat, selectedCats, usedIds);
-                                let nextName = exNext ? exNext.exercise_name : `Geen Oefening (${targetMat})`;
+                                let exNext = getCandidateWithFallback(targetMat, selectedCats, usedIds);
+                                let nextName = exNext ? exNext.exercise_name : `Geen Oefening`;
                                 if (exNext) usedIds.add(exNext.id);
                                 setNames.push(nextName);
                             }
