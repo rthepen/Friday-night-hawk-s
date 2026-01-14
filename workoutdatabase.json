@@ -1397,15 +1397,15 @@
     "thumbnail": "https://i.ytimg.com/vi/vOouypk1kFs/hqdefault.jpg"
   },
   {
-    "check_number": 129,
+    "check_number": 194,
     "id": "jump_squats",
     "exercise_name": "Jump Squats",
     "category": "Onderlichaam",
     "material_name": "Bodyweight",
     "material_description": "Eigen lichaamsgewicht",
-    "instructions": "Jump Squats: Zak in squat en spring explosief omhoog. Land zacht en zak direct weer door.",
-    "video_search_url": "https://www.youtube.com/embed/h5TmdMMtIT4",
-    "thumbnail": "https://i.ytimg.com/vi/h5TmdMMtIT4/hqdefault.jpg"
+    "instructions": "Jump Squats: Zak in een squat en spring zo hoog mogelijk. Land zachtjes en ga direct weer door in de volgende squat.",
+    "video_search_url": "https://www.youtube.com/watch?v=W_NdZlIJOgg",
+    "thumbnail": "https://i.ytimg.com/vi/W_NdZlIJOgg/hqdefault.jpg"
   },
   {
     "check_number": 130,
@@ -1628,15 +1628,15 @@
     "thumbnail": "https://i.ytimg.com/vi/re1pZwkcpqA/hqdefault.jpg"
   },
   {
-    "check_number": 150,
+    "check_number": 211,
     "id": "partner_plank_high_five",
     "exercise_name": "Partner Plank High Five",
-    "category": "Buikspieren / Team",
+    "category": "Core",
     "material_name": "Partner",
-    "material_description": "Een medesporter",
-    "instructions": "Partner Plank High Five: Tegenover elkaar in plank. Geef elkaar met één hand een high five. Wissel af.",
-    "video_search_url": "https://www.youtube.com/embed/soGvxEfKVwg",
-    "thumbnail": "https://i.ytimg.com/vi/soGvxEfKVwg/hqdefault.jpg"
+    "material_description": "Samen trainen",
+    "instructions": "Neem beide de plankpositie aan, met de gezichten naar elkaar toe. Til om en om de tegenovergestelde hand op en tik de hand van je partner aan zonder je heupen te draaien.",
+    "video_search_url": "https://www.youtube.com/embed/Vj22Nytv2OE",
+    "thumbnail": "https://i.ytimg.com/vi/Vj22Nytv2OE/hqdefault.jpg"
   },
   {
     "check_number": 151,
@@ -2101,17 +2101,6 @@
     "thumbnail": "https://i.ytimg.com/vi/AyYbnV_GjRo/hqdefault.jpg"
   },
   {
-    "check_number": 194,
-    "id": "jump_squats",
-    "exercise_name": "Jump Squats",
-    "category": "Onderlichaam",
-    "material_name": "Bodyweight",
-    "material_description": "Eigen lichaamsgewicht",
-    "instructions": "Jump Squats: Zak in een squat en spring zo hoog mogelijk. Land zachtjes en ga direct weer door in de volgende squat.",
-    "video_search_url": "https://www.youtube.com/watch?v=W_NdZlIJOgg",
-    "thumbnail": "https://i.ytimg.com/vi/W_NdZlIJOgg/hqdefault.jpg"
-  },
-  {
     "check_number": 195,
     "id": "in_fietsen_warming_up",
     "exercise_name": "In Fietsen (Warming-Up)",
@@ -2286,17 +2275,6 @@
     "instructions": "Partner A neemt de push-up houding aan. Partner B pakt de enkels van A vast en tilt deze op. A doet push-ups terwijl B de benen stabiel houdt.",
     "video_search_url": "https://www.youtube.com/embed/YI5G-sKjWrs",
     "thumbnail": "https://i.ytimg.com/vi/YI5G-sKjWrs/hqdefault.jpg"
-  },
-  {
-    "check_number": 211,
-    "id": "partner_plank_high_five",
-    "exercise_name": "Partner Plank High Five",
-    "category": "Core",
-    "material_name": "Partner",
-    "material_description": "Samen trainen",
-    "instructions": "Neem beide de plankpositie aan, met de gezichten naar elkaar toe. Til om en om de tegenovergestelde hand op en tik de hand van je partner aan zonder je heupen te draaien.",
-    "video_search_url": "https://www.youtube.com/embed/Vj22Nytv2OE",
-    "thumbnail": "https://i.ytimg.com/vi/Vj22Nytv2OE/hqdefault.jpg"
   },
   {
     "check_number": 212,
