@@ -2470,7 +2470,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.343";
+        const APP_VERSION = "1.31.344";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -4178,35 +4178,51 @@
                 return;
             }
 
-            // 3. Clear existing custom names
-            if (!confirm("Dit overschrijft alle handmatige aanpassingen in het schema. Doorgaan?")) return;
+            // 3. Sync workout structure and clear existing custom names
+            if (!confirm("Dit overschrijft alle handmatige aanpassingen en de huidige rondes in het schema. Doorgaan?")) return;
+
+            // Update workoutRounds to match generator settings
+            const prototypeRound = workoutRounds.length > 0 ? { ...workoutRounds[0] } : { ...appDefaults };
+            workoutRounds = [];
+            for (let i = 0; i < rounds; i++) {
+                workoutRounds.push({
+                    ...prototypeRound,
+                    id: Date.now() + i,
+                    exercises: exPerRound,
+                    sets: sets
+                });
+            }
+
             customNames = {};
 
             // 4. Generation Loop
             const usedIds = new Set(); // To ensure uniqueness across the whole workout
 
-            // Helper to get candidate
+            // Helper to get candidate with multi-level fallback
             const getCandidate = (mat, catList, excludeIds) => {
+                // Choice 1: Target Material + Selected Category + Not Used
                 let candidates = WORKOUT_DB.filter(item =>
                     item.material_name === mat &&
                     catList.includes(item.category) &&
                     !excludeIds.has(item.id)
                 );
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
 
-                if (candidates.length === 0) {
-                    // Try relaxing the ID constraint if we ran out of exercises
-                    // Use a slightly different shuffle for fallback to keep it random
-                    let backupCandidates = WORKOUT_DB.filter(item =>
-                        item.material_name === mat &&
-                        catList.includes(item.category)
-                    );
-                    if (backupCandidates.length > 0) {
-                        return shuffleArray(backupCandidates)[0];
-                    }
-                    return null;
-                }
+                // Choice 2: Target Material + Selected Category (Allow reuse)
+                candidates = WORKOUT_DB.filter(item =>
+                    item.material_name === mat &&
+                    catList.includes(item.category)
+                );
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
 
-                return shuffleArray(candidates)[0];
+                // Choice 3: Any selected material + Selected Category + Not Used
+                // (Already handled by getCandidateWithFallback loop, but good to have here)
+
+                // Choice 4: Any matching category in DB (Ultimate fallback)
+                candidates = WORKOUT_DB.filter(item => catList.includes(item.category));
+                if (candidates.length > 0) return shuffleArray(candidates)[0];
+
+                return null;
             };
 
             // Logic:
@@ -4286,7 +4302,10 @@
                 }
             }
 
+            saveRoundsToLocal();
             saveToLocal();
+            renderRoundsContainer();
+            calculateRealTime();
             closeGeneratorModal();
             showScheduleModal(); // Show result
         }
