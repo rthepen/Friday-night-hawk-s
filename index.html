@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.315</title>
+    <title>Friday-night-hawk-s Timer v1.31.317</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.315</span>
+                FNH Timer <span class="version-tag">v1.31.317</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -4839,11 +4839,10 @@
                 row2.innerHTML = `
                     <div class="select-group"><label>Werk (s)</label><input type="number" value="${round.workTime}" onchange="updateRound(${index}, 'workTime', this.value)" style="width:100%; text-align:center;"></div>
                     <div class="select-group"><label>Rust (s)</label><input type="number" value="${round.restTime}" onchange="updateRound(${index}, 'restTime', this.value)" style="width:100%; text-align:center;"></div>
-                    <div class="select-group"><label>Pauze (na ronde)</label><input type="number" value="${round.roundRest}" onchange="updateRound(${index}, 'roundRest', this.value)" style="width:100%; text-align:center;"></div>
                 `;
                 card.appendChild(row2);
 
-                container.appendChild(card);
+                // container.appendChild(card) moved to end of loop iteration
 
                 // Info Footer
                 const infoDiv = document.createElement('div');
@@ -4854,6 +4853,25 @@
                 infoDiv.style.textAlign = 'right';
                 infoDiv.innerText = "...";
                 card.appendChild(infoDiv);
+
+                container.appendChild(card);
+
+                // Add Connector if not last round
+                if (index < workoutRounds.length - 1) {
+                    const connector = document.createElement('div');
+                    connector.style.display = 'flex';
+                    connector.style.alignItems = 'center';
+                    connector.style.justifyContent = 'center';
+                    connector.style.padding = '10px 0';
+                    connector.innerHTML = `
+                         <div style="background:#1c1c1e; border:1px solid #333; border-radius:8px; padding:10px 15px; display:flex; flex-direction:column; align-items:center; width:150px;">
+                            <label style="font-size:10px; color:#888; margin-bottom:5px; text-transform:uppercase;">Pauze Tussen Ronde</label>
+                            <input type="number" value="${round.roundRest}" onchange="updateRound(${index}, 'roundRest', this.value)" 
+                                   style="width:100%; text-align:center; background:none; border:none; color:white; font-size:16px; font-weight:bold; font-family:'Outfit',sans-serif;">
+                         </div>
+                    `;
+                    container.appendChild(connector);
+                }
             });
 
             // Re-calc
