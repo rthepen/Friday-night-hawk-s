@@ -1944,6 +1944,11 @@
             <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
         </div>
 
+        <button onclick="toggleLiveEdit()" class="action-btn"
+            style="margin-top:20px; background:#333; font-size:14px; padding:10px;">
+            ⚙️ Bewerk Schema (Training loopt door)
+        </button>
+
         <div id="live-schedule-container">
             <table class="live-table" id="live-table">
                 <thead>
@@ -2479,7 +2484,12 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.348";
+        const APP_VERSION = "1.31.349";
+
+        // GLOBAL START TIME REFERENCE
+        // We use this to calculate sync when returning from "Edit Mode"
+        let globalWorkoutStartVal = null; // Date.now() timestamp
+        let isWorkoutActive = false;
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -6151,6 +6161,12 @@
                     targetStart.setDate(targetStart.getDate() + 1);
                 }
 
+                // CHECK: If we are already active (Edit Mode), resume instead
+                if (isWorkoutActive && globalWorkoutStartVal) {
+                    resumeSyncWorkout();
+                    return;
+                }
+
                 if (targetStart > now) {
                     // Show Countdown Overlay
                     const overlay = document.getElementById('pre-workout-overlay');
@@ -6285,6 +6301,11 @@
             window.lastStepChangeTime = Date.now(); // SAFETY: Set anchor on actual start
             clearInterval(timerInterval); // Ensure no previous timer is running
 
+            // SET GLOBAL ACTIVE STATE
+            isWorkoutActive = true;
+            globalWorkoutStartVal = Date.now();
+            updateStartButtonState();
+
             // LOGGING START
             try {
                 logWorkoutToSheet();
@@ -6376,6 +6397,10 @@
             ts.style.display = 'block';
 
             workoutStartTime = new Date(originalStartMs);
+            // Sync Global
+            globalWorkoutStartVal = originalStartMs;
+            isWorkoutActive = true;
+            updateStartButtonState(); // Update text to "Return"
             const [h, m] = document.getElementById('endTimeValue').value.split(':');
             targetEndTimeDate = new Date(); targetEndTimeDate.setHours(h, m, 0, 0);
 
@@ -7997,6 +8022,11 @@
         }
 
         function resetApp() {
+            // Reset Global State
+            isWorkoutActive = false;
+            globalWorkoutStartVal = null;
+            updateStartButtonState(); // Ensure button is reset
+
             clearInterval(timerInterval);
             // Force Tabataman on reset (User Request)
             try {
@@ -8502,75 +8532,224 @@
             }
         }, 5000);
 
-    </script>
-    <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
-        style="display:none; flex-direction:column; justify-content:center; align-items:center; background:black; color:white;">
-        <div style="font-size:18px; color:#888; text-transform:uppercase; letter-spacing:4px; margin-bottom:10px;">
-            TRAINING BEGINT OVER</div>
+        // NEW: Live Edit Logic
+        function toggleLiveEdit() {
+            // Switch to Setup Screen
+            document.getElementById('timer-screen').style.display = 'none';
+            document.getElementById('setup-screen').classList.remove('hidden');
 
-        <div id="pre-workout-timer" class="epic-timer" style="font-size:120px; font-weight:900; line-height:1;">
-            00:00
-        </div>
+            // Note: Timer continues in background because we simply hide the div.
+            // isWorkoutActive ensures "Start" button becomes "Resume"
+            updateStartButtonState();
+        }
 
-        <!-- NEW START TIME INFO -->
-        <div id="pre-workout-start-time"
-            style="font-size:24px; color:#30D158; font-weight:bold; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 10px rgba(48,209,88,0.4);">
-            STARTTIJD: --:--
-        </div>
+        function updateStartButtonState() {
+            const btn = document.getElementById('btn-start-app');
+            if (!btn) return;
 
+            if (isWorkoutActive) {
+                btn.innerText = "⏱️ TERUG NAAR TRAINING";
+                btn.classList.add('active-session-btn'); // CSS for pulsing green?
+                btn.style.background = "#30D158";
+                btn.style.color = "black";
+            } else {
+                btn.innerText = "START TRAINING";
+                btn.classList.remove('active-session-btn');
+                btn.style.background = ""; // Revert to default class style
+                btn.style.color = "";
+            }
+        }
 
+        function resumeSyncWorkout() {
+            if (!globalWorkoutStartVal) return; // Safety
 
-        <button onclick="previewEarlyStartOptions()" class="action-btn"
-            style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
-            🚀 NU BEGINNEN (OVERSLAAN)
-        </button>
+            const now = Date.now();
+            let elapsedSec = Math.floor((now - globalWorkoutStartVal) / 1000);
 
-        <button id="btn-jump-in" onclick="startSyncWorkout()" class="action-btn"
-            style="display:none; margin-top:15px; padding:15px 40px; background:rgba(48,209,88,0.2); border:1px solid rgba(48,209,88,0.4); backdrop-filter:blur(10px); width:auto; color:#30D158;">
-            ⏱️ IN HAKEN (MOMENTEEL BEZIG)
-        </button>
-        <script>
-            function getFingerprint() {
-                let fp = localStorage.getItem('fnh_fingerprint');
-                if (!fp) {
-                    fp = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-                    localStorage.setItem('fnh_fingerprint', fp);
+            console.log("Resuming Sync. Elapsed:", elapsedSec);
+
+            // 1. Recalculate everything based on potential edits
+            calculateRealTime();
+            generateScheduleData(true);
+            populateJumpMenus(); // ensure stats work
+
+            // 2. Find Sync Point (Same logic as Jump In)
+            let foundIdx = 0;
+            let cumulativeSec = 0;
+            for (let i = 0; i < schedule.length; i++) {
+                const stepTime = schedule[i].time;
+                if (cumulativeSec + stepTime > elapsedSec) {
+                    foundIdx = i;
+                    break;
                 }
-                return fp;
+                cumulativeSec += stepTime;
+                foundIdx = i;
             }
 
-            function logWorkoutToSheet() {
-                const url =
-                    "https://script.google.com/macros/s/AKfycbzjwH5TfLJEinllUn3wYlQE17uno0DdnLoBaG1FmdMeVBUE0wd5-pf07TEoOg6jj2sF/exec";
+            // 3. Jump to that point
+            currentIndex = foundIdx;
+            const remainingInStep = (cumulativeSec + schedule[foundIdx].time) - elapsedSec;
 
-                // Safe Retrieval
-                const totalMinEl = document.getElementById('totalMin');
-                const totalMinText = totalMinEl ? totalMinEl.value : "Err";
+            // 4. Show Timer
+            document.getElementById('setup-screen').classList.add('hidden');
+            const ts = document.getElementById('timer-screen');
+            ts.style.cssText = '';
+            ts.style.display = 'block';
 
-                const payload = {
-                    fingerprint: getFingerprint(),
-                    rounds: document.getElementById('rounds').value,
-                    exercises: document.getElementById('exercises').value,
-                    sets: document.getElementById('sets').value,
-                    totalMin: totalMinText,
-                    coach: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'unknown', // UPDATED
-                    startTime: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
-                };
+            // 5. Update Timer State
+            // IMPORTANT: We do NOT reset workoutStartTime here, simply ensure it aligns
+            workoutStartTime = new Date(globalWorkoutStartVal);
 
-                console.log("Logging Payload:", payload);
+            stepEndTime = Date.now() + (remainingInStep * 1000);
+            renderLiveSchedule();
 
-                // Fire and forget (no-cors prevents reading response but allows sending)
-                // Use text/plain to avoid CORS preflight (OPTIONS) which Apps Script doesn't handle
-                fetch(url, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
-            }
-            // --- PULL TO REFRESH (Custom) ---
-            (function initPullToRefresh() {
-                // 1. Inject CSS
-                const style = document.createElement('style');
-                style.innerHTML = `
+            // Audio context is likely already running, no need to force resume unless blocked.
+
+            runStep();
+            triggerAudio('manual_override', "Schema bijgewerkt");
+        }
+
+    </script>
+
+    // Note: Timer continues in background because we simply hide the div.
+    // isWorkoutActive ensures "Start" button becomes "Resume"
+    updateStartButtonState();
+    }
+
+    function updateStartButtonState() {
+    const btn = document.getElementById('btn-start-app');
+    if (!btn) return;
+
+    if (isWorkoutActive) {
+    btn.innerText = "⏱️ TERUG NAAR TRAINING";
+    btn.classList.add('active-session-btn'); // CSS for pulsing green?
+    btn.style.background = "#30D158";
+    btn.style.color = "black";
+    } else {
+    btn.innerText = "START TRAINING";
+    btn.classList.remove('active-session-btn');
+    btn.style.background = ""; // Revert to default class style
+    btn.style.color = "";
+    }
+    }
+
+    function resumeSyncWorkout() {
+    if (!globalWorkoutStartVal) return; // Safety
+
+    const now = Date.now();
+    let elapsedSec = Math.floor((now - globalWorkoutStartVal) / 1000);
+
+    console.log("Resuming Sync. Elapsed:", elapsedSec);
+
+    // 1. Recalculate everything based on potential edits
+    calculateRealTime();
+    generateScheduleData(true);
+    populateJumpMenus(); // ensure stats work
+
+    // 2. Find Sync Point (Same logic as Jump In)
+    let foundIdx = 0;
+    let cumulativeSec = 0;
+    for (let i = 0; i < schedule.length; i++) { const stepTime=schedule[i].time; if (cumulativeSec + stepTime>
+        elapsedSec) {
+        foundIdx = i;
+        break;
+        }
+        cumulativeSec += stepTime;
+        foundIdx = i;
+        }
+
+        // 3. Jump to that point
+        currentIndex = foundIdx;
+        const remainingInStep = (cumulativeSec + schedule[foundIdx].time) - elapsedSec;
+
+        // 4. Show Timer
+        document.getElementById('setup-screen').classList.add('hidden');
+        const ts = document.getElementById('timer-screen');
+        ts.style.cssText = '';
+        ts.style.display = 'block';
+
+        // 5. Update Timer State
+        // IMPORTANT: We do NOT reset workoutStartTime here, simply ensure it aligns
+        workoutStartTime = new Date(globalWorkoutStartVal);
+
+        stepEndTime = Date.now() + (remainingInStep * 1000);
+        renderLiveSchedule();
+
+        // Audio context is likely already running, no need to force resume unless blocked.
+
+        runStep();
+        triggerAudio('manual_override', "Schema bijgewerkt");
+        }
+
+        </script>
+        <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
+            style="display:none; flex-direction:column; justify-content:center; align-items:center; background:black; color:white;">
+            <div style="font-size:18px; color:#888; text-transform:uppercase; letter-spacing:4px; margin-bottom:10px;">
+                TRAINING BEGINT OVER</div>
+
+            <div id="pre-workout-timer" class="epic-timer" style="font-size:120px; font-weight:900; line-height:1;">
+                00:00
+            </div>
+
+            <!-- NEW START TIME INFO -->
+            <div id="pre-workout-start-time"
+                style="font-size:24px; color:#30D158; font-weight:bold; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 10px rgba(48,209,88,0.4);">
+                STARTTIJD: --:--
+            </div>
+
+
+
+            <button onclick="previewEarlyStartOptions()" class="action-btn"
+                style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
+                🚀 NU BEGINNEN (OVERSLAAN)
+            </button>
+
+            <button id="btn-jump-in" onclick="startSyncWorkout()" class="action-btn"
+                style="display:none; margin-top:15px; padding:15px 40px; background:rgba(48,209,88,0.2); border:1px solid rgba(48,209,88,0.4); backdrop-filter:blur(10px); width:auto; color:#30D158;">
+                ⏱️ IN HAKEN (MOMENTEEL BEZIG)
+            </button>
+            <script>
+                function getFingerprint() {
+                    let fp = localStorage.getItem('fnh_fingerprint');
+                    if (!fp) {
+                        fp = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                        localStorage.setItem('fnh_fingerprint', fp);
+                    }
+                    return fp;
+                }
+
+                function logWorkoutToSheet() {
+                    const url =
+                        "https://script.google.com/macros/s/AKfycbzjwH5TfLJEinllUn3wYlQE17uno0DdnLoBaG1FmdMeVBUE0wd5-pf07TEoOg6jj2sF/exec";
+
+                    // Safe Retrieval
+                    const totalMinEl = document.getElementById('totalMin');
+                    const totalMinText = totalMinEl ? totalMinEl.value : "Err";
+
+                    const payload = {
+                        fingerprint: getFingerprint(),
+                        rounds: document.getElementById('rounds').value,
+                        exercises: document.getElementById('exercises').value,
+                        sets: document.getElementById('sets').value,
+                        totalMin: totalMinText,
+                        coach: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : 'unknown', // UPDATED
+                        startTime: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+                    };
+
+                    console.log("Logging Payload:", payload);
+
+                    // Fire and forget (no-cors prevents reading response but allows sending)
+                    // Use text/plain to avoid CORS preflight (OPTIONS) which Apps Script doesn't handle
+                    fetch(url, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                    }).then(() => console.log("Log sent (blind)")).catch(e => console.log("Logging error", e));
+                }
+                // --- PULL TO REFRESH (Custom) ---
+                (function initPullToRefresh() {
+                    // 1. Inject CSS
+                    const style = document.createElement('style');
+                    style.innerHTML = `
                 #ptr-spinner {
                     position: fixed; top: -60px; left: 0; right: 0; height: 60px;
                     display: flex; align-items: center; justify-content: center;
@@ -8586,247 +8765,248 @@
                 .ptr-refreshing #ptr-icon { animation: ptr-spin 1s linear infinite; }
                 @keyframes ptr-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `;
-                document.head.appendChild(style);
+                    document.head.appendChild(style);
 
-                // 2. Inject DOM
-                const ptr = document.createElement('div');
-                ptr.id = 'ptr-spinner';
-                ptr.innerHTML = '<div id="ptr-icon">⬇️</div>';
-                document.body.appendChild(ptr);
+                    // 2. Inject DOM
+                    const ptr = document.createElement('div');
+                    ptr.id = 'ptr-spinner';
+                    ptr.innerHTML = '<div id="ptr-icon">⬇️</div>';
+                    document.body.appendChild(ptr);
 
-                // 3. Variables
-                let startY = 0;
-                let isDragging = false;
-                const threshold = 250; // Increased to make it harder (user request)
+                    // 3. Variables
+                    let startY = 0;
+                    let isDragging = false;
+                    const threshold = 250; // Increased to make it harder (user request)
 
-                // 4. Touch Handlers
-                document.addEventListener('touchstart', (e) => {
-                    // Only enable if at top AND critical overlays are NOT active
-                    // We allow it on Setup Screen (Start Page) now.
-                    const isBlockingOverlay = document.getElementById('pause-modal').style.display === 'flex' ||
-                        document.getElementById('pre-workout-overlay').style.display === 'flex';
+                    // 4. Touch Handlers
+                    document.addEventListener('touchstart', (e) => {
+                        // Only enable if at top AND critical overlays are NOT active
+                        // We allow it on Setup Screen (Start Page) now.
+                        const isBlockingOverlay = document.getElementById('pause-modal').style.display === 'flex' ||
+                            document.getElementById('pre-workout-overlay').style.display === 'flex';
 
-                    if (window.scrollY === 0 && !isBlockingOverlay) {
-                        startY = e.touches[0].clientY;
-                        isDragging = true;
-                    }
-                }, { passive: true });
-
-                document.addEventListener('touchmove', (e) => {
-                    if (!isDragging) return;
-                    const y = e.touches[0].clientY;
-                    const diff = y - startY;
-
-                    if (diff > 0 && window.scrollY <= 0) {
-                        // Pulling down
-                        ptr.style.top = (diff / 3.0 - 60) + 'px'; // Increased resistance slightly
-                        const icon = document.getElementById('ptr-icon');
-                        if (diff > threshold) {
-                            icon.style.transform = 'rotate(180deg)';
-                            icon.innerText = "🔄";
-                        } else {
-                            icon.style.transform = 'rotate(0deg)';
-                            icon.innerText = "⬇️";
+                        if (window.scrollY === 0 && !isBlockingOverlay) {
+                            startY = e.touches[0].clientY;
+                            isDragging = true;
                         }
-                    } else {
-                        isDragging = false; // Scrolled down
-                    }
-                }, { passive: true });
+                    }, { passive: true });
 
-                document.addEventListener('touchend', (e) => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    const y = e.changedTouches[0].clientY;
-                    const diff = y - startY;
+                    document.addEventListener('touchmove', (e) => {
+                        if (!isDragging) return;
+                        const y = e.touches[0].clientY;
+                        const diff = y - startY;
 
-                    if (diff > threshold && window.scrollY <= 0) {
-                        // Trigger Refresh Check
-                        if (confirm("Weet je zeker dat je de pagina wilt verversen? \n(De huidige training stopt dan)")) {
-                            ptr.className = 'ptr-refreshing';
-                            location.reload();
+                        if (diff > 0 && window.scrollY <= 0) {
+                            // Pulling down
+                            ptr.style.top = (diff / 3.0 - 60) + 'px'; // Increased resistance slightly
+                            const icon = document.getElementById('ptr-icon');
+                            if (diff > threshold) {
+                                icon.style.transform = 'rotate(180deg)';
+                                icon.innerText = "🔄";
+                            } else {
+                                icon.style.transform = 'rotate(0deg)';
+                                icon.innerText = "⬇️";
+                            }
                         } else {
-                            // Cancel
+                            isDragging = false; // Scrolled down
+                        }
+                    }, { passive: true });
+
+                    document.addEventListener('touchend', (e) => {
+                        if (!isDragging) return;
+                        isDragging = false;
+                        const y = e.changedTouches[0].clientY;
+                        const diff = y - startY;
+
+                        if (diff > threshold && window.scrollY <= 0) {
+                            // Trigger Refresh Check
+                            if (confirm("Weet je zeker dat je de pagina wilt verversen? \n(De huidige training stopt dan)")) {
+                                ptr.className = 'ptr-refreshing';
+                                location.reload();
+                            } else {
+                                // Cancel
+                                ptr.style.top = '-60px';
+                            }
+                        } else {
+                            // Reset
                             ptr.style.top = '-60px';
                         }
-                    } else {
-                        // Reset
-                        ptr.style.top = '-60px';
+                    });
+                })();
+
+                // --- CLICK OUTSIDE TO CLOSE AUDIO SETTINGS ---
+                document.addEventListener('click', (e) => {
+                    const panel = document.getElementById('active-volume-panel');
+                    const btn = document.getElementById('global-volume-btn');
+
+                    if (panel && panel.style.display !== 'none') {
+                        // Check if click is OUTSIDE panel AND OUTSIDE trigger button
+                        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                            panel.style.display = 'none';
+                        }
                     }
                 });
-            })();
 
-            // --- CLICK OUTSIDE TO CLOSE AUDIO SETTINGS ---
-            document.addEventListener('click', (e) => {
-                const panel = document.getElementById('active-volume-panel');
-                const btn = document.getElementById('global-volume-btn');
+            </script>
 
-                if (panel && panel.style.display !== 'none') {
-                    // Check if click is OUTSIDE panel AND OUTSIDE trigger button
-                    if (!panel.contains(e.target) && !btn.contains(e.target)) {
-                        panel.style.display = 'none';
-                    }
-                }
-            });
-
-        </script>
-
-        <!-- AUDIO GUIDE POPUP -->
+            <!-- AUDIO GUIDE POPUP -->
 
 
 
-    </div> <!-- Close pre-workout-overlay -->
+        </div> <!-- Close pre-workout-overlay -->
 
-    <!-- GLOBAL VOLUME TOGGLE BTN (Relocated & HIGH Z-INDEX) -->
-    <div id="global-fullscreen-btn"
-        style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
-        onclick="toggleFullScreen()">
-        <span style="font-size:20px;">⛶</span>
-    </div>
-
-    <div id="global-volume-btn"
-        style="position:fixed; top:20px; right:20px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
-        onclick="toggleVolumePanel()">
-        <span style="font-size:20px;">🔊</span>
-    </div>
-
-    <!-- VOLUME PANEL OVERLAY (Relocated to Body) -->
-    <div id="active-volume-panel"
-        style="display:none; position:fixed; top:70px; right:20px; width:280px; max-height:80vh; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; background:rgba(28, 28, 30, 0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); z-index:200001; box-shadow:0 30px 60px rgba(0,0,0,0.8);">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
-            <span style="font-size:13px; color:#fff; font-weight:bold; letter-spacing:0.5px;">AUDIO SETTINGS</span>
-            <span style="font-size:24px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
+        <!-- GLOBAL VOLUME TOGGLE BTN (Relocated & HIGH Z-INDEX) -->
+        <div id="global-fullscreen-btn"
+            style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+            onclick="toggleFullScreen()">
+            <span style="font-size:20px;">⛶</span>
         </div>
 
-        <!-- Playback Controls -->
-        <div
-            style="display:flex; align-items:center; justify-content:center; gap:25px; margin-bottom:25px; background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
-            <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏮️</div>
-            <div onclick="bgMusicManager.togglePlayback()"
-                style="cursor:pointer; font-size:28px; transform:scale(1.1);">⏯️</div>
-            <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏭️</div>
+        <div id="global-volume-btn"
+            style="position:fixed; top:20px; right:20px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+            onclick="toggleVolumePanel()">
+            <span style="font-size:20px;">🔊</span>
         </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🎵</span>
-            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
-                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">WERK MUZIEK</span>
-                <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
-                    style="width:100%; accent-color:#30D158;" oninput="updateLiveVolumes()">
+        <!-- VOLUME PANEL OVERLAY (Relocated to Body) -->
+        <div id="active-volume-panel"
+            style="display:none; position:fixed; top:70px; right:20px; width:280px; max-height:80vh; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; background:rgba(28, 28, 30, 0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.2); z-index:200001; box-shadow:0 30px 60px rgba(0,0,0,0.8);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                <span style="font-size:13px; color:#fff; font-weight:bold; letter-spacing:0.5px;">AUDIO SETTINGS</span>
+                <span style="font-size:24px; cursor:pointer; opacity:0.6;" onclick="toggleVolumePanel()">×</span>
             </div>
 
-        </div>
-
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🧘</span>
-            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
-                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">RUST MUZIEK</span>
-                <input type="range" id="vol-music-rest-live" min="0" max="1" step="0.1" value="0.2"
-                    style="width:100%; accent-color:#FF9F0A;" oninput="updateLiveVolumes()">
+            <!-- Playback Controls -->
+            <div
+                style="display:flex; align-items:center; justify-content:center; gap:25px; margin-bottom:25px; background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
+                <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏮️
+                </div>
+                <div onclick="bgMusicManager.togglePlayback()"
+                    style="cursor:pointer; font-size:28px; transform:scale(1.1);">⏯️</div>
+                <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏭️</div>
             </div>
 
-        </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                <span style="font-size:16px; min-width:30px;">🎵</span>
+                <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                    <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">WERK MUZIEK</span>
+                    <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
+                        style="width:100%; accent-color:#30D158;" oninput="updateLiveVolumes()">
+                </div>
 
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-            <span style="font-size:16px; min-width:30px;">🗣️</span>
-            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
-                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">COACH VOLUME</span>
-                <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
-                    style="width:100%; accent-color:#0A84FF;" oninput="updateLiveVolumes()">
             </div>
 
-        </div>
-
-        <!-- COLLAPSIBLE AUDIO SETTINGS -->
-        <!-- AUDIO SETTINGS (Always Visible) -->
-        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-
-            <div style="margin-top:15px; padding-left:5px; padding-right:5px;">
-                <!-- Continuous Mode Toggle -->
-                <div
-                    style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; flex-direction:column; text-align:left;">
-                        <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
-                        <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
-                    </div>
-                    <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
-                        <input type="checkbox" id="chk-continuous-music"
-                            onchange="bgMusicManager.setContinuous(this.checked)">
-                        <span class="slider round"
-                            style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#444; transition:.4s; border-radius:34px;"></span>
-                        <style>
-                            .slider:before {
-                                position: absolute;
-                                content: "";
-                                height: 18px;
-                                width: 18px;
-                                left: 3px;
-                                bottom: 3px;
-                                background-color: white;
-                                transition: .4s;
-                                border-radius: 50%;
-                            }
-
-                            input:checked+.slider {
-                                background-color: #30D158;
-                            }
-
-                            input:checked+.slider:before {
-                                transform: translateX(16px);
-                            }
-                        </style>
-                    </label>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                <span style="font-size:16px; min-width:30px;">🧘</span>
+                <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                    <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">RUST MUZIEK</span>
+                    <input type="range" id="vol-music-rest-live" min="0" max="1" step="0.1" value="0.2"
+                        style="width:100%; accent-color:#FF9F0A;" oninput="updateLiveVolumes()">
                 </div>
 
-                <!-- GENRE LIST CONTAINER (Reordered) -->
-                <div id="audio-settings-genres"
-                    style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:200px; overflow-y:auto;">
-                    <!-- Populated by renderGenreToggles -->
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                <span style="font-size:16px; min-width:30px;">🗣️</span>
+                <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                    <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">COACH VOLUME</span>
+                    <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
+                        style="width:100%; accent-color:#0A84FF;" oninput="updateLiveVolumes()">
                 </div>
 
-                <!-- PLAYLIST VIEW (Reordered) -->
-                <div id="playlist-view"
-                    style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:150px; overflow-y:auto;">
-                    <div id="gym-now-playing"
-                        style="font-size:11px; color:#30D158; font-weight:bold; margin-bottom:5px;">
-                        Now Playing: -</div>
-                    <div id="gym-queue-list" style="font-size:10px; color:#666;">
-                        <!-- Queue items populated by JS -->
-                    </div>
-                </div>
+            </div>
 
-                <!-- COACH SETTINGS (Reordered) -->
-                <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:15px;">
+            <!-- COLLAPSIBLE AUDIO SETTINGS -->
+            <!-- AUDIO SETTINGS (Always Visible) -->
+            <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+
+                <div style="margin-top:15px; padding-left:5px; padding-right:5px;">
+                    <!-- Continuous Mode Toggle -->
                     <div
-                        style="font-size:11px; font-weight:900; color:#666; margin-bottom:10px; text-transform:uppercase;">
-                        COACH TYPE</div>
+                        style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                        <div style="display:flex; flex-direction:column; text-align:left;">
+                            <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
+                            <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
+                        </div>
+                        <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
+                            <input type="checkbox" id="chk-continuous-music"
+                                onchange="bgMusicManager.setContinuous(this.checked)">
+                            <span class="slider round"
+                                style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#444; transition:.4s; border-radius:34px;"></span>
+                            <style>
+                                .slider:before {
+                                    position: absolute;
+                                    content: "";
+                                    height: 18px;
+                                    width: 18px;
+                                    left: 3px;
+                                    bottom: 3px;
+                                    background-color: white;
+                                    transition: .4s;
+                                    border-radius: 50%;
+                                }
 
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button class="toggle-btn active" id="btn-audio-speech-live"
-                            onclick="setAudioMode('speech'); updateLiveAudioUI();"
-                            style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
-                        <button class="toggle-btn" id="btn-audio-beep-live"
-                            onclick="setAudioMode('beep'); updateLiveAudioUI();"
-                            style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
+                                input:checked+.slider {
+                                    background-color: #30D158;
+                                }
+
+                                input:checked+.slider:before {
+                                    transform: translateX(16px);
+                                }
+                            </style>
+                        </label>
                     </div>
 
-                    <select id="coach-preset-live" class="text-input"
-                        onchange="applyCoachPreset(this.value); saveToLocal();"
-                        style="width:100%; font-size:13px; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border-radius:10px;">
-                        <!-- Populated via JS -->
-                    </select>
-
-                    <!-- SPEECH TOGGLES (Detailed) -->
-                    <div id="audio-toggles-panel"
-                        style="margin-top:10px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05);">
-                        <!-- Populated by renderAudioToggles -->
+                    <!-- GENRE LIST CONTAINER (Reordered) -->
+                    <div id="audio-settings-genres"
+                        style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:200px; overflow-y:auto;">
+                        <!-- Populated by renderGenreToggles -->
                     </div>
+
+                    <!-- PLAYLIST VIEW (Reordered) -->
+                    <div id="playlist-view"
+                        style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px; max-height:150px; overflow-y:auto;">
+                        <div id="gym-now-playing"
+                            style="font-size:11px; color:#30D158; font-weight:bold; margin-bottom:5px;">
+                            Now Playing: -</div>
+                        <div id="gym-queue-list" style="font-size:10px; color:#666;">
+                            <!-- Queue items populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- COACH SETTINGS (Reordered) -->
+                    <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:15px; padding-top:15px;">
+                        <div
+                            style="font-size:11px; font-weight:900; color:#666; margin-bottom:10px; text-transform:uppercase;">
+                            COACH TYPE</div>
+
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <button class="toggle-btn active" id="btn-audio-speech-live"
+                                onclick="setAudioMode('speech'); updateLiveAudioUI();"
+                                style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
+                            <button class="toggle-btn" id="btn-audio-beep-live"
+                                onclick="setAudioMode('beep'); updateLiveAudioUI();"
+                                style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
+                        </div>
+
+                        <select id="coach-preset-live" class="text-input"
+                            onchange="applyCoachPreset(this.value); saveToLocal();"
+                            style="width:100%; font-size:13px; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.3); border-radius:10px;">
+                            <!-- Populated via JS -->
+                        </select>
+
+                        <!-- SPEECH TOGGLES (Detailed) -->
+                        <div id="audio-toggles-panel"
+                            style="margin-top:10px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05);">
+                            <!-- Populated by renderAudioToggles -->
+                        </div>
+                    </div>
+
+
                 </div>
-
-
             </div>
         </div>
-    </div>
-    </div>
+        </div>
 </body>
 
 </html>
