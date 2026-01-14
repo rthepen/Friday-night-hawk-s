@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let analysisData = {}; // Store analysis results
+    let uniqueMaterials = [];
+    let uniqueCategories = [];
 
     // Helper for Quota Errors
     function checkQuotaError(errMsg) {
@@ -80,24 +82,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function populateFilterOptions() {
-        // Collect existing materials
+        // Collect existing materials and categories
         const materials = new Set(workouts.map(w => w.material_name));
-        const sortedMat = Array.from(materials).sort();
+        uniqueMaterials = Array.from(materials).sort();
 
-        // Filter Dropdown
+        const categories = new Set(workouts.map(w => w.category));
+        uniqueCategories = Array.from(categories).sort();
+
+        // Filter Dropdown (Materials)
         materialFilter.innerHTML = '<option value="all">Alle Materialen</option>';
-        sortedMat.forEach(mat => {
+        uniqueMaterials.forEach(mat => {
             const option = document.createElement('option');
             option.value = mat;
             option.textContent = mat;
             materialFilter.appendChild(option);
         });
 
-        // Modal Dropdown
+        // Modal Dropdown (Materials)
         const modalSelect = document.getElementById('newMaterial');
         if (modalSelect) {
             modalSelect.innerHTML = '<option value="" disabled selected>Kies Materiaal...</option>';
-            sortedMat.forEach(mat => {
+            uniqueMaterials.forEach(mat => {
                 const option = document.createElement('option');
                 option.value = mat;
                 option.textContent = mat;
@@ -108,6 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
             otherOpt.value = "Other";
             otherOpt.textContent = "Nieuw / Anders...";
             modalSelect.appendChild(otherOpt);
+        }
+
+        // Modal Dropdown (Category) - New Workout
+        const catSelect = document.getElementById('newCategory');
+        if (catSelect) {
+            catSelect.innerHTML = '<option value="" disabled selected>Kies Categorie...</option>';
+            uniqueCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                catSelect.appendChild(option);
+            });
+            // Add custom option (optional, keeping it simple for now)
         }
     }
 
@@ -163,13 +181,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const safeMat = workout.material_name;
         const safeCat = workout.category;
 
-        // Build Material Options
-        const materials = new Set(workouts.map(w => w.material_name));
-        const sortedMat = Array.from(materials).sort();
+        // Build Material Options (Reused)
         let matOptions = '';
-        sortedMat.forEach(m => {
+        uniqueMaterials.forEach(m => {
             matOptions += `<option value="${m}" ${m === safeMat ? 'selected' : ''}>${m}</option>`;
         });
+
+        // Build Category Options (Dynamic)
+        let catOptions = '';
+        uniqueCategories.forEach(c => {
+            catOptions += `<option value="${c}" ${c === safeCat ? 'selected' : ''}>${c}</option>`;
+        });
+
 
         div.innerHTML = `
             <div class="workout-header" onclick="toggleDetails(this, '${workout.id}', '${workout.exercise_name.replace(/'/g, "\\'")}')">
@@ -209,11 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div style="margin-bottom:10px;">
                             <label style="font-size:0.8em; color:#aaa;">Spiergroep / Categorie</label>
                              <select id="edit-cat-${workout.id}" class="input-field" style="width:100%;">
-                                <option value="Hele Lichaam" ${safeCat === 'Hele Lichaam' ? 'selected' : ''}>Hele Lichaam</option>
-                                <option value="Bovenlichaam" ${safeCat === 'Bovenlichaam' ? 'selected' : ''}>Bovenlichaam</option>
-                                <option value="Onderlichaam" ${safeCat === 'Onderlichaam' ? 'selected' : ''}>Onderlichaam</option>
-                                <option value="Buikspieren" ${safeCat === 'Buikspieren' ? 'selected' : ''}>Buikspieren</option>
-                                <option value="Cardio" ${safeCat === 'Cardio' ? 'selected' : ''}>Cardio</option>
+                                ${catOptions}
                             </select>
                          </div>
                          
