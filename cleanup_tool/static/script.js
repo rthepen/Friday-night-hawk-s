@@ -121,14 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='68' viewBox='0 0 120 68'%3E%3Crect width='120' height='68' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%23aaa'%3EGeen Video%3C/text%3E%3C/svg%3E";
 
         const div = document.createElement('div');
-        div.className = 'workout-item';
+        div.className = 'workout-item expanded'; // Default to expanded
         div.innerHTML = `
             <div class="workout-header" onclick="toggleDetails(this, '${workout.id}', '${workout.exercise_name.replace(/'/g, "\\'")}')">
                 <img src="${workout.thumbnail || fallbackImage}" class="current-thumb" onerror="this.onerror=null; this.src='${fallbackImage}'">
                 <div class="workout-info">
-                    <h3>${workout.exercise_name} 
-                        ${matchScore !== null ? `<span style="font-size:0.8em; color:${scoreColor}">(${matchScore}% Match)</span>` : ''}
-                    </h3>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <h3>${workout.exercise_name} 
+                            ${matchScore !== null ? `<span style="font-size:0.8em; color:${scoreColor}">(${matchScore}% Match)</span>` : ''}
+                        </h3>
+                        <button class="icon-btn" onclick="event.stopPropagation(); copyToClipboard('${workout.material_name} ${workout.exercise_name.replace(/'/g, "\\'")}', this)" title="Kopieer: ${workout.material_name} ${workout.exercise_name}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
                     <div class="workout-meta">
                         <span>${workout.category}</span>
                         <span>|</span>
@@ -152,6 +157,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 
+                <div style="margin-top:20px; border-top:1px solid #444; padding-top:15px;">
+                     <h4>Gebruik Custom Video URL</h4>
+                     <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="customUrl-${workout.id}" placeholder="Plak YouTube URL (bijv. shorts)" style="flex:1;">
+                        <button onclick="checkCustomUrl('${workout.id}')" class="primary-btn" style="background:var(--accent);">Check</button>
+                     </div>
+                     <div id="customPreview-${workout.id}"></div>
+                </div>
+                
+                <h4 style="margin-top:20px;">Of Zoek Alternatieven</h4>
                 <button onclick="searchAlternatives('${workout.exercise_name.replace(/'/g, "\\'")}', '${workout.id}')" class="primary-btn">Zoek Alternatieven (Shorts)</button>
                 <div id="results-${workout.id}" class="search-results"></div>
             </div>
@@ -174,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsContainer.innerHTML = '<p>Zoeken...</p>';
 
         const workout = workouts.find(w => w.id === id);
-        const fullQuery = `${query} ${workout.material_name}`;
+        // User requested: Material then Exercise Name
+        const fullQuery = `${workout.material_name} ${query}`;
 
         const headers = { 'Content-Type': 'application/json' };
         if (apiKeyInput.value) {
@@ -216,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="padding: 10px;">
                         <h4>${video.title} ${matchBadge}</h4>
                         <p style="font-size:0.8em; color:#aaa; margin-top:5px;">${video.description.substring(0, 100)}...</p>
-                        <button class="select-btn" onclick="selectVideo('${id}', '${video.embedUrl}', '${video.thumbnail}')" style="margin-top:10px;">Kies deze video</button>
+                        <button class="select-btn" onclick="selectVideo('${id}', '${video.embedUrl}', '${video.thumbnail}', this)" style="margin-top:10px;">Kies deze video</button>
                         <button class="preview-btn" onclick="previewVideo('${video.embedUrl}')" style="width:100%; margin-top:5px; background:#444; border:none; color:white; padding:5px; cursor:pointer;">Preview</button>
                     </div>
                 `;
@@ -229,8 +245,61 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
-    window.selectVideo = (workoutId, videoUrl, thumbUrl) => {
-        if (!confirm("Database bijwerken met deze video?")) return;
+    window.checkCustomUrl = (id) => {
+        const input = document.getElementById(`customUrl-${id}`);
+        const previewContainer = document.getElementById(`customPreview-${id}`);
+        const url = input.value;
+
+        if (!url) return;
+
+        previewContainer.innerHTML = '<p>Controleren...</p>';
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (apiKeyInput.value) {
+            headers['X-Youtube-Api-Key'] = apiKeyInput.value;
+        }
+
+        fetch('/api/resolve_video', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ url: url })
+        })
+            .then(res => res.json())
+            .then(video => {
+                if (video.error) {
+                    previewContainer.innerHTML = `<p class="error">${video.error}</p>`;
+                    return;
+                }
+
+                // Reuse the card style
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.style.maxWidth = '400px';
+                card.innerHTML = `
+                <div style="position:relative;">
+                    <img src="${video.thumbnail}">
+                </div>
+                <div style="padding: 10px;">
+                    <h4>${video.title}</h4>
+                    <button class="select-btn" onclick="selectVideo('${id}', '${video.embedUrl}', '${video.thumbnail}', this)" style="margin-top:10px; width:100%; background:var(--success);">Kies deze video</button>
+                </div>
+            `;
+                previewContainer.innerHTML = '';
+                previewContainer.appendChild(card);
+            })
+            .catch(err => {
+                previewContainer.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+            });
+    };
+
+    window.selectVideo = (workoutId, videoUrl, thumbUrl, btnElement) => {
+        // Remove confirm dialog to avoid blocking issues
+        // if (!confirm("Database bijwerken met deze video?")) return;
+
+        // Visual feedback
+        const originalText = btnElement.textContent;
+        btnElement.textContent = 'Updating...';
+        btnElement.disabled = true;
 
         fetch('/api/update_workout', {
             method: 'POST',
@@ -243,12 +312,26 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
+                // Replace alert with visual feedback
+                // alert(data.message);
+                btnElement.textContent = 'Updated!';
+                btnElement.style.background = 'var(--success)';
+
                 // Update local state
                 const w = workouts.find(x => x.id === workoutId);
                 w.video_search_url = videoUrl;
                 w.thumbnail = thumbUrl;
-                renderWorkouts(); // Re-render to show update
+
+                // Update the UI after a short delay
+                setTimeout(() => {
+                    renderWorkouts(); // Re-render to show update
+                }, 1000);
+            })
+            .catch(err => {
+                console.error(err);
+                btnElement.textContent = 'Error';
+                btnElement.style.background = 'var(--danger)';
+                btnElement.disabled = false;
             });
     };
 
@@ -265,6 +348,18 @@ document.addEventListener('DOMContentLoaded', () => {
     closeBtn.onclick = () => {
         modal.classList.add('hidden');
         document.getElementById('videoPlayerContainer').innerHTML = '';
+    };
+
+    window.copyToClipboard = (text, btn) => {
+        navigator.clipboard.writeText(text).then(() => {
+            const icon = btn.querySelector('i');
+            icon.className = 'fas fa-check';
+            btn.style.color = 'var(--success)';
+            setTimeout(() => {
+                icon.className = 'fas fa-copy';
+                btn.style.color = '';
+            }, 2000);
+        });
     };
 
     window.onclick = (e) => {

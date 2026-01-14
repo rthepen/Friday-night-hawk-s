@@ -3,6 +3,7 @@ import json
 import os
 import logging
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -100,6 +101,14 @@ def analyze_database():
                     'title': item['snippet']['title'],
                     'description': item['snippet']['description']
                 }
+        except HttpError as e:
+            error_reason = e.reader.decode('utf-8')
+            if 'accessNotConfigured' in error_reason:
+                return jsonify({'error': 'YouTube Data API v3 has not been used in project. Please enable it in Google Cloud Console.'}), 403
+            elif 'keyInvalid' in error_reason:
+                return jsonify({'error': 'The API Key provided is invalid.'}), 403
+            else:
+                 return jsonify({'error': f"Google API Error: {e.resp.status} - {e._get_reason()}"}), 500
         except Exception as e:
             app.logger.error(f"Batch fetch failed: {e}")
             return jsonify({'error': f"Batch fetch failed: {str(e)}"}), 500
@@ -169,8 +178,62 @@ def search_videos():
                 'match_score': match_score
             })
         return jsonify(results)
+    except HttpError as e:
+        error_reason = e.reader.decode('utf-8')
+        if 'accessNotConfigured' in error_reason:
+            return jsonify({'error': 'YouTube Data API v3 is not enabled. Please enable it in Google Cloud Console.'}), 403
+        elif 'keyInvalid' in error_reason:
+             return jsonify({'error': 'Invalid API Key.'}), 403
+        return jsonify({'error': f"API Error: {e._get_reason()}"}), 500
     except Exception as e:
         app.logger.error(f"Search failed: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/resolve_video', methods=['POST'])
+def resolve_video():
+    yt_client = get_youtube_client()
+    if not yt_client:
+        return jsonify({'error': 'No API Key provided.'}), 500
+
+    data = request.json
+    url = data.get('url')
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
+
+    video_id = extract_video_id(url)
+    if not video_id:
+        return jsonify({'error': 'Could not extract Video ID from URL'}), 400
+
+    try:
+        resp = yt_client.videos().list(
+            part="snippet",
+            id=video_id
+        ).execute()
+
+        items = resp.get('items', [])
+        if not items:
+            return jsonify({'error': 'Video not found'}), 404
+
+        item = items[0]
+        snippet = item['snippet']
+        thumbnails = snippet['thumbnails']
+        thumb_url = thumbnails.get('high', thumbnails.get('medium', thumbnails.get('default')))['url']
+
+        return jsonify({
+            'videoId': item['id'],
+            'title': snippet['title'],
+            'description': snippet['description'],
+            'thumbnail': thumb_url,
+            'url': f"https://www.youtube.com/watch?v={item['id']}",
+            'embedUrl': f"https://www.youtube.com/embed/{item['id']}"
+        })
+    except HttpError as e:
+        error_reason = e.reader.decode('utf-8')
+        if 'accessNotConfigured' in error_reason:
+            return jsonify({'error': 'YouTube Data API v3 not enabled.'}), 403
+        return jsonify({'error': f"API Error: {e._get_reason()}"}), 500
+    except Exception as e:
+        app.logger.error(f"Resolve failed: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/update_workout', methods=['POST'])
