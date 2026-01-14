@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.390";
+        const APP_VERSION = "1.31.391";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9100,13 +9100,27 @@
 
         // Initialize exercise lists for all round cards when page loads
         function initializeRoundExerciseLists() {
-            // Find all round cards
-            const roundCards = document.querySelectorAll('[id^="round-card-"]');
-            roundCards.forEach((card, index) => {
-                renderRoundExerciseList(index);
-            });
+            console.log('Initializing round exercise lists...');
 
-            // Also re-render when inputs change
+            // Function to render all visible round cards
+            function renderAllRounds() {
+                const roundCards = document.querySelectorAll('[id^="round-card-"]');
+                if (roundCards.length > 0) {
+                    console.log(`Found ${roundCards.length} round cards, rendering exercise lists...`);
+                    roundCards.forEach((card, index) => {
+                        // Only render if not already rendered or needs update
+                        const existingContainer = card.querySelector('.exercise-list-container');
+                        if (!existingContainer || existingContainer.children.length === 0) {
+                            renderRoundExerciseList(index);
+                        }
+                    });
+                }
+            }
+
+            // Initial render
+            renderAllRounds();
+
+            // Re-render when inputs change
             document.addEventListener('input', function (e) {
                 if (e.target.matches('[id^="round-card-"] input[onchange*="exercises"], [id^="round-card-"] input[onchange*="sets"]')) {
                     const roundCard = e.target.closest('[id^="round-card-"]');
@@ -9119,6 +9133,48 @@
                     }
                 }
             });
+
+            // Watch for DOM changes (when round blocks are rebuilt)
+            const observer = new MutationObserver(function (mutations) {
+                let shouldRender = false;
+                mutations.forEach(mutation => {
+                    // Check if round cards were added or modified
+                    if (mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                if (node.id && node.id.startsWith('round-card-')) {
+                                    shouldRender = true;
+                                } else if (node.querySelector && node.querySelector('[id^="round-card-"]')) {
+                                    shouldRender = true;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                if (shouldRender) {
+                    console.log('DOM changed - re-rendering exercise lists');
+                    setTimeout(renderAllRounds, 50);
+                }
+            });
+
+            // Observe the document body for changes
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Also periodically check and render (fallback in case observer misses something)
+            setInterval(function () {
+                const roundCards = document.querySelectorAll('[id^="round-card-"]');
+                roundCards.forEach((card, index) => {
+                    const container = card.querySelector('.exercise-list-container');
+                    // Only re-render if container is missing
+                    if (!container) {
+                        renderRoundExerciseList(index);
+                    }
+                });
+            }, 1000); // Check every second
         }
 
         // Initialize when DOM is ready
