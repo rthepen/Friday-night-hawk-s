@@ -2160,6 +2160,9 @@
             <button class="modal-btn"
                 style="background: #BF5AF2; color: white; margin-top:15px; width:100%; font-weight:bold;"
                 onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI TRAINING GENERATOR</button>
+            <button class="modal-btn"
+                style="background: #FF453A; color: white; margin-top:10px; width:100%; font-weight:bold;"
+                onclick="resetSchedule()">🗑️ Reset Schema (Leegmaken)</button>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="modal-btn" style="flex:1; background: #333; color: white; margin-top:0;"
                     onclick="closeScheduleModal()">Sluiten</button>
@@ -2463,7 +2466,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.340";
+        const APP_VERSION = "1.31.341";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -4282,6 +4285,14 @@
             saveToLocal();
             closeGeneratorModal();
             showScheduleModal(); // Show result
+        }
+
+        function resetSchedule() {
+            if (!confirm("Weet je zeker dat je alle gekozen oefeningen wilt wissen en het schema wilt leegmaken?")) return;
+            customNames = {};
+            saveToLocal();
+            showScheduleModal(); // Refresh table
+            calculateRealTime(); // Update preview
         }
 
         async function shareSchedulePDF() {
