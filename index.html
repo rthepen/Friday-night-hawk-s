@@ -1601,6 +1601,15 @@
             display: none !important;
         }
 
+        .active-card {
+            border: 2px solid #30D158 !important;
+            box-shadow: 0 0 25px rgba(48, 209, 88, 0.4);
+            background: rgba(48, 209, 88, 0.08) !important;
+            transform: scale(1.02);
+            transition: all 0.5s ease;
+            z-index: 5;
+        }
+
         /* SAFETY: Prevent Timer Screen leaks if markup is broken */
         #setup-screen #timer-screen,
         #setup-screen .controls-container,
@@ -2470,7 +2479,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.347";
+        const APP_VERSION = "1.31.348";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -4808,6 +4817,7 @@
                 const roundNum = index + 1;
                 const card = document.createElement('div');
                 card.className = 'card-group';
+                card.id = 'round-card-' + index;
                 card.style.marginBottom = '10px';
                 card.style.position = 'relative';
 
@@ -5044,13 +5054,27 @@
                 }
 
                 // Add to ref time to get finish of this round
+                let startTimeOfRound = new Date(currentRefTime.getTime());
                 currentRefTime.setSeconds(currentRefTime.getSeconds() + roundDurationSec);
+                let endTimeOfRound = new Date(currentRefTime.getTime());
+
                 const finishStr = currentRefTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
                 // Format duration (minutes if > 60)
                 const durMin = Math.round(roundDurationSec / 60);
 
                 infoEl.innerHTML = `Deze ronde duurt <b>${durMin} min</b> (Klaar om ${finishStr})`;
+
+                // Apply Highlight
+                const now = new Date();
+                const cardEl = document.getElementById(`round-card-${index}`);
+                if (cardEl) {
+                    if (now >= startTimeOfRound && now < endTimeOfRound) {
+                        cardEl.classList.add('active-card');
+                    } else {
+                        cardEl.classList.remove('active-card');
+                    }
+                }
             });
         }
 
@@ -8469,6 +8493,14 @@
                 }
             }
         });
+
+        // Periodic Highlight Update for Setup Screen
+        setInterval(() => {
+            const setupScreen = document.getElementById('setup-screen');
+            if (setupScreen && !setupScreen.classList.contains('hidden')) {
+                updateRoundCardsInfo();
+            }
+        }, 5000);
 
     </script>
     <div id="pre-workout-overlay" class="modal-overlay epic-overlay"
