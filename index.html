@@ -2141,7 +2141,12 @@
         <div class="modal-content">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;">Volledig Schema</h3>
-                <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <span
+                        style="font-size:12px; cursor:pointer; color:#FF453A; font-weight:bold; border:1px solid #FF453A; padding:2px 8px; border-radius:4px;"
+                        onclick="resetSchedule()">Reset</span>
+                    <span style="font-size:24px; cursor:pointer;" onclick="closeScheduleModal()">×</span>
+                </div>
             </div>
             <div style="font-size:12px; color:#888; margin-bottom:5px;">Klik op een naam om deze te wijzigen.</div>
             <div class="schedule-table-container">
@@ -2160,9 +2165,6 @@
             <button class="modal-btn"
                 style="background: #BF5AF2; color: white; margin-top:15px; width:100%; font-weight:bold;"
                 onclick="openGeneratorModal(); closeScheduleModal();">🤖 AI TRAINING GENERATOR</button>
-            <button class="modal-btn"
-                style="background: #FF453A; color: white; margin-top:10px; width:100%; font-weight:bold;"
-                onclick="resetSchedule()">🗑️ Reset Schema (Leegmaken)</button>
             <div style="display:flex; gap:10px; margin-top:10px;">
                 <button class="modal-btn" style="flex:1; background: #333; color: white; margin-top:0;"
                     onclick="closeScheduleModal()">Sluiten</button>
@@ -2466,7 +2468,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.341";
+        const APP_VERSION = "1.31.342";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
