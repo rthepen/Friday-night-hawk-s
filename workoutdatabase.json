@@ -1630,13 +1630,13 @@
   {
     "check_number": 211,
     "id": "partner_plank_high_five",
-    "exercise_name": "Partner Plank High Five",
+    "exercise_name": "Partner Plank High Five -  push-up",
     "category": "Core",
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Neem beide de plankpositie aan, met de gezichten naar elkaar toe. Til om en om de tegenovergestelde hand op en tik de hand van je partner aan zonder je heupen te draaien.",
-    "video_search_url": "https://www.youtube.com/embed/Vj22Nytv2OE",
-    "thumbnail": "https://i.ytimg.com/vi/Vj22Nytv2OE/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/yWDUorKWEHc",
+    "thumbnail": "https://i.ytimg.com/vi/yWDUorKWEHc/hqdefault.jpg"
   },
   {
     "check_number": 151,
@@ -2251,8 +2251,8 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Ga met de ruggen tegen elkaar staan en haak de armen in elkaar. Zak gelijktijdig omlaag tot 90 graden (squat positie) en duw elkaar weer omhoog.",
-    "video_search_url": "https://www.youtube.com/embed/Ace5i_K7aQM",
-    "thumbnail": "https://i.ytimg.com/vi/Ace5i_K7aQM/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/fSNyYDX5K2A",
+    "thumbnail": "https://i.ytimg.com/vi/fSNyYDX5K2A/hqdefault.jpg"
   },
   {
     "check_number": 209,
@@ -2262,8 +2262,8 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Lig tegenover elkaar en haak de voeten in elkaar. Kom tegelijk omhoog in een sit-up en geef elkaar bovenin een high-five.",
-    "video_search_url": "https://www.youtube.com/embed/pEwkDdrjGgU",
-    "thumbnail": "https://i.ytimg.com/vi/pEwkDdrjGgU/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/V5niWNCFO-o",
+    "thumbnail": "https://i.ytimg.com/vi/V5niWNCFO-o/hqdefault.jpg"
   },
   {
     "check_number": 210,
@@ -2277,6 +2277,17 @@
     "thumbnail": "https://i.ytimg.com/vi/YI5G-sKjWrs/hqdefault.jpg"
   },
   {
+    "check_number": 211,
+    "id": "partner_plank_high_five",
+    "exercise_name": "Partner Plank High Five",
+    "category": "Core",
+    "material_name": "Partner",
+    "material_description": "Samen trainen",
+    "instructions": "Neem beide de plankpositie aan, met de gezichten naar elkaar toe. Til om en om de tegenovergestelde hand op en tik de hand van je partner aan zonder je heupen te draaien.",
+    "video_search_url": "https://www.youtube.com/embed/Vj22Nytv2OE",
+    "thumbnail": "https://i.ytimg.com/vi/Vj22Nytv2OE/hqdefault.jpg"
+  },
+  {
     "check_number": 212,
     "id": "leg_throws",
     "exercise_name": "Leg Throws",
@@ -2284,8 +2295,8 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Partner A ligt op de rug en houdt de enkels van de staande partner B vast. A brengt de benen omhoog, B duwt ze krachtig terug. A remt af en raakt de grond net niet.",
-    "video_search_url": "https://www.youtube.com/embed/v_32qZ-o_xc",
-    "thumbnail": "https://i.ytimg.com/vi/v_32qZ-o_xc/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/cuHr8bsn8H8",
+    "thumbnail": "https://i.ytimg.com/vi/cuHr8bsn8H8/hqdefault.jpg"
   },
   {
     "check_number": 213,
@@ -2295,8 +2306,8 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Zit op je knieën. Partner houdt je enkels stevig tegen de grond. Laat je lichaam langzaam en gecontroleerd naar voren vallen (rem met hamstrings). Duw jezelf terug omhoog.",
-    "video_search_url": "https://www.youtube.com/embed/d8lpQ3K4V90",
-    "thumbnail": "https://i.ytimg.com/vi/d8lpQ3K4V90/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/ehxvDjvCwHw",
+    "thumbnail": "https://i.ytimg.com/vi/ehxvDjvCwHw/hqdefault.jpg"
   },
   {
     "check_number": 214,
@@ -2317,8 +2328,8 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Sta tegenover elkaar en houd elkaars rechterhand vast (gekruist). Zak beiden door het rechterbeen (pistol squat) terwijl je elkaar in balans houdt. Wissel van been.",
-    "video_search_url": "https://www.youtube.com/embed/1-Yuq9pD7oI",
-    "thumbnail": "https://i.ytimg.com/vi/1-Yuq9pD7oI/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/9v4n_HJJKz4",
+    "thumbnail": "https://i.ytimg.com/vi/9v4n_HJJKz4/hqdefault.jpg"
   },
   {
     "check_number": 216,
@@ -2328,18 +2339,7 @@
     "material_name": "Partner",
     "material_description": "Samen trainen",
     "instructions": "Zit rug aan rug met de voeten van de vloer. Geef een gewicht of bal aan de zijkant aan elkaar door. Draai volledig met je romp mee.",
-    "video_search_url": "https://www.youtube.com/embed/j3uO2dZ0W6A",
-    "thumbnail": "https://i.ytimg.com/vi/j3uO2dZ0W6A/hqdefault.jpg"
-  },
-  {
-    "check_number": 217,
-    "id": "partner_walking_lunge",
-    "exercise_name": "Partner Walking Lunge",
-    "category": "Benen",
-    "material_name": "Partner",
-    "material_description": "Samen trainen",
-    "instructions": "Sta naast elkaar en leg de binnenste arm op elkaars schouder voor balans. Stap gelijktijdig uit in een lunge en loop zo synchroon naar voren.",
-    "video_search_url": "https://www.youtube.com/embed/2wJ8qE5z2_g",
-    "thumbnail": "https://i.ytimg.com/vi/2wJ8qE5z2_g/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/6qp3K8lJ60c",
+    "thumbnail": "https://i.ytimg.com/vi/6qp3K8lJ60c/hqdefault.jpg"
   }
 ]
