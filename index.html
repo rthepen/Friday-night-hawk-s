@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.305</title>
+    <title>Friday-night-hawk-s Timer v1.31.307</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.305</span>
+                FNH Timer <span class="version-tag">v1.31.307</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -5047,7 +5047,14 @@
         }
 
         function resetToDefaults() {
-            // 1. Set Start Time to Current + 3 mins
+            // 1. Reset Rounds to Default
+            workoutRounds = [
+                { id: Date.now(), exercises: 5, sets: 3, workTime: 45, restTime: 15, roundRest: 60 }
+            ];
+            renderRoundsContainer();
+            saveRoundsToLocal();
+
+            // 2. Set Start Time to Current + 3 mins
             const now = new Date();
             now.setMinutes(now.getMinutes() + 3);
             const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
@@ -5058,9 +5065,7 @@
             saveToLocal();
             calculateRealTime();
 
-            // Note: User requested specific behavior for reset button. 
-            // We do NOT reset rounds here to preserve them.
-            console.log("Starttijd gereset");
+            console.log("Reset: Rounds updated to 1, Start Time updated.");
         }
 
 
