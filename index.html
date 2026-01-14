@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.327</title>
+    <title>Friday-night-hawk-s Timer v1.31.328</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.327</span>
+                FNH Timer <span class="version-tag">v1.31.328</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -1750,8 +1750,8 @@
             </div>
             <div class="select-group">
                 <label>Duur (min)</label>
-                <select id="totalMin" class="compact-select highlight-input"
-                    onchange="syncTime('duration'); saveToLocal();"></select>
+                <input type="text" id="totalMin" class="highlight-input" readonly
+                    style="text-align:center; cursor:default; caret-color:transparent;" value="--">
             </div>
             <div class="select-group">
                 <label>Eindtijd</label>
@@ -4978,6 +4978,11 @@
                 const eh = endDate.getHours().toString().padStart(2, '0');
                 const em = endDate.getMinutes().toString().padStart(2, '0');
                 document.getElementById('endTimeValue').value = `${eh}:${em}`;
+
+                // Update Total Min Display
+                const totalMin = Math.round(totalSeconds / 60);
+                const tmEl = document.getElementById('totalMin');
+                if (tmEl) tmEl.value = totalMin + "m";
 
                 // legacy live-calc-result update removed
             }
