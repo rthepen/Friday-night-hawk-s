@@ -82,14 +82,22 @@ def get_youtube_client():
         return youtube
     return None
 
-@app.route('/api/analyze', methods=['GET'])
+@app.route('/api/analyze', methods=['POST'])
 def analyze_database():
     try:
         yt_client = get_youtube_client()
         if not yt_client:
             return jsonify({'error': 'No API Key provided. Please enter it above or configure .env'}), 500
         
+        # Check for filtered IDs
+        data = request.get_json(silent=True) or {}
+        filter_ids = data.get('workout_ids', [])
+
         workouts = load_db()
+        
+        # Filter if IDs provided
+        if filter_ids:
+            workouts = [w for w in workouts if w.get('id') in filter_ids]
         
         # Collect IDs to fetch
         vid_map = {}

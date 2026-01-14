@@ -49,11 +49,31 @@ document.addEventListener('DOMContentLoaded', () => {
             headers['X-Youtube-Api-Key'] = apiKeyInput.value;
         }
 
-        fetch('/api/analyze', { headers })
+        // --- FILTER LOGIC (Reused to find WHAT to analyze) ---
+        const searchTerm = searchBar.value.toLowerCase();
+        const selectedMaterial = materialFilter.value;
+
+        let visibleWorkouts = workouts.filter(w => {
+            const matchesSearch = w.exercise_name.toLowerCase().includes(searchTerm);
+            const matchesMaterial = selectedMaterial === 'all' || w.material_name === selectedMaterial;
+            return matchesSearch && matchesMaterial;
+        });
+
+        const filteredIds = visibleWorkouts.map(w => w.id);
+        console.log(`Analyzing ${filteredIds.length} items...`);
+
+        fetch('/api/analyze', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ workout_ids: filteredIds })
+        })
             .then(res => res.json())
             .then(data => {
                 if (data.error) throw new Error(data.error);
-                analysisData = data;
+
+                // Merge new results into existing analysisData
+                Object.assign(analysisData, data);
+
                 analyzeBtn.textContent = 'Gereed';
                 analyzeBtn.disabled = false;
 
