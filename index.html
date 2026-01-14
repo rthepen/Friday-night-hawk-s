@@ -2485,7 +2485,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.367";
+        const APP_VERSION = "1.31.368";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3961,10 +3961,10 @@
             saveToLocal();
             // document.getElementById('edit-scope-modal').style.display = 'none'; // OLD MODAL REMOVED - Fixed crash
 
-            // Refresh inline list if open for the relevant round
+            // Refresh inline list (Always visible now)
             const rIdx = r - 1; // r is 1-based index from ID
             const inlineCont = document.getElementById(`round-inline-edit-${rIdx}`);
-            if (inlineCont && inlineCont.style.display !== 'none') {
+            if (inlineCont) {
                 renderInlineRoundList(rIdx);
             }
 
@@ -4897,91 +4897,109 @@
                 card.appendChild(editBtn);
 
                 // Shuffle Button (Direct)
-                const shuffleBtn = document.createElement('button');
-                shuffleBtn.className = 'btn-header';
-                shuffleBtn.style.position = 'absolute';
-                shuffleBtn.style.right = '120px';
-                shuffleBtn.style.top = '10px';
-                shuffleBtn.innerText = '🎲';
-                shuffleBtn.title = "Snel husselen";
-                shuffleBtn.onclick = () => shuffleRound(index);
-                card.appendChild(shuffleBtn);
+                // Title Input
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = round.name || `Ronde ${index + 1}`;
+                input.className = 'round-title-input';
+                input.style.border = 'none';
+                input.style.background = 'transparent';
+                input.style.color = 'inherit';
+                input.style.fontSize = 'inherit';
+                input.style.fontWeight = 'inherit';
+                input.style.width = '100%';
+                input.onchange = (e) => {
+                    workoutRounds[index].name = e.target.value;
+                    saveRoundsToLocal();
+                };
 
-                // Controls
-                // Grid Container
-                const grid = document.createElement('div');
-                grid.style.display = 'grid';
-                grid.style.gridTemplateColumns = '1fr 1fr';
-                grid.style.gap = '10px';
-                grid.style.marginBottom = '10px';
+                // Focus logic
+                let isEditing = false;
+                cardTitle.onclick = (e) => {
+                    if (e.target !== input) { input.focus(); }
+                };
+                input.onfocus = () => { isEditing = true; cardTitle.style.borderColor = '#0A84FF'; };
+                input.onblur = () => { isEditing = false; cardTitle.style.borderColor = 'transparent'; };
 
-                // Helper to create input box
-                function createBox(label, field, val, borderColor) {
-                    return `
-                        <div style="background:#1c1c1e; border:1px solid ${borderColor}; border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center;">
-                            <label style="font-size:10px; color:#888; text-transform:uppercase; margin-bottom:5px;">${label}</label>
-                            <input type="number" class="highlight-input" 
-                                value="${val}" 
-                                onchange="updateRound(${index}, '${field}', this.value)" 
-                                style="width:100%; text-align:center; background:transparent; border:none; color:white; font-size:20px; font-weight:bold; font-family:'Outfit',sans-serif; padding:0;">
-                        </div>
-                    `;
-                }
+                if (isEditing) input.focus();
+                cardTitle.appendChild(input);
+            };
 
-                grid.innerHTML = `
-                    ${createBox('Oefeningen', 'exercises', round.exercises, '#555')}
-                    ${createBox('Sets', 'sets', round.sets, '#FF9F0A')}
-                    ${createBox('Werk (s)', 'workTime', round.workTime, '#30D158')}
-                    ${createBox('Rust (s)', 'restTime', round.restTime, '#FF453A')}
-                    <div style="grid-column: span 2; display: flex; gap: 10px; align-items: center;">
-                        <div style="flex: 1;">
-                            ${createBox('Rust (Oefening)', 'exerciseRest', round.exerciseRest || 15, '#BF5AF2')}
-                        </div>
-                        <div id="round-info-${index}" style="flex: 1; font-size: 11px; color: #888; text-align: left; padding: 5px;">
-                             ...
-                        </div>
+            const titleDiv = createTitleInput();
+            card.appendChild(titleDiv);
+
+            // Controls
+            // Grid Container
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = '1fr 1fr';
+            grid.style.gap = '10px';
+            grid.style.marginBottom = '10px';
+
+            // Helper to create input box
+            function createBox(label, field, val, borderColor) {
+                return `
+                    <div style="background:#1c1c1e; border:1px solid ${borderColor}; border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center;">
+                        <label style="font-size:10px; color:#888; text-transform:uppercase; margin-bottom:5px;">${label}</label>
+                        <input type="number" class="highlight-input" 
+                            value="${val}" 
+                            onchange="updateRound(${index}, '${field}', this.value)" 
+                            style="width:100%; text-align:center; background:transparent; border:none; color:white; font-size:20px; font-weight:bold; font-family:'Outfit',sans-serif; padding:0;">
                     </div>
                 `;
-                card.appendChild(grid);
+            }
 
-                // INLINE EXERCISES CONTAINER
-                const inlineContainer = document.createElement('div');
-                inlineContainer.id = `round-inline-edit-${index}`;
-                inlineContainer.style.display = 'none'; // Hidden by default
-                inlineContainer.style.marginTop = '15px';
-                inlineContainer.style.background = '#222';
-                inlineContainer.style.borderRadius = '8px';
-                inlineContainer.style.padding = '10px';
-                card.appendChild(inlineContainer);
+            grid.innerHTML = `
+                ${createBox('Oefeningen', 'exercises', round.exercises, '#555')}
+                ${createBox('Sets', 'sets', round.sets, '#FF9F0A')}
+                ${createBox('Werk (s)', 'workTime', round.workTime, '#30D158')}
+                ${createBox('Rust (s)', 'restTime', round.restTime, '#FF453A')}
+                <div style="grid-column: span 2; display: flex; gap: 10px; align-items: center;">
+                    <div style="flex: 1;">
+                        ${createBox('Rust (Oefening)', 'exerciseRest', round.exerciseRest || 15, '#BF5AF2')}
+                    </div>
+                    <div id="round-info-${index}" style="flex: 1; font-size: 11px; color: #888; text-align: left; padding: 5px;">
+                            ...
+                    </div>
+                </div>
+            `;
+            card.appendChild(grid);
 
-                // container.appendChild(card) moved to end of loop iteration
+            // INLINE EXERCISES (ALWAYS VISIBLE)
+            const inlineContainer = document.createElement('div');
+            inlineContainer.id = `round-inline-edit-${index}`;
+            inlineContainer.style.display = 'block'; // Always visible
+            inlineContainer.style.marginTop = '15px';
+            inlineContainer.style.background = 'transparent';
+            // inlineContainer.style.borderRadius = '8px';
+            // inlineContainer.style.padding = '10px';
+            card.appendChild(inlineContainer);
 
-                // Info Footer
-                // Info footer moved inside grid
-                // const infoDiv = document.createElement('div'); ... removed
+            // Populate list immediately
+            setTimeout(() => renderInlineRoundList(index), 0);
 
-                container.appendChild(card);
+            container.appendChild(card);
 
-                // Add Connector if not last round
-                if (index < workoutRounds.length - 1) {
-                    const connector = document.createElement('div');
-                    connector.style.display = 'flex';
-                    connector.style.alignItems = 'center';
-                    connector.style.justifyContent = 'center';
-                    connector.style.padding = '10px 0';
-                    connector.innerHTML = `
+            // Add Connector if not last round
+            if (index < workoutRounds.length - 1) {
+                const connector = document.createElement('div');
+                connector.style.display = 'flex';
+                connector.style.alignItems = 'center';
+                connector.style.justifyContent = 'center';
+                connector.style.padding = '10px 0';
+                connector.innerHTML = `
                          <div style="background:#1c1c1e; border:1px solid #0A84FF; border-radius:8px; padding:10px 15px; display:flex; flex-direction:column; align-items:center; width:150px;">
                             <label style="font-size:10px; color:#0A84FF; margin-bottom:5px; text-transform:uppercase;">Pauze Tussen Ronde</label>
                             <input type="number" value="${round.roundRest}" onchange="updateRound(${index}, 'roundRest', this.value)" 
                                    style="width:100%; text-align:center; background:none; border:none; color:white; font-size:16px; font-weight:bold; font-family:'Outfit',sans-serif;">
                          </div>
                     `;
-                    container.appendChild(connector);
-                }
-            });
+                container.appendChild(connector);
+            }
+        });
 
-            // Re-calc
-            calculateRealTime();
+        // Re-calc
+        calculateRealTime();
         }
 
 
@@ -5130,10 +5148,10 @@
                 setTimeout(() => btn.innerText = original, 1000);
             }
 
-            // If modal is open, refresh it
-            const modal = document.getElementById('edit-round-modal');
-            if (modal.style.display !== 'none') {
-                renderEditRoundList(roundIndex);
+            // Refresh inline list (Always visible)
+            const inlineCont = document.getElementById(`round-inline-edit-${roundIndex}`);
+            if (inlineCont) {
+                renderInlineRoundList(roundIndex);
             }
         }
 
@@ -5206,17 +5224,7 @@
         }
 
         // --- INLINE EDIT ROUND LOGIC ---
-        function toggleInlineRoundEdit(index) {
-            const container = document.getElementById(`round-inline-edit-${index}`);
-            if (!container) return;
-
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                renderInlineRoundList(index);
-            } else {
-                container.style.display = 'none';
-            }
-        }
+        // toggleInlineRoundEdit REMOVED
 
         function renderInlineRoundList(index) {
             const container = document.getElementById(`round-inline-edit-${index}`);
