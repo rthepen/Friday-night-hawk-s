@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.301</title>
+    <title>Friday-night-hawk-s Timer v1.31.303</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.301</span>
+                FNH Timer <span class="version-tag">v1.31.303</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2696,27 +2696,7 @@
         }
 
         function updateBonusVisibility() {
-            const b1 = parseInt(document.getElementById('bonus1-duration').value || 0);
-            const b2 = parseInt(document.getElementById('bonus2-duration').value || 0);
-            const b3 = parseInt(document.getElementById('bonus3-duration').value || 0);
-
-            const r2 = document.getElementById('bonus-row-2');
-            const r3 = document.getElementById('bonus-row-3');
-
-            // Logic: Stickiness.
-            // Row 2 Visible if: B1 set OR B2 set OR B3 set
-            if (b1 > 0 || b2 > 0 || b3 > 0) {
-                r2.style.display = 'flex';
-            } else {
-                r2.style.display = 'none';
-            }
-
-            // Row 3 Visible if: B2 set OR B3 set (B3 needs B2 parent context)
-            if (b2 > 0 || b3 > 0) {
-                r3.style.display = 'flex';
-            } else {
-                r3.style.display = 'none';
-            }
+            // Bonus UI removed. Function kept empty for compatibility if called elsewhere.
         }
 
         function finalizeInit() {
@@ -4654,12 +4634,7 @@
                 startTimeValue: document.getElementById('startTimeValue').value, // NEW
                 coachPreset: document.getElementById('coach-preset-live') ? document.getElementById('coach-preset-live').value : (appDefaults.coachPreset || 'eva'), // Save Coach Selection (Live or Default)
                 startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
-                startRound: document.getElementById('start-round').value, startEx: document.getElementById('start-ex').value, startSet: document.getElementById('start-set').value,
                 iosMixMode: iosMixMode, // Save Mix Mode setting
-                // Save 3 Bonuses
-                bonus1: { name: document.getElementById('bonus1-name').value, dur: document.getElementById('bonus1-duration').value, freq: document.getElementById('bonus1-freq').value },
-                bonus2: { name: document.getElementById('bonus2-name').value, dur: document.getElementById('bonus2-duration').value, freq: document.getElementById('bonus2-freq').value },
-                bonus3: { name: document.getElementById('bonus3-name').value, dur: document.getElementById('bonus3-duration').value, freq: document.getElementById('bonus3-freq').value },
                 // Save Custom Names
                 customNames: customNames
             };
@@ -4679,9 +4654,7 @@
                     if (data.startEx) document.getElementById('start-ex').value = data.startEx;
                     if (data.startSet) document.getElementById('start-set').value = data.startSet;
 
-                    if (data.bonus1) { document.getElementById('bonus1-name').value = data.bonus1.name; document.getElementById('bonus1-duration').value = data.bonus1.dur; document.getElementById('bonus1-freq').value = data.bonus1.freq; }
-                    if (data.bonus2) { document.getElementById('bonus2-name').value = data.bonus2.name; document.getElementById('bonus2-duration').value = data.bonus2.dur; document.getElementById('bonus2-freq').value = data.bonus2.freq; }
-                    if (data.bonus3) { document.getElementById('bonus3-name').value = data.bonus3.name; document.getElementById('bonus3-duration').value = data.bonus3.dur; document.getElementById('bonus3-freq').value = data.bonus3.freq; }
+                    // Bonus Data Load Removed (UI Removed)
 
                     if (data.customNames) customNames = data.customNames;
 
