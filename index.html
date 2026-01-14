@@ -2470,7 +2470,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.344";
+        const APP_VERSION = "1.31.345";
 
         // --- v1.16: SIMPLIFIED AUDIO (MP3 ONLY) ---
         // --- VARIABELEN ---
@@ -5141,7 +5141,7 @@
                                     time: round.roundRest,
                                     initialTime: round.roundRest,
                                     label: "RONDE PAUZE",
-                                    info: { text: "Even bijkomen..." }
+                                    info: { round: roundNum, text: "Even bijkomen..." }
                                 });
                             }
                         } else if (isLastSetOfExercise) {
@@ -5150,7 +5150,7 @@
                                 time: round.exerciseRest || 15,
                                 initialTime: round.exerciseRest || 15,
                                 label: "WISSEL OEFENING",
-                                info: { text: "Volgende oefening" }
+                                info: { round: roundNum, text: "Volgende oefening" }
                             });
                         } else {
                             schedule.push({
@@ -5158,7 +5158,7 @@
                                 time: round.restTime,
                                 initialTime: round.restTime,
                                 label: "RUST",
-                                info: { text: "Even ontspannen" }
+                                info: { round: roundNum, text: "Even ontspannen" }
                             });
                         }
                     }
@@ -7164,9 +7164,11 @@
             else if (diff < 0) { txt.innerText = `${diff}s per set`; txt.style.color = "#FF453A"; }
             else { txt.innerText = "Geen wijziging"; txt.style.color = "#888"; }
 
-            // Count occurrences (Regular Sets Only)
+            // Count occurrences (Regular Sets Only - THIS ROUND ONLY)
+            const currentRound = schedule[currentIndex]?.info?.round;
             let workCount = 0;
             for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].info?.round !== currentRound) continue;
                 if (schedule[i].type === 'work' && schedule[i].info && schedule[i].info.exercise > 0) workCount++;
             }
             const totalImpact = diff * workCount;
@@ -7193,7 +7195,9 @@
         function updateCompensateButton(targetType, diffPerSource, sourceCount, btnEl, subEl, label) {
             let targetCount = 0;
             let currentTargetVal = 0;
+            const currentRound = schedule[currentIndex]?.info?.round;
             for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].info?.round !== currentRound) continue;
                 if (schedule[i].type === targetType) {
                     targetCount++;
                     if (currentTargetVal === 0) currentTargetVal = schedule[i].initialTime;
@@ -7232,9 +7236,11 @@
             const diff = val - liveBaseWorkTime;
             if (diff === 0) { cancelLiveWorkAdjustment(); return; }
 
-            // 1. Update all future WORK steps (Sets only)
+            // 1. Update all future WORK steps (Sets only - THIS ROUND ONLY)
+            const currentRound = schedule[currentIndex]?.info?.round;
             let workCount = 0;
             for (let i = currentIndex + 1; i < schedule.length; i++) {
+                if (schedule[i].info?.round !== currentRound) continue;
                 if (schedule[i].type === 'work' && schedule[i].info && schedule[i].info.exercise > 0) {
                     schedule[i].initialTime = val;
                     schedule[i].time = val;
@@ -7249,6 +7255,7 @@
 
                 let targetIndices = [];
                 for (let i = currentIndex + 1; i < schedule.length; i++) {
+                    if (schedule[i].info?.round !== currentRound) continue;
                     if (schedule[i].type === targetType) targetIndices.push(i);
                 }
 
