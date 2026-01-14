@@ -2394,9 +2394,16 @@
             <div style="padding:20px;">
                 <!-- MATERIALEN -->
                 <div class="gen-section">
-                    <div class="gen-section-title"
-                        style="font-size:14px; font-weight:bold; color:#FF9F0A; margin-bottom:10px;">
-                        Materialen
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div class="gen-section-title" style="font-size:14px; font-weight:bold; color:#FF9F0A;">
+                            Materialen
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="selectAllShuffleMaterials()"
+                                style="font-size:10px; padding:3px 8px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;">Alles</button>
+                            <button onclick="selectNoneShuffleMaterials()"
+                                style="font-size:10px; padding:3px 8px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;">Niets</button>
+                        </div>
                     </div>
                     <div id="shuffle-filter-materials" class="gen-checkbox-grid"
                         style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px;">
@@ -2406,9 +2413,16 @@
 
                 <!-- CATEGORIEËN -->
                 <div class="gen-section">
-                    <div class="gen-section-title"
-                        style="font-size:14px; font-weight:bold; color:#30D158; margin-bottom:10px;">
-                        Categorieën
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div class="gen-section-title" style="font-size:14px; font-weight:bold; color:#30D158;">
+                            Categorieën
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="selectAllShuffleCategories()"
+                                style="font-size:10px; padding:3px 8px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;">Alles</button>
+                            <button onclick="selectNoneShuffleCategories()"
+                                style="font-size:10px; padding:3px 8px; background:#555; color:white; border:none; border-radius:4px; cursor:pointer;">Niets</button>
+                        </div>
                     </div>
                     <div id="shuffle-filter-categories" class="gen-checkbox-grid"
                         style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -2530,7 +2544,7 @@
     <!-- EDIT ROUND MODAL REMOVED -->
 
     <script>
-        const APP_VERSION = "1.31.381";
+        const APP_VERSION = "1.31.383";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -5122,6 +5136,22 @@
 
             // Close modal
             closeShuffleFilterModal();
+        }
+
+        function selectAllShuffleMaterials() {
+            document.querySelectorAll('input[name="shuffle_mat"]').forEach(cb => cb.checked = true);
+        }
+
+        function selectNoneShuffleMaterials() {
+            document.querySelectorAll('input[name="shuffle_mat"]').forEach(cb => cb.checked = false);
+        }
+
+        function selectAllShuffleCategories() {
+            document.querySelectorAll('input[name="shuffle_cat"]').forEach(cb => cb.checked = true);
+        }
+
+        function selectNoneShuffleCategories() {
+            document.querySelectorAll('input[name="shuffle_cat"]').forEach(cb => cb.checked = false);
         }
 
         function shuffleRound(roundIndex) {
