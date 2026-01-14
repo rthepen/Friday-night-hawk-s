@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.299</title>
+    <title>Friday-night-hawk-s Timer v1.31.301</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.299</span>
+                FNH Timer <span class="version-tag">v1.31.301</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -2924,64 +2924,52 @@
         function populateDropdowns() {
             const fill = (id, start, end, step = 1, suffix = "") => {
                 const sel = document.getElementById(id);
+                // Only populate if it's a SELECT element
+                if (sel && sel.tagName === 'SELECT') {
+                    sel.innerHTML = "";
+                    for (let i = start; i <= end; i += step) {
+                        const opt = document.createElement('option'); opt.value = i; opt.text = i + suffix; sel.appendChild(opt);
+                    }
+                }
+
+                // Initial resume selections (legacy)
                 const resumeSel = document.getElementById("start-" + (id === 'rounds' ? 'round' : (id === 'exercises' ? 'ex' : (id === 'sets' ? 'set' : ''))));
-                if (sel) sel.innerHTML = "";
-                if (resumeSel) resumeSel.innerHTML = "";
-                for (let i = start; i <= end; i += step) {
-                    const opt = document.createElement('option'); opt.value = i; opt.text = i + suffix; if (sel) sel.appendChild(opt);
-                    if (resumeSel) { const opt2 = document.createElement('option'); opt2.value = i; opt2.text = i + suffix; resumeSel.appendChild(opt2); }
+                if (resumeSel) {
+                    resumeSel.innerHTML = "";
+                    for (let i = start; i <= end; i += step) {
+                        const opt2 = document.createElement('option'); opt2.value = i; opt2.text = i + suffix; resumeSel.appendChild(opt2);
+                    }
                 }
             };
+
+            // Legacy global inputs are now INPUT type (hidden), so this won't run, which is correct.
             fill('rounds', 1, 10);
             fill('exercises', 1, 20);
             fill('sets', 1, 10);
 
             const fillTotal = (id) => {
-                const sel = document.getElementById(id); sel.innerHTML = "";
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = "";
                 for (let i = 1; i <= 10; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt); }
                 for (let i = 15; i <= 120; i += 5) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "m"; sel.appendChild(opt); }
             };
             fillTotal('totalMin');
 
             const fillRest = (id) => {
-                const sel = document.getElementById(id); sel.innerHTML = "";
-                for (let i = 5; i <= 60; i += 5) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
-                for (let i = 70; i <= 180; i += 10) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
-                for (let i = 210; i <= 300; i += 30) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
-            };
-            fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
-
-            // Fill Bonus Duration Dropdown
-            const fillBonusDuration = (id) => {
-                const sel = document.getElementById(id); sel.innerHTML = "";
-                const opt0 = document.createElement('option'); opt0.value = 0; opt0.text = "Uit"; sel.appendChild(opt0);
-                for (let i = 1; i <= 15; i++) { const opt = document.createElement('option'); opt.value = i; opt.text = i + " min"; sel.appendChild(opt); }
-            };
-
-            const fillBonusFreq = (id) => {
-                const sel = document.getElementById(id); sel.innerHTML = "";
-
-                const addOpt = (val, txt) => {
-                    const opt = document.createElement('option'); opt.value = val; opt.text = txt; sel.appendChild(opt);
-                };
-
-                addOpt('start_round', 'Begin elke ronde');
-                addOpt('warmup', 'Alleen begin (Warming-up)');
-                addOpt('end_round', 'Eind elke ronde');
-                addOpt('end_session', 'Einde van de les (Toetje)');
-
-                const grp = document.createElement('optgroup'); grp.label = "── INTERVALLEN ──"; sel.appendChild(grp);
-
-                for (let i = 1; i <= 12; i++) {
-                    const opt = document.createElement('option'); opt.value = i; opt.text = `Om de ${i} oefeningen`; sel.appendChild(opt);
+                const sel = document.getElementById(id);
+                // Legacy inputs might be hidden inputs now
+                if (sel && sel.tagName === 'SELECT') {
+                    sel.innerHTML = "";
+                    for (let i = 5; i <= 60; i += 5) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
+                    for (let i = 70; i <= 180; i += 10) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
+                    for (let i = 210; i <= 300; i += 30) { const opt = document.createElement('option'); opt.value = i; opt.text = i + "s"; sel.appendChild(opt); }
                 }
             };
+            // Legacy rest inputs are also hidden inputs
+            fillRest('restSec'); fillRest('exerciseRestSec'); fillRest('roundRestSec');
 
-            // Loop for 3 bonuses
-            for (let i = 1; i <= 3; i++) {
-                fillBonusDuration(`bonus${i}-duration`);
-                fillBonusFreq(`bonus${i}-freq`);
-            }
+            // Bonus UI has been removed, so no more filling bonus dropdowns.
         }
 
         function handleVisibilityChange() {
