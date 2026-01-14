@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.337</title>
+    <title>Friday-night-hawk-s Timer v1.31.338</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -5054,7 +5054,8 @@
                         currentSetGlobal++;
 
                         // Construct Label
-                        let label = `Ronde ${roundNum} - Oefening ${e}.${s}`;
+                        let key = `r${roundNum}-e${e}-s${s}`;
+                        let label = customNames[key] || `Ronde ${roundNum} - Oefening ${e}.${s}`;
 
                         // Add Work
                         schedule.push({
@@ -5915,7 +5916,11 @@
                 runningDate.setSeconds(runningDate.getSeconds() + item.time);
                 const div = document.createElement('div'); div.className = `schedule-item`;
                 let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
-                let desc = item.label; if (item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
+                let desc = item.label;
+                // If it's a generic label and we have a custom name, use that?
+                // Actually, generateScheduleData now sets item.label to customNames if available.
+                // But if we want to add (R1/E1/S1) suffix:
+                if (item.info && item.info.round && item.info.exercise > 0) desc += ` (R${item.info.round}/E${item.info.exercise}/S${item.info.set})`;
                 div.innerHTML = `<div class="col-time">${timeStr}</div><div class="col-desc">${icon} ${desc}</div><div class="col-dur">${item.time}s</div>`;
                 list.appendChild(div);
             });
