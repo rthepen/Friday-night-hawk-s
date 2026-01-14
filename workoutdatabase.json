@@ -183,8 +183,8 @@
     "material_name": "Deadball",
     "material_description": "Zware bal die niet stuitert",
     "instructions": "Dead Ball Push Press: Houd de bal op borsthoogte. Zak iets door de knieën en stoot de bal explosief uit tot boven het hoofd.",
-    "video_search_url": "https://www.youtube.com/watch?v=F-Ay5kE47A0",
-    "thumbnail": "https://i.ytimg.com/vi/F-Ay5kE47A0/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/Luw-t-cEUKU",
+    "thumbnail": "https://i.ytimg.com/vi/Luw-t-cEUKU/hqdefault.jpg"
   },
   {
     "check_number": 18,
@@ -1335,11 +1335,11 @@
     "id": "sprinting",
     "exercise_name": "Sprinting",
     "category": "Cardio",
-    "material_name": "Geen",
+    "material_name": "Bodyweight",
     "material_description": "Geen materiaal",
     "instructions": "Sprinting: Ren zo hard als je kunt over een bepaalde afstand.",
-    "video_search_url": "https://www.youtube.com/watch?v=2ivtM3xT1-I",
-    "thumbnail": "https://i.ytimg.com/vi/2ivtM3xT1-I/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/ppmeLjrx6UE",
+    "thumbnail": "https://i.ytimg.com/vi/ppmeLjrx6UE/hqdefault.jpg"
   },
   {
     "check_number": 123,
@@ -1349,8 +1349,8 @@
     "material_name": "Pionnen",
     "material_description": "Pionnen of markering",
     "instructions": "Shuttle Runs: Ren heen en weer tussen twee lijnen/pionnen. Tik de lijn aan.",
-    "video_search_url": "https://www.youtube.com/watch?v=qN3KrjQTS2E",
-    "thumbnail": "https://i.ytimg.com/vi/qN3KrjQTS2E/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/7js7-iQTGS0",
+    "thumbnail": "https://i.ytimg.com/vi/7js7-iQTGS0/hqdefault.jpg"
   },
   {
     "check_number": 124,
@@ -1360,8 +1360,8 @@
     "material_name": "Pionnen",
     "material_description": "Pionnen of markering",
     "instructions": "Suicide Runs: Lijn 1 -> Lijn 2 -> Terug 1 -> Lijn 3 -> Terug 1 etc. Steeds verder weg.",
-    "video_search_url": "https://www.youtube.com/watch?v=_85BO1hYApA",
-    "thumbnail": "https://i.ytimg.com/vi/_85BO1hYApA/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/HsSTs3U1PSc",
+    "thumbnail": "https://i.ytimg.com/vi/HsSTs3U1PSc/hqdefault.jpg"
   },
   {
     "check_number": 125,
@@ -1401,11 +1401,11 @@
     "id": "figure_8_squats",
     "exercise_name": "Figure 8 Squats",
     "category": "Onderlichaam",
-    "material_name": "Kettlebell / DB",
+    "material_name": "Kettlebell",
     "material_description": "Kettlebell of Dumbbell",
     "instructions": "Figure 8 Squats: Squat laag en geef het gewicht in een 8-vorm door je benen. Blijf constant in de squat positie.",
-    "video_search_url": "https://www.youtube.com/watch?v=5jUnlo8CUCk",
-    "thumbnail": "https://i.ytimg.com/vi/5jUnlo8CUCk/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/vOouypk1kFs",
+    "thumbnail": "https://i.ytimg.com/vi/vOouypk1kFs/hqdefault.jpg"
   },
   {
     "check_number": 129,
@@ -1437,8 +1437,8 @@
     "material_name": "Partner",
     "material_description": "Een medesporter",
     "instructions": "Partner Help Ups: Partner A ligt en doet een sit-up. Partner B staat en trekt A het laatste stukje omhoog (handje klap/hulp).",
-    "video_search_url": "https://www.youtube.com/embed/AyYbnV_GjRo",
-    "thumbnail": "https://i.ytimg.com/vi/AyYbnV_GjRo/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/GssdjwoKAiM",
+    "thumbnail": "https://i.ytimg.com/vi/GssdjwoKAiM/hqdefault.jpg"
   },
   {
     "check_number": 132,
@@ -1489,7 +1489,7 @@
     "id": "stir_the_pot",
     "exercise_name": "Stir The Pot",
     "category": "Buikspieren",
-    "material_name": "Swiss Ball",
+    "material_name": "Medicine Ball",
     "material_description": "Grote gymnastiekbal",
     "instructions": "Stir The Pot: Plank met ellebogen op de bal. Draai rondjes met de ellebogen zonder de romp mee te laten bewegen.",
     "video_search_url": "https://www.youtube.com/watch?v=tnuGDOo2NEY",
@@ -1646,8 +1646,8 @@
     "material_name": "Partner",
     "material_description": "Een medesporter",
     "instructions": "Partner Plank High Five: Tegenover elkaar in plank. Geef elkaar met één hand een high five. Wissel af.",
-    "video_search_url": "https://www.youtube.com/embed/AyYbnV_GjRo",
-    "thumbnail": "https://i.ytimg.com/vi/AyYbnV_GjRo/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/soGvxEfKVwg",
+    "thumbnail": "https://i.ytimg.com/vi/soGvxEfKVwg/hqdefault.jpg"
   },
   {
     "check_number": 151,
@@ -1657,8 +1657,8 @@
     "material_name": "Partner",
     "material_description": "Een medesporter",
     "instructions": "Partner Squat Hold: Rug tegen rug, zakken in de squat en tegen elkaar aan leunen voor balans.",
-    "video_search_url": "https://www.youtube.com/embed/AyYbnV_GjRo",
-    "thumbnail": "https://i.ytimg.com/vi/AyYbnV_GjRo/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/hjk-GPk1Acc",
+    "thumbnail": "https://i.ytimg.com/vi/hjk-GPk1Acc/hqdefault.jpg"
   },
   {
     "check_number": 152,
@@ -1698,7 +1698,7 @@
     "id": "sumo_squat",
     "exercise_name": "Sumo Squat",
     "category": "Onderlichaam",
-    "material_name": "Bodyweight / KB",
+    "material_name": "Kettlebell",
     "material_description": "Eigen gewicht of KB",
     "instructions": "Sumo Squat: Voeten breed, tenen naar buiten. Zakken met rechte rug.",
     "video_search_url": "https://www.youtube.com/watch?v=nVa_xiG9WBE",
@@ -1742,11 +1742,11 @@
     "id": "weighted_step_ups",
     "exercise_name": "Weighted Step Ups",
     "category": "Onderlichaam",
-    "material_name": "Dumbbells / KB",
+    "material_name": "Dumbbells",
     "material_description": "Gewichten",
     "instructions": "Weighted Step Ups: Step ups met gewichten in de hand.",
-    "video_search_url": "https://www.youtube.com/watch?v=F-Ay5kE47A0",
-    "thumbnail": "https://i.ytimg.com/vi/F-Ay5kE47A0/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/8q9LVgN2RD4",
+    "thumbnail": "https://i.ytimg.com/vi/8q9LVgN2RD4/hqdefault.jpg"
   },
   {
     "check_number": 160,
@@ -1758,16 +1758,6 @@
     "instructions": "Windshield Wipers: Lig op rug, benen recht omhoog. Laat benen samen naar links en rechts zakken (als ruitenwissers).",
     "video_search_url": "https://www.youtube.com/embed/iMCPilvoNYw",
     "thumbnail": "https://i.ytimg.com/vi/iMCPilvoNYw/hqdefault.jpg"
-  },
-  {
-    "check_number": 161,
-    "id": "bench_dips",
-    "exercise_name": "Bench Dips",
-    "category": "Bovenlichaam",
-    "material_name": "Bench",
-    "material_description": "Bankje",
-    "instructions": "Bench Dips: Zelfde als tricep dips, voeten op de grond, handen op het bankje.",
-    "video_search_url": "https://www.youtube.com/shorts/4ua3MzaU0QU"
   },
   {
     "check_number": 162,
@@ -1796,7 +1786,7 @@
     "id": "chair_step_ups",
     "exercise_name": "Chair Step Ups",
     "category": "Onderlichaam",
-    "material_name": "Chair / Bench",
+    "material_name": "Plyo Box",
     "material_description": "Stoel of bankje",
     "instructions": "Chair Step Ups: Step ups op een stoel.",
     "video_search_url": "https://www.youtube.com/embed/n1sh5aS6Az4",
@@ -1818,7 +1808,7 @@
     "id": "elevated_glute_bridge",
     "exercise_name": "Elevated Glute Bridge",
     "category": "Onderlichaam",
-    "material_name": "Bench / Box",
+    "material_name": "Plyo Box",
     "material_description": "Verhoging",
     "instructions": "Elevated Glute Bridge: Voeten op de verhoging, rug op de grond. Heupen heffen. Meer range of motion.",
     "video_search_url": "https://www.youtube.com/watch?v=vR1IFWiGrtU",
@@ -1829,7 +1819,7 @@
     "id": "feet_elevated_push_ups",
     "exercise_name": "Feet Elevated Push Ups",
     "category": "Bovenlichaam",
-    "material_name": "Bench / Box",
+    "material_name": "Plyo Box",
     "material_description": "Verhoging",
     "instructions": "Feet Elevated Push Ups: Decline push-up (voeten hoog).",
     "video_search_url": "https://www.youtube.com/watch?v=HONWJvssFC0",
@@ -2114,10 +2104,10 @@
     "check_number": 193,
     "id": "1_leg_partner_push_overs",
     "exercise_name": "1 Leg Partner Push Overs",
-    "category": "Balans",
+    "category": "Hele Lichaam",
     "material_name": "Partner",
     "material_description": "Een medesporter",
-    "instructions": "1 Leg Partner Push Overs: Sta tegenover elkaar op één been. Probeer de partner uit balans te duwen (tegen handen of schouders) zonder zelf de grond te raken.",
+    "instructions": "1 Leg Partner Push Overs: Sta tegenover elkaar op één been. Probeer de partner uit balans te duwen (tegen handen of schouders) zonder zelf de grond te raken",
     "video_search_url": "https://www.youtube.com/embed/AyYbnV_GjRo",
     "thumbnail": "https://i.ytimg.com/vi/AyYbnV_GjRo/hqdefault.jpg"
   },
@@ -2151,8 +2141,8 @@
     "material_name": "Spinningfiets",
     "material_description": "Spinningfiets",
     "instructions": "Duur: 3 min (wissels elke 40s). Positie: Wissel Handpositie 2 (Zit) naar 2 of 3 (Staan). Uitleg: Elke 40 seconden: draai een slag weerstand bij en kom uit het zadel. Gebruik de benen om te liften, niet de armen. Houd de heupen stil boven het zadel ('hover') alvorens volledig te staan. Zorg voor een vloeiende overgang zonder 'plof' terug in het zadel.",
-    "video_search_url": "https://www.youtube.com/watch?v=SASKkP12Deg",
-    "thumbnail": "https://i.ytimg.com/vi/SASKkP12Deg/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/UE8yxty2_Jg",
+    "thumbnail": "https://i.ytimg.com/vi/UE8yxty2_Jg/hqdefault.jpg"
   },
   {
     "check_number": 197,
@@ -2162,8 +2152,8 @@
     "material_name": "Spinningfiets",
     "material_description": "Spinningfiets",
     "instructions": "Duur: 3 min (weerstand elke 40s). Positie: Handpositie 3. Uitleg: Blijf continu staand. Elke 40 seconden een slag erbij. Houd de heupen ver naar achteren boven het zadel in een 'V'-vorm met de schouders. De cadans zal dalen naarmate de weerstand toeneemt. Gebruik lichaamsgewicht om de pedalen rond te krijgen.",
-    "video_search_url": "https://www.youtube.com/watch?v=NPMdHIL7ks8",
-    "thumbnail": "https://i.ytimg.com/vi/NPMdHIL7ks8/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/cAaNLqprVXU",
+    "thumbnail": "https://i.ytimg.com/vi/cAaNLqprVXU/hqdefault.jpg"
   },
   {
     "check_number": 198,
@@ -2173,8 +2163,8 @@
     "material_name": "Spinningfiets",
     "material_description": "Spinningfiets",
     "instructions": "Duur: 3 min (40s actief, 15s freeze). Positie: Handpositie 3. Uitleg: Tijdens een zware staande klim, 'bevries' het bovenlichaam gedurende 15 seconden. Geen gewaggel of geschommel. Alle kracht moet uit de benen en core komen. Let op: Houd de knieën licht gebogen en heupen naar achteren om blessures te voorkomen.",
-    "video_search_url": "https://www.youtube.com/watch?v=2fytdxLZ3qw",
-    "thumbnail": "https://i.ytimg.com/vi/2fytdxLZ3qw/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/VAIqqs3j6uQ",
+    "thumbnail": "https://i.ytimg.com/vi/VAIqqs3j6uQ/hqdefault.jpg"
   },
   {
     "check_number": 199,
@@ -2184,8 +2174,8 @@
     "material_name": "Spinningfiets",
     "material_description": "Spinningfiets",
     "instructions": "Duur: 3 min (in intervallen). Positie: Handpositie 2 (Zit) of 3 (Staande Aanval). Uitleg: Explosieve versnelling. Cadans tussen 90-110 RPM. Zorg voor voldoende weerstand zodat u niet stuitert in het zadel. Trek de knieën actief omhoog. Focus op snelheid en power.",
-    "video_search_url": "https://www.youtube.com/watch?v=tVYcuQNmfkM",
-    "thumbnail": "https://i.ytimg.com/vi/tVYcuQNmfkM/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/ibtoYyhbhts",
+    "thumbnail": "https://i.ytimg.com/vi/ibtoYyhbhts/hqdefault.jpg"
   },
   {
     "check_number": 200,
@@ -2195,8 +2185,8 @@
     "material_name": "Spinningfiets",
     "material_description": "Spinningfiets",
     "instructions": "Duur: 3 min + afbouw (4 min totaal). Positie: Wissel Pos 2 <-> Pos 3. Uitleg: 'De Ladder'. Start in Pos 2. Na 30s: ga naar Pos 3 (staand) EN voeg een halve slag toe. Na 30s: terug naar Pos 2 (zittend) EN voeg weer een halve slag toe. Herhaal tot 3 minuten (totaal 3 hele slagen erbij). Daarna afbouwen (weerstand eraf, rustig trappen).",
-    "video_search_url": "https://www.youtube.com/watch?v=UE8yxty2_Jg",
-    "thumbnail": "https://i.ytimg.com/vi/UE8yxty2_Jg/hqdefault.jpg"
+    "video_search_url": "https://www.youtube.com/embed/dieOsJlsvpM",
+    "thumbnail": "https://i.ytimg.com/vi/dieOsJlsvpM/hqdefault.jpg"
   },
   {
     "check_number": 201,
@@ -2208,5 +2198,71 @@
     "instructions": "Duur: 3-5 min. Positie: Handpositie 1 of 2. Uitleg: Verwijder alle zware weerstand. Trap rustig uit (cadans <80 RPM). Adem diep in en uit om de hartslag te laten zakken. Voer rekoefeningen uit voor quadriceps, hamstrings en bovenlichaam (triceps/borst) op de fiets of ernaast.",
     "video_search_url": "https://www.youtube.com/watch?v=XY-k-m5K7Mg",
     "thumbnail": "https://i.ytimg.com/vi/XY-k-m5K7Mg/hqdefault.jpg"
+  },
+  {
+    "check_number": 202,
+    "id": "manual_1768398561914",
+    "exercise_name": "Staande sprint",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "",
+    "instructions": "printen positie 3",
+    "video_search_url": "https://www.youtube.com/embed/2193jGqm_74",
+    "thumbnail": "https://i.ytimg.com/vi/2193jGqm_74/hqdefault.jpg"
+  },
+  {
+    "check_number": 203,
+    "id": "manual_1768398715162",
+    "exercise_name": "zitten positie 1",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "",
+    "instructions": "zitten positie 1",
+    "video_search_url": "https://www.youtube.com/embed/XlOXw0LCKO0",
+    "thumbnail": "https://i.ytimg.com/vi/XlOXw0LCKO0/hqdefault.jpg"
+  },
+  {
+    "check_number": 204,
+    "id": "manual_1768399529033",
+    "exercise_name": "Running",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "",
+    "instructions": "accent van de beweging naar je bovenbenen\n\nHoud je bovenlichaam zo stil mogelijk terwijl je benen blijven doorfietsen",
+    "video_search_url": "https://www.youtube.com/embed/NWoz5CvPDWo",
+    "thumbnail": "https://i.ytimg.com/vi/NWoz5CvPDWo/hqdefault.jpg"
+  },
+  {
+    "check_number": 205,
+    "id": "manual_1768399682107",
+    "exercise_name": "Jogging ",
+    "category": "Cardio",
+    "material_name": "",
+    "material_description": "",
+    "instructions": "Plaats je handen aan de zijkant van het stuur. Breng je billen tot net boven het zadel en houd je rug rech. Beweeg ontspannen mee op de muziek",
+    "video_search_url": "https://www.youtube.com/embed/NWoz5CvPDWo",
+    "thumbnail": "https://i.ytimg.com/vi/NWoz5CvPDWo/hqdefault.jpg"
+  },
+  {
+    "check_number": 206,
+    "id": "manual_1768399856721",
+    "exercise_name": "Zittende Klim",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "",
+    "instructions": "draai weerstand op. handen aan de zijkant van het stuur",
+    "video_search_url": "https://www.youtube.com/embed/8Vklu832GpI",
+    "thumbnail": "https://i.ytimg.com/vi/8Vklu832GpI/hqdefault.jpg"
+  },
+  {
+    "check_number": 207,
+    "id": "manual_1768400097645",
+    "exercise_name": "Staande Klim",
+    "category": "Cardio",
+    "material_name": "Spinningfiets",
+    "material_description": "",
+    "instructions": "staande klim",
+    "video_search_url": "https://www.youtube.com/embed/jyVaNmIu0E0",
+    "thumbnail": "https://i.ytimg.com/vi/jyVaNmIu0E0/hqdefault.jpg"
   }
 ]

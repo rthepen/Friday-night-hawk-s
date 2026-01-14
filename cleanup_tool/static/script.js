@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let analysisData = {}; // Store analysis results
 
+    // Helper for Quota Errors
+    function checkQuotaError(errMsg) {
+        if (errMsg === 'QUOTA_EXCEEDED' || errMsg.includes('Quota Exceeded') || errMsg.includes('Limit Reached')) {
+            alert("⚠️ YouTube Limiet Bereikt (Quota Exceeded)!\n\nJe hebt het dagelijkse limiet van YouTube bereikt.\nProbeer het morgen opnieuw (na 09:00 NL tijd) of gebruik een andere API key.");
+            return true;
+        }
+        return false;
+    }
+
     // Fetch Workouts
     fetch('/api/workouts')
         .then(res => res.json())
@@ -52,29 +61,54 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error(err);
-                analyzeBtn.textContent = 'Fout';
+                if (checkQuotaError(err.message)) {
+                    analyzeBtn.textContent = 'Limiet Bereikt';
+                } else {
+                    analyzeBtn.textContent = 'Fout';
+                    // Show error in a more visible way if possible, or just alert
+                    const errDiv = document.createElement('div');
+                    errDiv.className = 'error-banner';
+                    errDiv.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:red; color:white; padding:15px; border-radius:8px; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.2);';
+                    errDiv.textContent = 'Fout bij analyseren: ' + err.message;
+                    document.body.appendChild(errDiv);
+                    setTimeout(() => errDiv.remove(), 5000);
+                }
+
                 analyzeBtn.style.background = 'var(--danger)';
-
-                // Show error in a more visible way if possible, or just alert
-                const errDiv = document.createElement('div');
-                errDiv.className = 'error-banner';
-                errDiv.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:red; color:white; padding:15px; border-radius:8px; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.2);';
-                errDiv.textContent = 'Fout bij analyseren: ' + err.message;
-                document.body.appendChild(errDiv);
-                setTimeout(() => errDiv.remove(), 5000);
-
                 analyzeBtn.disabled = false;
             });
     });
 
     function populateFilterOptions() {
+        // Collect existing materials
         const materials = new Set(workouts.map(w => w.material_name));
-        materials.forEach(mat => {
+        const sortedMat = Array.from(materials).sort();
+
+        // Filter Dropdown
+        materialFilter.innerHTML = '<option value="all">Alle Materialen</option>';
+        sortedMat.forEach(mat => {
             const option = document.createElement('option');
             option.value = mat;
             option.textContent = mat;
             materialFilter.appendChild(option);
         });
+
+        // Modal Dropdown
+        const modalSelect = document.getElementById('newMaterial');
+        if (modalSelect) {
+            modalSelect.innerHTML = '<option value="" disabled selected>Kies Materiaal...</option>';
+            sortedMat.forEach(mat => {
+                const option = document.createElement('option');
+                option.value = mat;
+                option.textContent = mat;
+                modalSelect.appendChild(option);
+            });
+            // Add custom option
+            const otherOpt = document.createElement('option');
+            otherOpt.value = "Other";
+            otherOpt.textContent = "Nieuw / Anders...";
+            modalSelect.appendChild(otherOpt);
+        }
     }
 
     function renderWorkouts() {
@@ -121,7 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='68' viewBox='0 0 120 68'%3E%3Crect width='120' height='68' fill='%23333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%23aaa'%3EGeen Video%3C/text%3E%3C/svg%3E";
 
         const div = document.createElement('div');
-        div.className = 'workout-item expanded'; // Default to expanded
+        div.className = 'workout-item expanded';
+
+        // Escape quotes for values
+        const safeName = workout.exercise_name.replace(/"/g, '&quot;');
+        // Material is now in dropdown, safeMat used for selection
+        const safeMat = workout.material_name;
+        const safeCat = workout.category;
+
+        // Build Material Options
+        const materials = new Set(workouts.map(w => w.material_name));
+        const sortedMat = Array.from(materials).sort();
+        let matOptions = '';
+        sortedMat.forEach(m => {
+            matOptions += `<option value="${m}" ${m === safeMat ? 'selected' : ''}>${m}</option>`;
+        });
+
         div.innerHTML = `
             <div class="workout-header" onclick="toggleDetails(this, '${workout.id}', '${workout.exercise_name.replace(/'/g, "\\'")}')">
                 <img src="${workout.thumbnail || fallbackImage}" class="current-thumb" onerror="this.onerror=null; this.src='${fallbackImage}'">
@@ -130,11 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3>${workout.exercise_name} 
                             ${matchScore !== null ? `<span style="font-size:0.8em; color:${scoreColor}">(${matchScore}% Match)</span>` : ''}
                         </h3>
-                        <button class="icon-btn" onclick="event.stopPropagation(); copyToClipboard('${workout.material_name} ${workout.exercise_name.replace(/'/g, "\\'")}', this)" title="Kopieer: ${workout.material_name} ${workout.exercise_name}">
-                            <i class="fas fa-copy"></i>
-                        </button>
                     </div>
-                    <div class="workout-meta">
+                     <div class="workout-meta">
                         <span>${workout.category}</span>
                         <span>|</span>
                         <span>${workout.material_name}</span>
@@ -145,15 +191,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="workout-details" id="details-${workout.id}">
-                <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                    <div style="flex: 1;">
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; align-items:flex-start;">
+                    <div style="flex: 1; min-width: 0;">
+                         <h4>Details Aanpassen</h4>
+                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                            <div>
+                                <label style="font-size:0.8em; color:#aaa;">Oefening Naam</label>
+                                <input type="text" id="edit-name-${workout.id}" value="${safeName}" class="input-field" style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.8em; color:#aaa;">Materiaal</label>
+                                <select id="edit-mat-${workout.id}" class="input-field" style="width:100%;">
+                                    ${matOptions}
+                                </select>
+                            </div>
+                         </div>
+                         <div style="margin-bottom:10px;">
+                            <label style="font-size:0.8em; color:#aaa;">Spiergroep / Categorie</label>
+                             <select id="edit-cat-${workout.id}" class="input-field" style="width:100%;">
+                                <option value="Hele Lichaam" ${safeCat === 'Hele Lichaam' ? 'selected' : ''}>Hele Lichaam</option>
+                                <option value="Bovenlichaam" ${safeCat === 'Bovenlichaam' ? 'selected' : ''}>Bovenlichaam</option>
+                                <option value="Onderlichaam" ${safeCat === 'Onderlichaam' ? 'selected' : ''}>Onderlichaam</option>
+                                <option value="Buikspieren" ${safeCat === 'Buikspieren' ? 'selected' : ''}>Buikspieren</option>
+                                <option value="Cardio" ${safeCat === 'Cardio' ? 'selected' : ''}>Cardio</option>
+                            </select>
+                         </div>
+                         
                          <h4>Instructies</h4>
-                         <p>${workout.instructions}</p>
+                         <textarea id="edit-instr-${workout.id}" class="input-field" rows="5" style="width:100%; resize:vertical;">${workout.instructions}</textarea>
+                         
+                         <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button onclick="saveDetails('${workout.id}', this)" class="primary-btn" style="flex:1; background:#444;">Details Opslaan</button>
+                            <button onclick="deleteWorkout('${workout.id}', this)" class="primary-btn" style="background:var(--danger); width: auto;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                         </div>
                     </div>
-                    <div style="flex: 1;">
-                         <h4>Huidige Video Info</h4>
-                         ${ad ? `<p><strong>Titel:</strong> ${ad.video_title}</p><p><strong>Beschrijving:</strong> <span style="font-size:0.9em; opacity:0.8;">${ad.video_description.substring(0, 150)}...</span></p>` : '<p>Klik op "Analyzeren" om info te laden.</p>'}
-                         <p><strong>Link:</strong> <a href="${workout.video_search_url}" target="_blank">Open op YouTube</a></p>
+                    <div style="flex: 1; min-width: 0; overflow:hidden;">
+                         <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Huidige Video Info</h4>
+                         <div style="word-wrap: break-word; overflow-wrap: break-word;">
+                            ${ad ? `<p><strong>Titel:</strong> ${ad.video_title}</p><p><strong>Beschrijving:</strong> <span style="font-size:0.9em; opacity:0.8;">${ad.video_description.substring(0, 150)}...</span></p>` : '<p>Klik op "Analyzeren" om info te laden.</p>'}
+                            <p style="margin-top:10px;"><strong>Link:</strong> <a href="${workout.video_search_url}" target="_blank" style="word-break:break-all;">Open op YouTube</a></p>
+                            
+                            <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(workout.material_name + ' ' + workout.exercise_name)}" target="_blank" class="primary-btn" style="display:inline-block; margin-top:15px; text-decoration:none; text-align:center; background:#cc0000; color:white;">
+                                <i class="fab fa-youtube"></i> Zoek op YouTube
+                            </a>
+                         </div>
                     </div>
                 </div>
                 
@@ -173,6 +256,41 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         return div;
     }
+
+    window.deleteWorkout = (id, btn) => {
+        if (btn.dataset.confirming === "true") {
+            btn.textContent = "Verwijderen...";
+            btn.disabled = true;
+            fetch('/api/delete_workout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workout_id: id })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    workouts = workouts.filter(w => w.id !== id);
+                    renderWorkouts();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Fout bij verwijderen: " + err.message);
+                    btn.textContent = "Fout";
+                    btn.disabled = false;
+                });
+        } else {
+            btn.dataset.confirming = "true";
+            btn.textContent = "Weet je het zeker?";
+            btn.style.background = "red";
+            setTimeout(() => {
+                if (document.body.contains(btn)) {
+                    btn.dataset.confirming = "false";
+                    btn.innerHTML = '<i class="fas fa-trash"></i>';
+                    btn.style.background = "var(--danger)";
+                }
+            }, 3000);
+        }
+    };
 
     // Event Listeners for Filters
     searchBar.addEventListener('input', renderWorkouts);
@@ -209,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(results => {
                 resultsContainer.innerHTML = '';
                 if (results.error) {
+                    if (checkQuotaError(results.error)) return;
                     resultsContainer.innerHTML = `<p class="error">${results.error}</p>`;
                     return;
                 }
@@ -267,6 +386,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(res => res.json())
             .then(video => {
                 if (video.error) {
+                    if (checkQuotaError(video.error)) {
+                        previewContainer.innerHTML = `<p class="error">Quota limiet bereikt.</p>`;
+                        return;
+                    }
                     previewContainer.innerHTML = `<p class="error">${video.error}</p>`;
                     return;
                 }
@@ -362,10 +485,139 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Modal Logic for Create Workout
+    const createModal = document.getElementById('createModal');
+    const addBtn = document.getElementById('addWorkoutBtn');
+    const closeCreateBtn = document.querySelector('.close-create-modal');
+    const saveNewBtn = document.getElementById('saveNewWorkoutBtn');
+
+    addBtn.onclick = () => {
+        createModal.classList.remove('hidden');
+    };
+
+    closeCreateBtn.onclick = () => {
+        createModal.classList.add('hidden');
+    };
+
+    saveNewBtn.onclick = () => {
+        const name = document.getElementById('newExerciseName').value;
+        const mat = document.getElementById('newMaterial').value;
+        const cat = document.getElementById('newCategory').value;
+        const instr = document.getElementById('newInstructions').value;
+
+        if (!name) {
+            alert("Naam is verplicht!");
+            return;
+        }
+
+        saveNewBtn.textContent = "Opslaan...";
+        saveNewBtn.disabled = true;
+
+        fetch('/api/create_workout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                exercise_name: name,
+                category: cat,
+                material_name: mat,
+                instructions: instr
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+
+                // Success
+                createModal.classList.add('hidden');
+                // Reset form
+                document.getElementById('newExerciseName').value = '';
+                document.getElementById('newMaterial').value = '';
+                document.getElementById('newInstructions').value = '';
+
+                saveNewBtn.textContent = "Opslaan";
+                saveNewBtn.disabled = false;
+
+                // Reload to show new
+                fetch('/api/workouts')
+                    .then(res => res.json())
+                    .then(d => {
+                        workouts = d;
+                        populateFilterOptions();
+                        renderWorkouts();
+
+                        // Alert user or scroll to new item?
+                        alert("Oefening aangemaakt!");
+                    });
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Fout bij aanmaken: " + err.message);
+                saveNewBtn.textContent = "Opslaan";
+                saveNewBtn.disabled = false;
+            });
+    };
+
+    window.saveDetails = (id, btn) => {
+        const name = document.getElementById(`edit-name-${id}`).value;
+        const mat = document.getElementById(`edit-mat-${id}`).value;
+        const cat = document.getElementById(`edit-cat-${id}`).value;
+        const instr = document.getElementById(`edit-instr-${id}`).value;
+
+        const originalText = btn.textContent;
+        btn.textContent = "Opslaan...";
+        btn.disabled = true;
+
+        fetch('/api/update_workout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workout_id: id,
+                exercise_name: name,
+                category: cat,
+                material_name: mat,
+                instructions: instr
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+
+                btn.textContent = "Opgeslagen!";
+                btn.style.background = "var(--success)";
+
+                // Update local state so filtering/sorting works without reload
+                const w = workouts.find(x => x.id === id);
+                if (w) {
+                    w.exercise_name = name;
+                    w.category = cat;
+                    w.material_name = mat;
+                    w.instructions = instr;
+                }
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = "#444";
+                    btn.disabled = false;
+                    // Optional: Re-render header to update title if changed
+                    // But this might collapse the details. Simple workaround is acceptable for now.
+                }, 2000);
+            })
+            .catch(err => {
+                console.error(err);
+                btn.textContent = "Fout!";
+                btn.style.background = "var(--danger)";
+                alert("Error: " + err.message);
+                btn.disabled = false;
+            });
+    };
+
     window.onclick = (e) => {
         if (e.target == modal) {
             modal.classList.add('hidden');
             document.getElementById('videoPlayerContainer').innerHTML = '';
+        }
+        if (e.target == createModal) {
+            createModal.classList.add('hidden');
         }
     };
 });

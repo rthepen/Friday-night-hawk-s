@@ -28,6 +28,9 @@
                 </select>
                 <input type="password" id="apiKey" placeholder="YouTube API Key" style="width: 150px;"
                     title="Enter YouTube API Key">
+                <button id="addWorkoutBtn" class="primary-btn"
+                    style="background: var(--success); font-size: 1.2rem; padding: 0 15px;"
+                    title="Nieuwe Oefening">+</button>
                 <button id="analyzeBtn" class="primary-btn"
                     style="background: var(--accent); color: white;">Analyzeren</button>
             </div>
@@ -48,6 +51,38 @@
                     <input type="text" id="customVideoUrl" placeholder="Enter custom video URL">
                     <button id="useCustomUrlBtn">Use Custom URL</button>
                     <button id="confirmSelectionBtn" class="primary-btn">Save Selection</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Workout Modal -->
+        <div id="createModal" class="modal hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <span class="close-create-modal" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
+                <h2>Nieuwe Oefening</h2>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                    <input type="text" id="newExerciseName" placeholder="Naam Oefening" class="input-field">
+                    <input type="text" id="newCheckNumber" placeholder="Check Number (optioneel)" class="input-field"
+                        style="display:none;">
+
+                    <select id="newCategory" class="input-field">
+                        <option value="Hele Lichaam">Hele Lichaam</option>
+                        <option value="Bovenlichaam">Bovenlichaam</option>
+                        <option value="Onderlichaam">Onderlichaam</option>
+                        <option value="Buikspieren">Buikspieren</option>
+                        <option value="Cardio">Cardio</option>
+                    </select>
+
+                    <select id="newMaterial" class="input-field">
+                        <option value="" disabled selected>Kies Materiaal...</option>
+                        <!-- Populated by JS -->
+                    </select>
+
+                    <textarea id="newInstructions" placeholder="Instructies..." rows="4" class="input-field"
+                        style="resize:vertical;"></textarea>
+
+                    <button id="saveNewWorkoutBtn" class="primary-btn"
+                        style="background:var(--success); margin-top:10px;">Opslaan</button>
                 </div>
             </div>
         </div>
