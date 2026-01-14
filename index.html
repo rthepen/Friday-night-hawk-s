@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.389";
+        const APP_VERSION = "1.31.390";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -8959,145 +8959,102 @@
     </div>
     </div>
 
-    <!-- ROUND EXERCISE EDITOR MODAL -->
-    <div id="round-exercise-modal" class="modal-overlay"
-        style="display:none; align-items:center; justify-content:center; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z:index:99999;">
-        <div class="modal-content"
-            style="max-width:600px; max-height:90vh; width:95%; background:#1c1c1e; border-radius:20px; padding:20px; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 id="round-exercise-title" style="margin:0; color:#30D158; font-size:18px;">RONDE 1 - Oefeningen</h3>
-                <span style="font-size:28px; cursor:pointer; color:#fff;" onclick="closeRoundExerciseModal()">×</span>
-            </div>
-
-            <div style="font-size:12px; color:#888; margin-bottom:15px;">
-                💡 <strong>Tip:</strong> Wijzig Set 1 om alle sets aan te passen. Wijzig Set 2+ om alleen die set aan te
-                passen.
-            </div>
-
-            <div id="round-exercise-grid" style="display:flex; flex-direction:column; gap:10px;">
-                <!-- Grid will be populated by JavaScript -->
-            </div>
-
-            <button class="action-btn" onclick="closeRoundExerciseModal()"
-                style="margin-top:20px; background:#333; font-size:14px; padding:12px;">
-                Sluiten
-            </button>
-        </div>
-    </div>
-
     <script>
-        // ROUND EXERCISE EDITOR FUNCTIONS
+        // INLINE ROUND EXERCISE EDITOR (NO POPUP)
 
-        // Global variable to track current round being edited
-        let currentEditingRound = null;
-
-        // Open the round exercise editor for a specific round
-        function openRoundExerciseEditor(roundIndex) {
-            currentEditingRound = roundIndex;
+        // Function to render exercise list directly in a round card
+        function renderRoundExerciseList(roundIndex) {
+            const roundCard = document.getElementById(`round-card-${roundIndex}`);
+            if (!roundCard) return;
 
             // Get round configuration
-            const exercisesInput = document.querySelector(`#round-card-${roundIndex} input[onchange*="'exercises'"]`);
-            const setsInput = document.querySelector(`#round-card-${roundIndex} input[onchange*="'sets'"]`);
+            const exercisesInput = roundCard.querySelector('input[onchange*="\'exercises\'"]');
+            const setsInput = roundCard.querySelector('input[onchange*="\'sets\'"]');
 
-            if (!exercisesInput || !setsInput) {
-                console.error('Could not find exercise/set inputs for round', roundIndex);
-                return;
-            }
+            if (!exercisesInput || !setsInput) return;
 
             const numExercises = parseInt(exercisesInput.value) || 5;
             const numSets = parseInt(setsInput.value) || 3;
-
-            // Update modal title
-            document.getElementById('round-exercise-title').innerText = `RONDE ${roundIndex + 1} - Oefeningen (${numExercises} × ${numSets} sets)`;
-
-            // Render the grid
-            renderRoundExerciseGrid(roundIndex, numExercises, numSets);
-
-            // Show modal
-            document.getElementById('round-exercise-modal').style.display = 'flex';
-        }
-
-        // Close the modal
-        function closeRoundExerciseModal() {
-            document.getElementById('round-exercise-modal').style.display = 'none';
-            currentEditingRound = null;
-        }
-
-        // Render the exercise-set grid
-        function renderRoundExerciseGrid(roundIndex, numExercises, numSets) {
-            const gridContainer = document.getElementById('round-exercise-grid');
-            gridContainer.innerHTML = '';
 
             // Initialize round data if not exists
             if (!roundExercises[roundIndex]) {
                 roundExercises[roundIndex] = {};
             }
 
-            // Create a row for each exercise
+            // Check if exercise list container already exists
+            let exerciseListContainer = roundCard.querySelector('.exercise-list-container');
+            if (!exerciseListContainer) {
+                exerciseListContainer = document.createElement('div');
+                exerciseListContainer.className = 'exercise-list-container';
+                exerciseListContainer.style.cssText = 'margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);';
+                roundCard.appendChild(exerciseListContainer);
+            }
+
+            // Clear existing content
+            exerciseListContainer.innerHTML = '';
+
+            // Add header
+            const header = document.createElement('div');
+            header.style.cssText = 'font-size:11px; color:#888; margin-bottom:10px; text-transform:uppercase; font-weight:bold;';
+            header.innerHTML = '💡 Klik om oefening te wijzigen. Set 1 = alle sets, Set 2+ = alleen die set';
+            exerciseListContainer.appendChild(header);
+
+            // Create list of all exercise-set combinations
             for (let exIdx = 0; exIdx < numExercises; exIdx++) {
                 // Initialize exercise data if not exists
                 if (!roundExercises[roundIndex][exIdx]) {
                     roundExercises[roundIndex][exIdx] = {};
                 }
 
-                const exerciseRow = document.createElement('div');
-                exerciseRow.style.cssText = 'display:flex; flex-direction:column; background:#2c2c2e; border-radius:12px; padding:15px; border:1px solid #444;';
-
-                // Exercise header
-                const exerciseHeader = document.createElement('div');
-                exerciseHeader.style.cssText = 'font-size:14px; font-weight:bold; color:#30D158; margin-bottom:10px; text-transform:uppercase;';
-                exerciseHeader.innerText = `Oefening ${exIdx + 1}`;
-                exerciseRow.appendChild(exerciseHeader);
-
-                // Create grid of sets
-                const setsContainer = document.createElement('div');
-                setsContainer.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px;';
-
                 for (let setIdx = 0; setIdx < numSets; setIdx++) {
-                    const setCard = document.createElement('div');
-                    setCard.style.cssText = 'background:#1c1c1e; border-radius:8px; padding:10px; cursor:pointer; border:2px solid #444; transition:all 0.2s;';
+                    const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || 'Klik om te kiezen';
 
-                    // Highlight Set 1 differently
+                    const exerciseRow = document.createElement('div');
+                    exerciseRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 12px; margin-bottom:6px; background:rgba(0,0,0,0.3); border-radius:8px; cursor:pointer; border-left:3px solid ' + (setIdx === 0 ? '#30D158' : '#666') + '; transition:all 0.2s;';
+
+                    exerciseRow.onmouseover = () => {
+                        exerciseRow.style.background = 'rgba(48,209,88,0.1)';
+                    };
+                    exerciseRow.onmouseout = () => {
+                        exerciseRow.style.background = 'rgba(0,0,0,0.3)';
+                    };
+
+                    exerciseRow.onclick = () => selectExerciseForSlot(roundIndex, exIdx, setIdx);
+
+                    const labelDiv = document.createElement('div');
+                    labelDiv.style.cssText = 'display:flex; align-items:center; gap:10px; flex:1;';
+
+                    const label = document.createElement('span');
+                    label.style.cssText = 'font-size:11px; color:#888; min-width:120px;';
+                    label.innerText = `Oefening ${exIdx + 1}, Set ${setIdx + 1}`;
                     if (setIdx === 0) {
-                        setCard.style.borderColor = '#30D158';
-                        setCard.style.background = 'rgba(48, 209, 88, 0.1)';
+                        label.innerHTML += ' <span style="color:#30D158;">●</span>';
                     }
 
-                    setCard.onclick = () => selectExerciseForSlot(roundIndex, exIdx, setIdx);
+                    const nameSpan = document.createElement('span');
+                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === 'Klik om te kiezen' ? '#666' : '#fff') + '; font-weight:600;';
+                    nameSpan.innerText = exerciseName;
 
-                    // Set label
-                    const setLabel = document.createElement('div');
-                    setLabel.style.cssText = 'font-size:10px; color:#888; margin-bottom:5px; text-transform:uppercase; font-weight:bold;';
-                    setLabel.innerText = setIdx === 0 ? `Set ${setIdx + 1} (Wijzig = Alles)` : `Set ${setIdx + 1}`;
-                    setCard.appendChild(setLabel);
+                    labelDiv.appendChild(label);
+                    labelDiv.appendChild(nameSpan);
 
-                    // Exercise name
-                    const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || 'Klik om te kiezen';
-                    const exerciseDisplay = document.createElement('div');
-                    exerciseDisplay.style.cssText = 'font-size:13px; color:' + (exerciseName === 'Klik om te kiezen' ? '#666' : '#fff') + '; font-weight:600; line-height:1.3;';
-                    exerciseDisplay.innerText = exerciseName;
-                    setCard.appendChild(exerciseDisplay);
-
-                    // Add icon
-                    const icon = document.createElement('div');
-                    icon.style.cssText = 'margin-top:5px; font-size:16px;';
+                    const icon = document.createElement('span');
+                    icon.style.cssText = 'font-size:16px; opacity:0.6;';
                     icon.innerText = exerciseName === 'Klik om te kiezen' ? '➕' : '✏️';
-                    setCard.appendChild(icon);
 
-                    setsContainer.appendChild(setCard);
+                    exerciseRow.appendChild(labelDiv);
+                    exerciseRow.appendChild(icon);
+
+                    exerciseListContainer.appendChild(exerciseRow);
                 }
-
-                exerciseRow.appendChild(setsContainer);
-                gridContainer.appendChild(exerciseRow);
             }
         }
 
-        // Select exercise for a specific slot
+        // Select exercise for a specific slot (same logic as before)
         function selectExerciseForSlot(roundIdx, exIdx, setIdx) {
-            // For now, use a simple prompt - in future this could open the exercise database selector
             const currentExercise = roundExercises[roundIdx]?.[exIdx]?.[setIdx] || '';
             const newExercise = prompt(
-                `${setIdx === 0 ? '⚠️ LET OP: Wijzigen van Set 1 past ALLE sets aan!\n\n' : ''}Voer oefening naam in voor Oefening ${exIdx + 1}, Set ${setIdx + 1}:`,
+                `${setIdx === 0 ? '⚠️ LET OP: Wijzigen van Set 1 past ALLE sets aan!\\n\\n' : ''}Voer oefening naam in voor Oefening ${exIdx + 1}, Set ${setIdx + 1}:`,
                 currentExercise
             );
 
@@ -9106,7 +9063,7 @@
             }
         }
 
-        // Update an exercise slot with smart propagation
+        // Update an exercise slot with smart propagation (same logic as before)
         function updateExerciseSlot(roundIdx, exIdx, setIdx, exerciseName) {
             // Initialize data structures if needed
             if (!roundExercises[roundIdx]) {
@@ -9117,7 +9074,8 @@
             }
 
             // Get total number of sets
-            const setsInput = document.querySelector(`#round-card-${roundIdx} input[onchange*="'sets'"]`);
+            const roundCard = document.getElementById(`round-card-${roundIdx}`);
+            const setsInput = roundCard ? roundCard.querySelector('input[onchange*="\'sets\'"]') : null;
             const totalSets = setsInput ? parseInt(setsInput.value) : 3;
 
             // Smart propagation logic
@@ -9136,22 +9094,28 @@
             // Save to localStorage
             saveToLocal();
 
-            // Re-render the grid
-            const exercisesInput = document.querySelector(`#round-card-${roundIdx} input[onchange*="'exercises'"]`);
-            const numExercises = exercisesInput ? parseInt(exercisesInput.value) : 5;
-            renderRoundExerciseGrid(roundIdx, numExercises, totalSets);
+            // Re-render the exercise list for this round
+            renderRoundExerciseList(roundIdx);
         }
 
-        // Add click handlers to round cards when the page loads
-        function initializeRoundClickHandlers() {
-            // Find all round cards and add click handlers
-            document.addEventListener('click', function (e) {
-                const roundCard = e.target.closest('[id^="round-card-"]');
-                if (roundCard && !e.target.matches('input, button, select')) {
-                    const roundId = roundCard.id;
-                    const roundIndex = parseInt(roundId.replace('round-card-', ''));
-                    if (!isNaN(roundIndex)) {
-                        openRoundExerciseEditor(roundIndex);
+        // Initialize exercise lists for all round cards when page loads
+        function initializeRoundExerciseLists() {
+            // Find all round cards
+            const roundCards = document.querySelectorAll('[id^="round-card-"]');
+            roundCards.forEach((card, index) => {
+                renderRoundExerciseList(index);
+            });
+
+            // Also re-render when inputs change
+            document.addEventListener('input', function (e) {
+                if (e.target.matches('[id^="round-card-"] input[onchange*="exercises"], [id^="round-card-"] input[onchange*="sets"]')) {
+                    const roundCard = e.target.closest('[id^="round-card-"]');
+                    if (roundCard) {
+                        const roundIndex = parseInt(roundCard.id.replace('round-card-', ''));
+                        if (!isNaN(roundIndex)) {
+                            // Delay to allow the value to update
+                            setTimeout(() => renderRoundExerciseList(roundIndex), 100);
+                        }
                     }
                 }
             });
@@ -9159,9 +9123,9 @@
 
         // Initialize when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeRoundClickHandlers);
+            document.addEventListener('DOMContentLoaded', initializeRoundExerciseLists);
         } else {
-            initializeRoundClickHandlers();
+            initializeRoundExerciseLists();
         }
     </script>
 </body>
