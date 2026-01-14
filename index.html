@@ -2167,10 +2167,8 @@
                 <table class="schedule-table" id="full-schedule-table">
                     <thead>
                         <tr>
-                            <th style="width:50px;">Tijd</th>
-                            <th style="width:30px; text-align:center;">Nr</th>
                             <th>Oefening / Fase</th>
-                            <th style="width:40px;">Sec</th>
+                            <th style="width:40px; text-align:right;">Sec</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -2484,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.352";
+        const APP_VERSION = "1.31.354";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3092,28 +3090,33 @@
 
                 const tr = document.createElement('tr');
 
-                // Time Cell
-                const tdTime = document.createElement('td');
-                tdTime.style.verticalAlign = 'top';
-                tdTime.style.paddingTop = '10px';
-                tdTime.innerText = currentTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                // Nr Cell
-                const tdNr = document.createElement('td');
-                tdNr.style.verticalAlign = 'top';
-                tdNr.style.paddingTop = '10px';
-                tdNr.style.textAlign = 'center';
-                tdNr.style.color = '#0A84FF';
-                tdNr.style.fontWeight = 'bold';
-
+                // TIME & NR (Previously separate columns, now merged)
+                const timeStr = currentTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 let nrText = "";
                 if (step.type === 'work' && step.info.exercise > 0 && step.info.set === 1) {
                     nrText = `${step.info.round}.${step.info.exercise}`;
                 }
-                tdNr.innerText = nrText;
 
                 // Content Cell
                 const tdContent = document.createElement('td');
+
+                // --- HEADER (Time + Nr) ---
+                const metaDiv = document.createElement('div');
+                metaDiv.style.display = 'flex';
+                metaDiv.style.justifyContent = 'space-between';
+                metaDiv.style.marginBottom = '4px';
+                metaDiv.style.fontSize = '12px';
+                metaDiv.style.color = '#888';
+
+                // Left: Time
+                metaDiv.innerHTML = `<span style="font-family:monospace; color:#aaa;">${timeStr}</span>`;
+
+                // Right: Nr (if applicable)
+                if (nrText) {
+                    metaDiv.innerHTML += `<span style="color:#30D158; font-weight:bold;">${nrText}</span>`;
+                }
+
+                tdContent.appendChild(metaDiv);
 
                 // --- RICH CARD LOGIC ---
                 if (step.type === 'work' && step.info.exercise > 0) {
@@ -3206,10 +3209,11 @@
                 const tdDur = document.createElement('td');
                 tdDur.style.verticalAlign = 'top';
                 tdDur.style.paddingTop = '10px';
+                tdDur.style.textAlign = 'right'; // Better alignment
                 tdDur.innerText = step.time;
 
-                tr.appendChild(tdTime);
-                tr.appendChild(tdNr);
+                // tr.appendChild(tdTime); // Removed
+                // tr.appendChild(tdNr);   // Removed
                 tr.appendChild(tdContent);
                 tr.appendChild(tdDur);
                 tableBody.appendChild(tr);
