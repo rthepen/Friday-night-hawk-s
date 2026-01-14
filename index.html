@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Friday-night-hawk-s Timer v1.31.335</title>
+    <title>Friday-night-hawk-s Timer v1.31.336</title>
     <link rel="icon" href="FNH logo.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="FNH logo.jpg">
     <!-- script src="workout_data.js"></script -->
@@ -1729,7 +1729,7 @@
 
         <div class="header-row">
             <div class="app-header">
-                FNH Timer <span class="version-tag">v1.31.335</span>
+                FNH Timer <span class="version-tag">v1.31.336</span>
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
@@ -3703,6 +3703,7 @@
             // Filters Sets
             const categories = new Set();
             const materials = new Map(); // Name -> Description
+            const materialCounts = new Map(); // Name -> Count
 
             // Add "Custom" option at top
             const customLi = document.createElement('li');
@@ -3733,6 +3734,7 @@
                     if (!materials.has(mat)) {
                         materials.set(mat, matDesc);
                     }
+                    materialCounts.set(mat, (materialCounts.get(mat) || 0) + 1);
 
                     li.dataset.search = (item.exercise_name + " " + cat + " " + item.id).toLowerCase();
                     li.dataset.cat = cat;
@@ -3767,14 +3769,12 @@
 
             sortedMats.forEach(m => {
                 const desc = materials.get(m);
+                const count = materialCounts.get(m) || 0;
                 const opt = document.createElement('option');
                 opt.value = m;
-                // Show "Name (Description)" or just "Name" if no desc
-                // Shorten desc if too long? No, user asked for it. 
-                // Maybe limit length for UI sanity.
-                let displayText = m;
+                // Show "Name (Count) - Description"
+                let displayText = `${m} (${count})`;
                 if (desc && desc.length > 1) {
-                    // Check if desc is not just "-"
                     const shortDesc = desc.length > 50 ? desc.substring(0, 47) + "..." : desc;
                     displayText += ` - ${shortDesc}`;
                 }
