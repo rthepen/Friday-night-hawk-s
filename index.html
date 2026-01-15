@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.10"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.11"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7797,85 +7797,101 @@
                     detailsDiv.style.cssText = 'display:none; padding:10px 12px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05); flex-direction:column; gap:8px;';
 
                     // 1. Check Number Input & Auto-load
-                    const checkRow = document.createElement('div');
-                    checkRow.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:5px;';
+                    // --- CSS STYLES (Inline optimized) ---
+                    const labelStyle = 'font-size:11px; color:#8E8E93; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:block;';
+                    const inputStyle = 'width:100%; padding:10px; background:#2C2C2E; border:1px solid #3A3A3C; border-radius:8px; color:#fff; font-size:13px; font-family:inherit; transition:border 0.2s; outline:none;';
+                    const rowStyle = 'display:flex; gap:12px; margin-bottom:12px; align-items:flex-start;';
 
+                    // 1. Top Row: Check # (Small) + Materiaal (Flex)
+                    const topRow = document.createElement('div');
+                    topRow.style.cssText = rowStyle;
+
+                    // Group: Check #
+                    const checkGroup = document.createElement('div');
+                    checkGroup.style.cssText = 'flex: 0 0 80px;'; // Fixed width
                     const checkLabel = document.createElement('span');
                     checkLabel.innerText = 'Check #';
-                    checkLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold; width:60px;';
-
+                    checkLabel.style.cssText = labelStyle;
                     const checkInput = document.createElement('input');
                     checkInput.type = 'number';
-                    checkInput.placeholder = 'Nr';
-                    checkInput.className = 'check-input'; // For global access if needed
-                    checkInput.style.cssText = 'width:60px; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; text-align:center; font-weight:bold;';
-
-                    // Auto-load on input
+                    checkInput.placeholder = '#';
+                    checkInput.className = 'check-input';
+                    checkInput.style.cssText = inputStyle + 'text-align:center; font-weight:bold;';
                     checkInput.oninput = (e) => {
                         autoLoadFromCheckNumber(parseInt(e.target.value), uniqueId, roundIndex, exIdx, setIdx);
                     };
+                    checkGroup.appendChild(checkLabel);
+                    checkGroup.appendChild(checkInput);
 
-                    checkRow.appendChild(checkLabel);
-                    checkRow.appendChild(checkInput);
-                    detailsDiv.appendChild(checkRow);
-
-                    // 2. Description (Instructions)
-                    const descText = document.createElement('textarea');
-                    descText.id = `desc-${uniqueId}`;
-                    descText.placeholder = 'Instructies / Beschrijving...';
-                    descText.style.cssText = 'width:100%; min-height:60px; background:#222; border:1px solid #444; border-radius:4px; color:#ccc; padding:8px; font-size:12px; resize:none; font-family:inherit;';
-                    detailsDiv.appendChild(descText);
-
-                    // 3. Material
-                    // Material input row
-                    const matRow = document.createElement('div');
-                    matRow.style.cssText = 'display:flex; align-items:center; gap:10px;';
+                    // Group: Materiaal
+                    const matGroup = document.createElement('div');
+                    matGroup.style.cssText = 'flex: 1;';
                     const matLabel = document.createElement('span');
                     matLabel.innerText = 'Materiaal';
-                    matLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold; width:60px;';
+                    matLabel.style.cssText = labelStyle;
                     const matInput = document.createElement('input');
                     matInput.id = `mat-${uniqueId}`;
                     matInput.type = 'text';
                     matInput.placeholder = 'Bijv. Dumbbells';
-                    matInput.style.cssText = 'flex:1; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; font-size:12px;';
-                    matRow.appendChild(matLabel);
-                    matRow.appendChild(matInput);
-                    detailsDiv.appendChild(matRow);
+                    matInput.style.cssText = inputStyle;
+                    matGroup.appendChild(matLabel);
+                    matGroup.appendChild(matInput);
 
-                    // Material description textarea
-                    const matDescRow = document.createElement('div');
-                    matDescRow.style.cssText = 'display:flex; flex-direction:column; gap:5px; margin-top:5px;';
+                    topRow.appendChild(checkGroup);
+                    topRow.appendChild(matGroup);
+                    detailsDiv.appendChild(topRow);
+
+                    // 2. Instructies (Full Width)
+                    const descGroup = document.createElement('div');
+                    descGroup.style.cssText = 'margin-bottom:12px;';
+                    // const descLabel = document.createElement('span');
+                    // descLabel.innerText = 'Instructies';
+                    // descLabel.style.cssText = labelStyle;
+                    const descText = document.createElement('textarea');
+                    descText.id = `desc-${uniqueId}`;
+                    descText.placeholder = 'Instructies / Beschrijving van de oefening...';
+                    descText.style.cssText = inputStyle + 'min-height:70px; resize:vertical; line-height:1.4;';
+                    // descGroup.appendChild(descLabel);
+                    descGroup.appendChild(descText);
+                    detailsDiv.appendChild(descGroup);
+
+                    // 3. Materiaal Beschrijving (Full Width)
+                    const matDescGroup = document.createElement('div');
+                    matDescGroup.style.cssText = 'margin-bottom:12px;';
                     const matDescLabel = document.createElement('span');
                     matDescLabel.innerText = 'Materiaal Beschrijving';
-                    matDescLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold;';
+                    matDescLabel.style.cssText = labelStyle;
                     const matDescTextarea = document.createElement('textarea');
                     matDescTextarea.id = `matdesc-${uniqueId}`;
-                    matDescTextarea.placeholder = 'Beschrijving van het materiaal...';
-                    matDescTextarea.style.cssText = 'width:100%; min-height:50px; background:#222; border:1px solid #444; border-radius:4px; color:#ccc; padding:8px; font-size:12px; resize:none; font-family:inherit;';
-                    matDescRow.appendChild(matDescLabel);
-                    matDescRow.appendChild(matDescTextarea);
-                    detailsDiv.appendChild(matDescRow);
+                    matDescTextarea.placeholder = 'Extra details over het materiaal...';
+                    matDescTextarea.style.cssText = inputStyle + 'min-height:50px; resize:vertical; color:#ccc;';
+                    matDescGroup.appendChild(matDescLabel);
+                    matDescGroup.appendChild(matDescTextarea);
+                    detailsDiv.appendChild(matDescGroup);
 
-                    // 4. Thumbnail (Image + URL)
+                    // 4. Thumbnail (Image Only - Clickable)
                     const thumbContainer = document.createElement('div');
-                    thumbContainer.style.cssText = 'display:flex; gap:10px; align-items:flex-start; margin-top:5px;';
+                    thumbContainer.style.cssText = 'margin-top:5px; width:160px; position:relative; group;'; // Container for positioning
 
                     const thumbImg = document.createElement('img');
                     thumbImg.id = `img-${uniqueId}`;
-                    thumbImg.src = ''; // Placeholder
-                    thumbImg.style.cssText = 'width:150px; height:84px; object-fit:cover; background:#111; border-radius:4px; border:1px solid #333; display:none; cursor:pointer;'; // Hidden until Src valid
+                    thumbImg.src = '';
+                    // Improved Image Style: Rounded, Border, Shadow, Transition
+                    thumbImg.style.cssText = 'width:100%; height:90px; object-fit:cover; background:#1C1C1E; border-radius:8px; border:1px solid #333; cursor:pointer; display:none; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
                     thumbImg.onclick = function () {
                         const url = this.getAttribute('data-video-url');
                         if (url) window.open(url, '_blank');
                     };
 
+                    // Hover Effect (via JS since inline)
+                    thumbImg.onmouseover = () => { thumbImg.style.transform = 'scale(1.02)'; thumbImg.style.borderColor = '#30D158'; };
+                    thumbImg.onmouseout = () => { thumbImg.style.transform = 'scale(1)'; thumbImg.style.borderColor = '#333'; };
+
                     const thumbUrlInput = document.createElement('input');
                     thumbUrlInput.id = `thumb-url-${uniqueId}`;
                     thumbUrlInput.type = 'text';
-                    thumbUrlInput.placeholder = 'Thumbnail URL...';
-                    thumbUrlInput.style.cssText = 'display:none;'; // Hidden input
+                    thumbUrlInput.style.cssText = 'display:none;';
 
-                    // Live preview on paste
                     thumbUrlInput.oninput = (e) => {
                         const url = e.target.value;
                         if (url) {
@@ -7886,7 +7902,19 @@
                         }
                     };
 
+                    // PLAY ICON OVERLAY (CSS-in-JS trick or just absolute div)
+                    const playOverlay = document.createElement('div');
+                    playOverlay.innerHTML = '▶';
+                    playOverlay.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.8); pointer-events:none; display:none;';
+
+                    // Link overly visibility to image visibility
+                    const originalDisplayFn = thumbImg.style.display; // Track it? No, just poll or link
+                    // Simpler: Helper to show/hide both
+                    thumbImg.addEventListener('load', () => { playOverlay.style.display = 'block'; });
+                    thumbImg.addEventListener('error', () => { playOverlay.style.display = 'none'; });
+
                     thumbContainer.appendChild(thumbImg);
+                    thumbContainer.appendChild(playOverlay);
                     thumbContainer.appendChild(thumbUrlInput);
                     detailsDiv.appendChild(thumbContainer);
 
