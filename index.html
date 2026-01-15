@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.9"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.10"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7863,13 +7863,17 @@
                     const thumbImg = document.createElement('img');
                     thumbImg.id = `img-${uniqueId}`;
                     thumbImg.src = ''; // Placeholder
-                    thumbImg.style.cssText = 'width:80px; height:45px; object-fit:cover; background:#111; border-radius:4px; border:1px solid #333; display:none;'; // Hidden until Src valid
+                    thumbImg.style.cssText = 'width:150px; height:84px; object-fit:cover; background:#111; border-radius:4px; border:1px solid #333; display:none; cursor:pointer;'; // Hidden until Src valid
+                    thumbImg.onclick = function () {
+                        const url = this.getAttribute('data-video-url');
+                        if (url) window.open(url, '_blank');
+                    };
 
                     const thumbUrlInput = document.createElement('input');
                     thumbUrlInput.id = `thumb-url-${uniqueId}`;
                     thumbUrlInput.type = 'text';
                     thumbUrlInput.placeholder = 'Thumbnail URL...';
-                    thumbUrlInput.style.cssText = 'flex:1; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; font-size:12px;';
+                    thumbUrlInput.style.cssText = 'display:none;'; // Hidden input
 
                     // Live preview on paste
                     thumbUrlInput.oninput = (e) => {
@@ -7939,6 +7943,11 @@
                         if (thumbUrl) {
                             img.src = thumbUrl;
                             img.style.display = 'block';
+                            // Store video URL for click handler
+                            if (match.video_search_url) {
+                                img.setAttribute('data-video-url', match.video_search_url);
+                                img.title = "Klik om video te openen";
+                            }
                         } else {
                             img.style.display = 'none';
                         }
