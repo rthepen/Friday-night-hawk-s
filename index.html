@@ -2481,7 +2481,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.407";
+        const APP_VERSION = "1.31.408";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4029,20 +4029,21 @@
             // (Implicit: 20s Work Time calculated automatically)
 
             // Ensure 4m exists
+            // 4 min Duration
             const durSel = document.getElementById('totalMin');
-            const targetDur = 4;
-            let exists = false;
-            for (let i = 0; i < durSel.options.length; i++) { if (parseInt(durSel.options[i].value) === targetDur) exists = true; }
-            if (!exists) {
-                const opt = document.createElement('option');
-                opt.value = targetDur; opt.text = targetDur + "m";
-                durSel.add(opt, 0);
-            }
-            durSel.value = targetDur;
+            durSel.value = 4; // It's an input now, not a select
+
 
             document.getElementById('rounds').value = 1;
             document.getElementById('exercises').value = 8;
             document.getElementById('sets').value = 1;
+
+            console.log("DEBUG: Tabata Values Set (Immediate):", {
+                r: document.getElementById('rounds').value,
+                e: document.getElementById('exercises').value,
+                s: document.getElementById('sets').value
+            });
+
             document.getElementById('exerciseRestSec').value = 10;
 
             document.getElementById('exerciseRestSec').value = 10;
@@ -4056,9 +4057,26 @@
             // Sync to update End Time
             syncTime('duration');
 
+            // Apply to Actual Rounds
+            workoutRounds = [];
+            for (let i = 0; i < 1; i++) {
+                workoutRounds.push({
+                    id: Date.now() + i,
+                    exercises: 8,
+                    sets: 1,
+                    workTime: 20, // Tabata Standard
+                    restTime: 10,  // Tabata Standard switch
+                    roundRest: 60,
+                    name: `RONDE ${i + 1}`
+                });
+            }
+            roundExercises = {}; // Clear inline exercises
+
             // Milestones remain unchanged
 
             calculateRealTime();
+            renderRoundsContainer(); // Render changes
+            saveRoundsToLocal();
             saveToLocal();
         }
 
@@ -5174,44 +5192,7 @@
             });
         }
 
-        function resetToDefaults() {
-            // 1. Reset Rounds to Default (User Request: "Start with 1 round")
-            workoutRounds = [
-                { id: Date.now(), exercises: 5, sets: 3, workTime: 45, restTime: 15, roundRest: 60, exerciseRest: 15 }
-            ];
-            renderRoundsContainer();
-            saveRoundsToLocal();
 
-            // 2. Set Start Time to Current + 3 mins
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + 3);
-            const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('startTimeValue').value = timeStr;
-
-            // 2. Sync and Recalc
-            syncTime('starttime');
-            saveToLocal();
-            calculateRealTime();
-
-
-            console.log("Reset: Rounds updated to 1, Start Time updated.");
-        }
-
-        function applyTabataPreset() {
-            workoutRounds = [
-                { id: Date.now(), exercises: 8, sets: 1, workTime: 20, restTime: 0, roundRest: 60, exerciseRest: 10 }
-            ];
-            renderRoundsContainer();
-            saveRoundsToLocal();
-
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + 2);
-            document.getElementById('startTimeValue').value = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-
-            syncTime('starttime');
-            saveToLocal();
-            calculateRealTime();
-        }
 
 
 
