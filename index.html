@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.400";
+        const APP_VERSION = "1.31.401";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9305,6 +9305,32 @@
                 }
 
                 // Re-render all round exercise lists
+                workoutRounds.forEach((_, idx) => {
+                    const container = document.getElementById(`round-card-${idx}`)?.querySelector('.exercise-list-container');
+                    if (container) {
+                        renderRoundExerciseList(idx);
+                    }
+                });
+            };
+        })();
+
+        // Override resetSchedule to clear both systems
+        (function () {
+            const originalResetSchedule = resetSchedule;
+
+            window.resetSchedule = function () {
+                if (!confirm("Weet je zeker dat je alle gekozen oefeningen wilt wissen en het schema wilt leegmaken?")) return;
+
+                // Clear both data structures
+                customNames = {};
+                roundExercises = {};
+
+                // Save and refresh
+                saveToLocal();
+                showScheduleModal(); // Refresh schedule modal
+                calculateRealTime(); // Update preview
+
+                // Re-render all inline exercise lists to show empty state
                 workoutRounds.forEach((_, idx) => {
                     const container = document.getElementById(`round-card-${idx}`)?.querySelector('.exercise-list-container');
                     if (container) {
