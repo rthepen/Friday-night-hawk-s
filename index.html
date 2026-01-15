@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.008"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.9"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -3051,7 +3051,7 @@
             if (!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
 
             // 1. Reset Core UI Parameters
-            applyDefaultsToUI();
+            // applyDefaultsToUI(); // removed to prevent ReferenceError
 
             // 2. Reset Workout Structure (Exactly 1 round)
             workoutRounds = [
@@ -7657,6 +7657,16 @@
     </div>
 
     <script>
+        // Initialize Global Database
+        let workoutDatabase = [];
+        fetch('workoutdatabase.json')
+            .then(response => response.json())
+            .then(data => {
+                workoutDatabase = data;
+                console.log("Workout Database Loaded:", workoutDatabase.length, "items");
+            })
+            .catch(err => console.error("Failed to load workout database:", err));
+
         // INLINE ROUND EXERCISE EDITOR (NO POPUP)
 
         // Function to render exercise list directly in a round card
@@ -7701,21 +7711,36 @@
 
                 for (let setIdx = 0; setIdx < numSets; setIdx++) {
                     const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || '';
+                    const uniqueId = `r${roundIndex}-e${exIdx}-s${setIdx}`;
 
+                    // --- MAIN ROW WRAPPER ---
+                    const rowWrapper = document.createElement('div');
+                    rowWrapper.style.cssText = 'margin-bottom:6px; background:rgba(0,0,0,0.3); border-radius:8px; overflow:hidden; transition:all 0.2s;';
+
+                    // --- VISIBLE HEADER (Click to expand) ---
                     const exerciseRow = document.createElement('div');
-                    exerciseRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 12px; margin-bottom:6px; background:rgba(0,0,0,0.3); border-radius:8px; cursor:pointer; border-left:3px solid ' + (setIdx === 0 ? '#30D158' : '#666') + '; transition:all 0.2s;';
+                    exerciseRow.className = 'exercise-row-header';
+                    exerciseRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 12px; cursor:pointer; border-left:3px solid ' + (setIdx === 0 ? '#30D158' : '#666') + ';';
 
-                    exerciseRow.onmouseover = () => {
-                        exerciseRow.style.background = 'rgba(48,209,88,0.1)';
-                    };
-                    exerciseRow.onmouseout = () => {
-                        exerciseRow.style.background = 'rgba(0,0,0,0.3)';
-                    };
-
-
+                    // Hover effects
+                    exerciseRow.onmouseover = () => { exerciseRow.style.background = 'rgba(48,209,88,0.1)'; };
+                    exerciseRow.onmouseout = () => { exerciseRow.style.background = 'transparent'; };
 
                     const labelDiv = document.createElement('div');
                     labelDiv.style.cssText = 'display:flex; align-items:center; gap:10px; flex:1;';
+
+                    // Expand/Collapse Arrow
+                    const arrowBtn = document.createElement('span');
+                    arrowBtn.id = `arrow-${uniqueId}`;
+                    arrowBtn.innerHTML = '▶'; // Right arrow
+                    arrowBtn.style.cssText = 'font-size:10px; color:#888; transition:transform 0.2s; display:inline-block; width:15px;';
+
+                    // Click handler for arrow/row to toggle details
+                    exerciseRow.onclick = (e) => {
+                        // Don't toggle if clicking directly on the editable name or inputs
+                        if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
+                        toggleExerciseDetails(uniqueId);
+                    };
 
                     const label = document.createElement('span');
                     label.style.cssText = 'font-size:11px; color:#888; min-width:120px;';
@@ -7726,14 +7751,16 @@
 
                     const nameSpan = document.createElement('span');
                     nameSpan.contentEditable = 'true';
-                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === '' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s;';
+                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === '' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s; min-width: 100px;';
                     nameSpan.innerText = exerciseName;
+
+                    // Prevent row click when editing name
+                    nameSpan.onclick = (e) => e.stopPropagation();
 
                     // Select all text on focus for easy replacement
                     nameSpan.onfocus = () => {
                         nameSpan.style.background = 'rgba(10,132,255,0.2)';
                         nameSpan.style.color = '#fff';
-                        // Select all text
                         const range = document.createRange();
                         range.selectNodeContents(nameSpan);
                         const sel = window.getSelection();
@@ -7747,31 +7774,179 @@
                         if (newExercise !== '' && newExercise !== exerciseName) {
                             updateExerciseSlot(roundIndex, exIdx, setIdx, newExercise);
                         } else if (newExercise === '') {
-                            // Restore old value if empty
                             nameSpan.innerText = exerciseName;
                         }
                     };
 
-                    // Save on Enter key
                     nameSpan.onkeydown = (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
-                            nameSpan.blur(); // Trigger save via blur event
+                            nameSpan.blur();
                         }
                     };
 
+                    labelDiv.appendChild(arrowBtn);
                     labelDiv.appendChild(label);
                     labelDiv.appendChild(nameSpan);
-
                     exerciseRow.appendChild(labelDiv);
+                    rowWrapper.appendChild(exerciseRow);
 
+                    // --- DETAILS SECTION (Hidden by default) ---
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.id = `details-${uniqueId}`;
+                    detailsDiv.style.cssText = 'display:none; padding:10px 12px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05); flex-direction:column; gap:8px;';
 
-                    exerciseListContainer.appendChild(exerciseRow);
+                    // 1. Check Number Input & Auto-load
+                    const checkRow = document.createElement('div');
+                    checkRow.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:5px;';
+
+                    const checkLabel = document.createElement('span');
+                    checkLabel.innerText = 'Check #';
+                    checkLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold; width:60px;';
+
+                    const checkInput = document.createElement('input');
+                    checkInput.type = 'number';
+                    checkInput.placeholder = 'Nr';
+                    checkInput.className = 'check-input'; // For global access if needed
+                    checkInput.style.cssText = 'width:60px; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; text-align:center; font-weight:bold;';
+
+                    // Auto-load on input
+                    checkInput.oninput = (e) => {
+                        autoLoadFromCheckNumber(parseInt(e.target.value), uniqueId, roundIndex, exIdx, setIdx);
+                    };
+
+                    checkRow.appendChild(checkLabel);
+                    checkRow.appendChild(checkInput);
+                    detailsDiv.appendChild(checkRow);
+
+                    // 2. Description (Instructions)
+                    const descText = document.createElement('textarea');
+                    descText.id = `desc-${uniqueId}`;
+                    descText.placeholder = 'Instructies / Beschrijving...';
+                    descText.style.cssText = 'width:100%; min-height:60px; background:#222; border:1px solid #444; border-radius:4px; color:#ccc; padding:8px; font-size:12px; resize:none; font-family:inherit;';
+                    detailsDiv.appendChild(descText);
+
+                    // 3. Material
+                    // Material input row
+                    const matRow = document.createElement('div');
+                    matRow.style.cssText = 'display:flex; align-items:center; gap:10px;';
+                    const matLabel = document.createElement('span');
+                    matLabel.innerText = 'Materiaal';
+                    matLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold; width:60px;';
+                    const matInput = document.createElement('input');
+                    matInput.id = `mat-${uniqueId}`;
+                    matInput.type = 'text';
+                    matInput.placeholder = 'Bijv. Dumbbells';
+                    matInput.style.cssText = 'flex:1; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; font-size:12px;';
+                    matRow.appendChild(matLabel);
+                    matRow.appendChild(matInput);
+                    detailsDiv.appendChild(matRow);
+
+                    // Material description textarea
+                    const matDescRow = document.createElement('div');
+                    matDescRow.style.cssText = 'display:flex; flex-direction:column; gap:5px; margin-top:5px;';
+                    const matDescLabel = document.createElement('span');
+                    matDescLabel.innerText = 'Materiaal Beschrijving';
+                    matDescLabel.style.cssText = 'font-size:11px; color:#888; font-weight:bold;';
+                    const matDescTextarea = document.createElement('textarea');
+                    matDescTextarea.id = `matdesc-${uniqueId}`;
+                    matDescTextarea.placeholder = 'Beschrijving van het materiaal...';
+                    matDescTextarea.style.cssText = 'width:100%; min-height:50px; background:#222; border:1px solid #444; border-radius:4px; color:#ccc; padding:8px; font-size:12px; resize:none; font-family:inherit;';
+                    matDescRow.appendChild(matDescLabel);
+                    matDescRow.appendChild(matDescTextarea);
+                    detailsDiv.appendChild(matDescRow);
+
+                    // 4. Thumbnail (Image + URL)
+                    const thumbContainer = document.createElement('div');
+                    thumbContainer.style.cssText = 'display:flex; gap:10px; align-items:flex-start; margin-top:5px;';
+
+                    const thumbImg = document.createElement('img');
+                    thumbImg.id = `img-${uniqueId}`;
+                    thumbImg.src = ''; // Placeholder
+                    thumbImg.style.cssText = 'width:80px; height:45px; object-fit:cover; background:#111; border-radius:4px; border:1px solid #333; display:none;'; // Hidden until Src valid
+
+                    const thumbUrlInput = document.createElement('input');
+                    thumbUrlInput.id = `thumb-url-${uniqueId}`;
+                    thumbUrlInput.type = 'text';
+                    thumbUrlInput.placeholder = 'Thumbnail URL...';
+                    thumbUrlInput.style.cssText = 'flex:1; padding:5px; background:#222; border:1px solid #444; border-radius:4px; color:#fff; font-size:12px;';
+
+                    // Live preview on paste
+                    thumbUrlInput.oninput = (e) => {
+                        const url = e.target.value;
+                        if (url) {
+                            thumbImg.src = url;
+                            thumbImg.style.display = 'block';
+                        } else {
+                            thumbImg.style.display = 'none';
+                        }
+                    };
+
+                    thumbContainer.appendChild(thumbImg);
+                    thumbContainer.appendChild(thumbUrlInput);
+                    detailsDiv.appendChild(thumbContainer);
+
+                    rowWrapper.appendChild(detailsDiv);
+                    exerciseListContainer.appendChild(rowWrapper);
                 }
             }
         }
 
+        // --- NEW HELPER FUNCTIONS ---
 
+        function toggleExerciseDetails(uniqueId) {
+            const details = document.getElementById(`details-${uniqueId}`);
+            const arrow = document.getElementById(`arrow-${uniqueId}`);
+
+            if (details.style.display === 'none') {
+                details.style.display = 'flex';
+                arrow.innerHTML = '▼'; // Down arrow
+                arrow.style.color = '#30D158';
+            } else {
+                details.style.display = 'none';
+                arrow.innerHTML = '▶'; // Right arrow
+                arrow.style.color = '#888';
+            }
+        }
+
+        function autoLoadFromCheckNumber(checkNum, uniqueId, roundIdx, exIdx, setIdx) {
+            console.log('autoLoadFromCheckNumber called for uniqueId:', uniqueId, 'checkNum:', checkNum);
+            if (!checkNum || !workoutDatabase) return;
+
+            const match = workoutDatabase.find(ex => ex.check_number === checkNum);
+            if (match) {
+                const newName = match.exercise_name || '';
+                if (newName) {
+                    updateExerciseSlot(roundIdx, exIdx, setIdx, newName);
+                    const headerDiv = document.getElementById(`details-${uniqueId}`)?.previousElementSibling;
+                    const nameSpan = headerDiv?.querySelector('span[contenteditable]');
+                    if (nameSpan) nameSpan.innerText = newName;
+                    console.log(`Updated exercise name for ${uniqueId}:`, newName);
+                }
+                // Populate other fields after possible re-render
+                setTimeout(() => {
+                    const descElem = document.getElementById(`desc-${uniqueId}`);
+                    if (descElem) descElem.value = match.instructions || '';
+                    const matElem = document.getElementById(`mat-${uniqueId}`);
+                    if (matElem) matElem.value = match.material_name || '';
+                    const matDescElem = document.getElementById(`matdesc-${uniqueId}`);
+                    if (matDescElem) matDescElem.value = match.material_description || '';
+                    const thumbUrl = match.thumbnail || '';
+                    const thumbInput = document.getElementById(`thumb-url-${uniqueId}`);
+                    if (thumbInput) thumbInput.value = thumbUrl;
+                    const img = document.getElementById(`img-${uniqueId}`);
+                    if (img) {
+                        if (thumbUrl) {
+                            img.src = thumbUrl;
+                            img.style.display = 'block';
+                        } else {
+                            img.style.display = 'none';
+                        }
+                    }
+                    console.log(`Populated fields for ${uniqueId}`);
+                }, 0);
+            }
+        }
 
         // Update an exercise slot with smart propagation (same logic as before)
         function updateExerciseSlot(roundIdx, exIdx, setIdx, exerciseName) {
