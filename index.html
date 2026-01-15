@@ -790,7 +790,6 @@
 
         /* High Z-Index for Modals */
         .modal-overlay,
-        #schedule-modal,
         #exercise-selector-modal {
             z-index: 9999 !important;
             position: fixed;
@@ -1440,7 +1439,6 @@
         #pause-modal,
         #calc-modal,
         #speech-edit-modal,
-        #schedule-modal,
         #edit-scope-modal {
             display: none;
             position: fixed;
@@ -1477,66 +1475,7 @@
             padding: 15px;
         }
 
-        /* SCHEDULE MODAL STYLES */
-        #schedule-modal .modal-content {
-            max-width: 600px;
-            width: 95%;
-            text-align: left;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            height: 90vh;
-        }
 
-        .schedule-table-container {
-            flex: 1;
-            overflow-y: auto;
-            margin-top: 10px;
-            border: 1px solid #333;
-            border-radius: 8px;
-        }
-
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .schedule-table th {
-            background: #333;
-            color: #fff;
-            padding: 8px;
-            text-align: left;
-            position: sticky;
-            top: 0;
-        }
-
-        .schedule-table td {
-            padding: 8px;
-            border-bottom: 1px solid #222;
-            color: #ccc;
-        }
-
-        .schedule-table tr.row-work td {
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .schedule-table tr.row-work input {
-            background: #222;
-            border: 1px solid #444;
-            color: #30D158;
-            width: 100%;
-            padding: 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .schedule-table tr.row-bonus td {
-            color: #BF5AF2;
-            font-weight: bold;
-        }
 
         .modal-btn {
             display: block;
@@ -2295,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.007"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.008"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -2878,169 +2817,6 @@
             }
         }
 
-
-        // --- SCHEDULE MODAL LOGIC ---
-        function getExerciseDetails(name) {
-            if (typeof WORKOUT_DB === 'undefined') return null;
-            // Try exact match first
-            let match = WORKOUT_DB.find(i => i.exercise_name === name);
-            if (match) return match;
-            // Try case-insensitive
-            return WORKOUT_DB.find(i => i.exercise_name.toLowerCase() === name.toLowerCase());
-        }
-
-        function showScheduleModal() {
-            generateScheduleData(false);
-            const tableBody = document.querySelector('#full-schedule-table tbody');
-            tableBody.innerHTML = "";
-
-            let currentTime = new Date();
-            const startStr = document.getElementById('startTimeValue').value;
-            if (startStr) {
-                const [h, m] = startStr.split(':');
-                currentTime.setHours(h, m, 0, 0);
-                // If implied start is in the past (e.g. 09:00 while it's 20:00), 
-                // typically for a schedule PREVIEW we just want to see that time on *today*.
-                // So we don't necessarily need to shift to tomorrow unless logic dictates.
-                // For a "What if" schedule, today's date with that time is sufficient context.
-            }
-
-            schedule.forEach((step) => {
-                if (step.type === 'finish') return;
-
-                const tr = document.createElement('tr');
-
-                // TIME & NR (Previously separate columns, now merged)
-                const timeStr = currentTime.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                let nrText = "";
-                if (step.type === 'work' && step.info.exercise > 0 && step.info.set === 1) {
-                    nrText = `${step.info.round}.${step.info.exercise}`;
-                }
-
-                // Content Cell
-                const tdContent = document.createElement('td');
-
-                // --- HEADER (Time + Nr) ---
-                const metaDiv = document.createElement('div');
-                metaDiv.style.display = 'flex';
-                metaDiv.style.justifyContent = 'space-between';
-                metaDiv.style.marginBottom = '4px';
-                metaDiv.style.fontSize = '12px';
-                metaDiv.style.color = '#888';
-
-                // Left: Time
-                metaDiv.innerHTML = `<span style="font-family:monospace; color:#aaa;">${timeStr}</span>`;
-
-                // Right: Nr (if applicable)
-                if (nrText) {
-                    metaDiv.innerHTML += `<span style="color:#30D158; font-weight:bold;">${nrText}</span>`;
-                }
-
-                tdContent.appendChild(metaDiv);
-
-                // --- RICH CARD LOGIC ---
-                if (step.type === 'work' && step.info.exercise > 0) {
-                    const exName = step.label;
-                    const details = getExerciseDetails(exName);
-
-                    const divCard = document.createElement('div');
-                    divCard.className = 'schedule-card';
-
-                    // Video Button
-                    let videoBtnHtml = '';
-                    let matName = '-';
-                    let matDesc = '-';
-                    let instr = '-';
-
-                    if (details) {
-                        matName = details.material_name || '-';
-                        matDesc = details.material_description || '-';
-                        instr = details.instructions || '-';
-
-                        let videoLink = "";
-                        if (details.video_search_url) {
-                            videoLink = details.video_search_url;
-                        } else {
-                            videoLink = `https://www.youtube.com/results?search_query=${encodeURIComponent(step.label + " shorts")}`;
-                        }
-
-
-                        // Buttons HTML
-                        if (details.thumbnail) {
-                            videoBtnHtml = `
-                            <div style="margin-top:5px;">
-                                 <a href="${videoLink}" target="_blank" style="display:block; width:100%; border-radius:8px; overflow:hidden; border:1px solid #333;">
-                                    <img src="${details.thumbnail}" style="width:100%; display:block; object-fit:cover; aspect-ratio:16/9;">
-                                 </a>
-                            </div>`;
-                        } else {
-                            videoBtnHtml = `
-                            <div style="margin-top:5px; display:flex; gap:5px;">
-                                 <a href="${videoLink}" target="_blank" class="modal-btn" style="padding:5px 10px; font-size:11px; background:#eee; color:black; margin:0; flex:1; display:flex; justify-content:center; align-items:center;">▶ Video</a>
-                            </div>`;
-                        }
-                    }
-
-                    // New Labeled Structure
-                    divCard.innerHTML = `
-                        <div style="display:flex; flex-direction:column; gap:10px; text-align:left;">
-                            
-                            <div>
-                                <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:2px;">Naam Oefening</div>
-                                <div class="schedule-name" onclick="openExerciseSelector(${step.info.round}, ${step.info.exercise}, ${step.info.set}, '${exName}')" 
-                                     style="cursor:pointer; text-decoration:underline; font-size:14px; font-weight:bold; color:#fff;">
-                                     ${exName}
-                                </div>
-                            </div>
-
-                            <div>
-                                <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase; margin-bottom:2px;">Materiaal</div>
-                                <div style="font-size:13px; color:#ddd;">
-                                    ${matName} <span style="font-weight:normal; color:#bbb; font-style:italic;"> - ${matDesc}</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div style="font-size:10px; font-weight:bold; color:#888; text-transform:uppercase;">Instructie</div>
-                                <div style="font-size:13px; color:#fff; line-height:1.4;">${instr}</div>
-                            </div>
-
-                            <div style="margin-top:5px;">
-                                ${videoBtnHtml}
-                            </div>
-                        </div>
-                    `;
-                    tdContent.appendChild(divCard);
-
-                } else {
-                    // Rest / Transition / Prep
-                    // Keep it simple but styled slightly to match width
-                    const divSimple = document.createElement('div');
-                    divSimple.style.padding = '10px';
-                    divSimple.style.color = '#888';
-                    divSimple.innerText = step.label;
-                    if (step.info && step.info.round && step.info.exercise > 0) {
-                        divSimple.innerText += ` (R${step.info.round}/E${step.info.exercise})`;
-                    }
-                    tdContent.appendChild(divSimple);
-                }
-
-                // Duration Cell
-                const tdDur = document.createElement('td');
-                tdDur.style.verticalAlign = 'top';
-                tdDur.style.paddingTop = '10px';
-                tdDur.style.textAlign = 'right'; // Better alignment
-                tdDur.innerText = step.time;
-
-                // tr.appendChild(tdTime); // Removed
-                // tr.appendChild(tdNr);   // Removed
-                tr.appendChild(tdContent);
-                tr.appendChild(tdDur);
-                tableBody.appendChild(tr);
-
-                currentTime.setSeconds(currentTime.getSeconds() + step.time);
-            });
-        }
 
         // --- NEW EXERCISE SELECTOR LOGIC ---
         let currentExContext = null; // {r, e, s}
@@ -7725,12 +7501,7 @@
 
     </div> <!-- Close pre-workout-overlay -->
 
-    <!-- GLOBAL SCHEDULE BTN (HIGH Z-INDEX) -->
-    <div id="global-schedule-btn"
-        style="position:fixed; top:20px; right:130px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
-        onclick="showScheduleModal()">
-        <span style="font-size:20px;">🗓️</span>
-    </div>
+
 
     <!-- GLOBAL FULLSCREEN BTN (Relocated & HIGH Z-INDEX) -->
     <div id="global-fullscreen-btn"
