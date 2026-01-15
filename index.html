@@ -2295,8 +2295,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.006";
-
+        const APP_VERSION = "1.32.007"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -3868,17 +3867,15 @@
         }
 
         function addRound() {
-            // Logic: Inherit pause from previous connector if available
-            if (workoutRounds.length > 1) {
-                const prevRest = workoutRounds[workoutRounds.length - 2].roundRest;
-                workoutRounds[workoutRounds.length - 1].roundRest = prevRest;
+            if (workoutRounds.length > 0) {
+                // User Request: Use copy logic of last round
+                copyRound(workoutRounds.length - 1);
+            } else {
+                // Fallback for empty state
+                workoutRounds.push({ id: Date.now(), exercises: 5, sets: 3, workTime: 45, restTime: 15, roundRest: 60 });
+                saveRoundsToLocal();
+                renderRoundsContainer();
             }
-
-            const last = workoutRounds[workoutRounds.length - 1];
-            const newRound = { ...last, id: Date.now() };
-            workoutRounds.push(newRound);
-            saveRoundsToLocal();
-            renderRoundsContainer();
         }
 
         function copyRound(index) {
