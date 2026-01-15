@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.397";
+        const APP_VERSION = "1.31.398";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9222,6 +9222,51 @@
                 roundExercises = {};
                 originalTabata();
                 // Re-render all round exercise lists to show empty fields
+                workoutRounds.forEach((_, idx) => {
+                    const container = document.getElementById(`round-card-${idx}`)?.querySelector('.exercise-list-container');
+                    if (container) {
+                        renderRoundExerciseList(idx);
+                    }
+                });
+            };
+        })();
+
+        // Override runGenerator to sync with roundExercises
+        (function () {
+            const originalRunGenerator = runGenerator;
+
+            window.runGenerator = function () {
+                // Call original generator
+                originalRunGenerator();
+
+                // Sync customNames to roundExercises
+                roundExercises = {};
+                for (let roundIdx = 0; roundIdx < workoutRounds.length; roundIdx++) {
+                    const roundNum = roundIdx + 1;
+                    const round = workoutRounds[roundIdx];
+                    const numExercises = round.exercises || 5;
+                    const numSets = round.sets || 3;
+
+                    if (!roundExercises[roundIdx]) {
+                        roundExercises[roundIdx] = {};
+                    }
+
+                    for (let ex = 0; ex < numExercises; ex++) {
+                        const exNum = ex + 1;
+                        if (!roundExercises[roundIdx][ex]) {
+                            roundExercises[roundIdx][ex] = {};
+                        }
+
+                        for (let setIdx = 0; setIdx < numSets; setIdx++) {
+                            const setNum = setIdx + 1;
+                            const key = `r${roundNum}-e${exNum}-s${setNum}`;
+                            const name = customNames[key] || '';
+                            roundExercises[roundIdx][ex][setIdx] = name;
+                        }
+                    }
+                }
+
+                // Re-render all round exercise lists
                 workoutRounds.forEach((_, idx) => {
                     const container = document.getElementById(`round-card-${idx}`)?.querySelector('.exercise-list-container');
                     if (container) {
