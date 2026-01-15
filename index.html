@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.392";
+        const APP_VERSION = "1.31.393";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9019,7 +9019,7 @@
                         exerciseRow.style.background = 'rgba(0,0,0,0.3)';
                     };
 
-                    exerciseRow.onclick = () => selectExerciseForSlot(roundIndex, exIdx, setIdx);
+
 
                     const labelDiv = document.createElement('div');
                     labelDiv.style.cssText = 'display:flex; align-items:center; gap:10px; flex:1;';
@@ -9032,8 +9032,40 @@
                     }
 
                     const nameSpan = document.createElement('span');
-                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === 'Klik om te kiezen' ? '#666' : '#fff') + '; font-weight:600;';
+                    nameSpan.contentEditable = 'true';
+                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === 'Klik om te kiezen' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s;';
                     nameSpan.innerText = exerciseName;
+
+                    // Select all text on focus for easy replacement
+                    nameSpan.onfocus = () => {
+                        nameSpan.style.background = 'rgba(10,132,255,0.2)';
+                        nameSpan.style.color = '#fff';
+                        // Select all text
+                        const range = document.createRange();
+                        range.selectNodeContents(nameSpan);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    };
+
+                    nameSpan.onblur = () => {
+                        nameSpan.style.background = 'transparent';
+                        const newExercise = nameSpan.innerText.trim();
+                        if (newExercise !== '' && newExercise !== exerciseName) {
+                            updateExerciseSlot(roundIndex, exIdx, setIdx, newExercise);
+                        } else if (newExercise === '') {
+                            // Restore old value if empty
+                            nameSpan.innerText = exerciseName;
+                        }
+                    };
+
+                    // Save on Enter key
+                    nameSpan.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            nameSpan.blur(); // Trigger save via blur event
+                        }
+                    };
 
                     labelDiv.appendChild(label);
                     labelDiv.appendChild(nameSpan);
@@ -9050,18 +9082,7 @@
             }
         }
 
-        // Select exercise for a specific slot (same logic as before)
-        function selectExerciseForSlot(roundIdx, exIdx, setIdx) {
-            const currentExercise = roundExercises[roundIdx]?.[exIdx]?.[setIdx] || '';
-            const newExercise = prompt(
-                `${setIdx === 0 ? '⚠️ LET OP: Wijzigen van Set 1 past ALLE sets aan!\\n\\n' : ''}Voer oefening naam in voor Oefening ${exIdx + 1}, Set ${setIdx + 1}:`,
-                currentExercise
-            );
 
-            if (newExercise !== null && newExercise.trim() !== '') {
-                updateExerciseSlot(roundIdx, exIdx, setIdx, newExercise.trim());
-            }
-        }
 
         // Update an exercise slot with smart propagation (same logic as before)
         function updateExerciseSlot(roundIdx, exIdx, setIdx, exerciseName) {
