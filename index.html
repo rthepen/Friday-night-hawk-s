@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.393";
+        const APP_VERSION = "1.31.394";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9070,12 +9070,8 @@
                     labelDiv.appendChild(label);
                     labelDiv.appendChild(nameSpan);
 
-                    const icon = document.createElement('span');
-                    icon.style.cssText = 'font-size:16px; opacity:0.6;';
-                    icon.innerText = exerciseName === 'Klik om te kiezen' ? '➕' : '✏️';
-
                     exerciseRow.appendChild(labelDiv);
-                    exerciseRow.appendChild(icon);
+
 
                     exerciseListContainer.appendChild(exerciseRow);
                 }
