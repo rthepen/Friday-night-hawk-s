@@ -2295,7 +2295,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.003";
+        const APP_VERSION = "1.32.004";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3318,22 +3318,22 @@
         }
 
         function applyTabataPreset() {
-            if (!confirm("Tabata Preset laden? (8 oefeningen, 2 rondes, 20s werk, 10s rust)")) return;
+            if (!confirm("Tabata Preset laden? (8 oefeningen, 1 ronde, 20s werk, 10s rust)")) return;
 
-            // 1. Set Structure
+            // 1. Set Structure (Exactly 1 round)
             workoutRounds = [
-                { id: Date.now(), exercises: 8, sets: 1, workTime: 20, restTime: 10, roundRest: 60, exerciseRest: 10 },
-                { id: Date.now() + 1, exercises: 8, sets: 1, workTime: 20, restTime: 10, roundRest: 60, exerciseRest: 10 }
+                { id: Date.now(), exercises: 8, sets: 1, workTime: 20, restTime: 10, roundRest: 60, exerciseRest: 10 }
             ];
             customNames = {};
             roundExercises = {};
 
-            // 2. Update Globals for new rounds
+            // 2. Update Globals for new structure
             document.getElementById('exercises').value = 8;
             document.getElementById('sets').value = 1;
             document.getElementById('restSec').value = 10;
             document.getElementById('exerciseRestSec').value = 10;
             document.getElementById('roundRestSec').value = 60;
+            document.getElementById('rounds').value = 1; // Explicitly 1 round in UI
 
             // 3. Persistence & UI Sync
             saveRoundsToLocal();
