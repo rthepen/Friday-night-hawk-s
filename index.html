@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.394";
+        const APP_VERSION = "1.31.395";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9007,7 +9007,7 @@
                 }
 
                 for (let setIdx = 0; setIdx < numSets; setIdx++) {
-                    const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || 'Klik om te kiezen';
+                    const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || '';
 
                     const exerciseRow = document.createElement('div');
                     exerciseRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 12px; margin-bottom:6px; background:rgba(0,0,0,0.3); border-radius:8px; cursor:pointer; border-left:3px solid ' + (setIdx === 0 ? '#30D158' : '#666') + '; transition:all 0.2s;';
@@ -9033,7 +9033,7 @@
 
                     const nameSpan = document.createElement('span');
                     nameSpan.contentEditable = 'true';
-                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === 'Klik om te kiezen' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s;';
+                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === '' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s;';
                     nameSpan.innerText = exerciseName;
 
                     // Select all text on focus for easy replacement
