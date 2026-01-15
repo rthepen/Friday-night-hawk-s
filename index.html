@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.11"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.12"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7871,13 +7871,13 @@
 
                     // 4. Thumbnail (Image Only - Clickable)
                     const thumbContainer = document.createElement('div');
-                    thumbContainer.style.cssText = 'margin-top:5px; width:160px; position:relative; group;'; // Container for positioning
+                    thumbContainer.style.cssText = 'margin-top:5px; width:250px; position:relative; group;'; // Container for positioning
 
                     const thumbImg = document.createElement('img');
                     thumbImg.id = `img-${uniqueId}`;
                     thumbImg.src = '';
                     // Improved Image Style: Rounded, Border, Shadow, Transition
-                    thumbImg.style.cssText = 'width:100%; height:90px; object-fit:cover; background:#1C1C1E; border-radius:8px; border:1px solid #333; cursor:pointer; display:none; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
+                    thumbImg.style.cssText = 'width:100%; height:140px; object-fit:cover; background:#1C1C1E; border-radius:8px; border:1px solid #333; cursor:pointer; display:none; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
                     thumbImg.onclick = function () {
                         const url = this.getAttribute('data-video-url');
                         if (url) window.open(url, '_blank');
@@ -7902,19 +7902,18 @@
                         }
                     };
 
-                    // PLAY ICON OVERLAY (CSS-in-JS trick or just absolute div)
-                    const playOverlay = document.createElement('div');
-                    playOverlay.innerHTML = '▶';
-                    playOverlay.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.8); pointer-events:none; display:none;';
+                    // PLAY ICON OVERLAY REMOVED BY USER REQUEST
+                    // const playOverlay = document.createElement('div');
+                    // playOverlay.innerHTML = '▶';
+                    // playOverlay.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.8); pointer-events:none; display:none;';
 
                     // Link overly visibility to image visibility
-                    const originalDisplayFn = thumbImg.style.display; // Track it? No, just poll or link
                     // Simpler: Helper to show/hide both
-                    thumbImg.addEventListener('load', () => { playOverlay.style.display = 'block'; });
-                    thumbImg.addEventListener('error', () => { playOverlay.style.display = 'none'; });
+                    // thumbImg.addEventListener('load', () => { playOverlay.style.display = 'block'; }); // Removed play overlay listeners
+                    // thumbImg.addEventListener('error', () => { playOverlay.style.display = 'none'; });
 
                     thumbContainer.appendChild(thumbImg);
-                    thumbContainer.appendChild(playOverlay);
+                    // thumbContainer.appendChild(playOverlay); // Removed play overlay append
                     thumbContainer.appendChild(thumbUrlInput);
                     detailsDiv.appendChild(thumbContainer);
 
