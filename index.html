@@ -613,9 +613,7 @@
         }
 
         .btn-view-schedule {
-            background-color: #0A84FF;
-            color: white;
-            margin-bottom: 10px;
+            display: none !important;
         }
 
 
@@ -2482,7 +2480,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.401";
+        const APP_VERSION = "1.31.402";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -8806,7 +8804,14 @@
 
     </div> <!-- Close pre-workout-overlay -->
 
-    <!-- GLOBAL VOLUME TOGGLE BTN (Relocated & HIGH Z-INDEX) -->
+    <!-- GLOBAL SCHEDULE BTN (HIGH Z-INDEX) -->
+    <div id="global-schedule-btn"
+        style="position:fixed; top:20px; right:130px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+        onclick="showScheduleModal()">
+        <span style="font-size:20px;">🗓️</span>
+    </div>
+
+    <!-- GLOBAL FULLSCREEN BTN (Relocated & HIGH Z-INDEX) -->
     <div id="global-fullscreen-btn"
         style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
         onclick="toggleFullScreen()">
