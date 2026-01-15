@@ -2481,7 +2481,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.406";
+        const APP_VERSION = "1.31.407";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4990,11 +4990,12 @@
         function copyRound(index) {
             const source = workoutRounds[index];
 
-            // DUPLICATE CUSTOM NAMES (EXERCISES)
-            // 1. Shift names for subsequent rounds up by 1 position (backwards to avoid overwrite)
-            const totalRounds = workoutRounds.length; // Before push
-            const insertRoundNum = index + 2; // The new round number (1-based)
+            // --- 1. SHIFT EXISTING DATA DOWN ---
+            const totalRounds = workoutRounds.length;
+            const insertRoundNum = index + 2; // 1-based (for customNames)
+            const insertIndex = index + 1;    // 0-based (for roundExercises and splice)
 
+            // A. Shift Custom Names (rX -> rX+1)
             for (let r = totalRounds; r >= insertRoundNum; r--) {
                 const oldPrefix = `r${r}-`;
                 const newPrefix = `r${r + 1}-`;
@@ -5008,7 +5009,17 @@
                 });
             }
 
-            // 2. Clone names from Source (r{index+1}) to New Round (r{index+2})
+            // B. Shift Round Exercises (index -> index+1)
+            // roundExercises uses 0-based integer keys
+            for (let r = totalRounds - 1; r >= insertIndex; r--) {
+                if (roundExercises && roundExercises[r]) {
+                    roundExercises[r + 1] = roundExercises[r];
+                    delete roundExercises[r];
+                }
+            }
+
+            // --- 2. CLONE SOURCE DATA TO NEW POSITION ---
+            // A. Clone Custom Names
             const sourceRoundNum = index + 1;
             const sourcePrefix = `r${sourceRoundNum}-`;
             const targetPrefix = `r${insertRoundNum}-`;
@@ -5020,10 +5031,19 @@
                 }
             });
 
+            // B. Clone Round Exercises
+            if (roundExercises && roundExercises[index]) {
+                try {
+                    roundExercises[insertIndex] = JSON.parse(JSON.stringify(roundExercises[index]));
+                } catch (e) { console.error("Error cloning roundExercises", e); }
+            }
+
+            // --- 3. COMMIT & RENDER ---
             const newRound = { ...source, id: Date.now() };
-            workoutRounds.splice(index + 1, 0, newRound);
+            workoutRounds.splice(insertIndex, 0, newRound);
+
             saveRoundsToLocal();
-            saveToLocal(); // Save customNames
+            saveToLocal(); // Persist all changes
             renderRoundsContainer();
         }
 
