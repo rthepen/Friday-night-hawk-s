@@ -2295,7 +2295,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.001";
+        const APP_VERSION = "1.32.002";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -2547,22 +2547,29 @@
         }
 
         function applyDefaultsToUI() {
-            document.getElementById('rounds').value = appDefaults.rounds;
-            document.getElementById('exercises').value = appDefaults.exercises;
-            document.getElementById('sets').value = appDefaults.sets;
-            document.getElementById('restSec').value = appDefaults.restSec;
-            document.getElementById('exerciseRestSec').value = appDefaults.exerciseRestSec;
-            document.getElementById('roundRestSec').value = appDefaults.roundRestSec;
-            document.getElementById('totalMin').value = appDefaults.totalMin;
-            const coachSel = document.getElementById('coach-preset-live'); // UPDATED
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            };
+
+            setVal('rounds', appDefaults.rounds);
+            setVal('exercises', appDefaults.exercises);
+            setVal('sets', appDefaults.sets);
+            setVal('restSec', appDefaults.restSec);
+            setVal('exerciseRestSec', appDefaults.exerciseRestSec);
+            setVal('roundRestSec', appDefaults.roundRestSec);
+            setVal('totalMin', appDefaults.totalMin);
+
+            const coachSel = document.getElementById('coach-preset-live');
             if (coachSel) coachSel.value = appDefaults.coachPreset;
 
             if (appDefaults.bonuses) {
                 for (let i = 0; i < 3; i++) {
-                    if (appDefaults.bonuses[i]) {
-                        document.getElementById(`bonus${i + 1}-name`).value = appDefaults.bonuses[i].name;
-                        document.getElementById(`bonus${i + 1}-duration`).value = appDefaults.bonuses[i].duration;
-                        document.getElementById(`bonus${i + 1}-freq`).value = appDefaults.bonuses[i].freq;
+                    const b = appDefaults.bonuses[i];
+                    if (b) {
+                        setVal(`bonus${i + 1}-name`, b.name);
+                        setVal(`bonus${i + 1}-duration`, b.duration);
+                        setVal(`bonus${i + 1}-freq`, b.freq);
                     }
                 }
             }
@@ -3268,56 +3275,45 @@
         function resetToDefaults() {
             if (!confirm("Weet je zeker dat je alle instellingen wilt resetten naar standaard?")) return;
 
+            // 1. Reset Core UI Parameters
             applyDefaultsToUI();
 
+            // 2. Reset Workout Structure
+            workoutRounds = [
+                { id: Date.now(), exercises: appDefaults.exercises, sets: appDefaults.sets, workTime: 45, restTime: 15, roundRest: 60 },
+                { id: Date.now() + 1, exercises: appDefaults.exercises, sets: appDefaults.sets, workTime: 45, restTime: 15, roundRest: 60 }
+            ];
             customNames = {};
+            roundExercises = {};
 
-            // Custom Reset Logic: Start Time + 2min, Duration 45min, Rest 15s
+            // 3. Reset Timing & UI Elements
             const now = new Date();
             now.setMinutes(now.getMinutes() + 2);
-            // Format HH:MM
             const startStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', hour12: false });
-            document.getElementById('startTimeValue').value = startStr;
 
-            // Ensure 45m exists and set it
-            const durSel = document.getElementById('totalMin');
-            const targetDur = 45;
-            if (durSel) {
-                if (durSel.tagName === 'SELECT') {
-                    let exists = false;
-                    for (let i = 0; i < durSel.options.length; i++) { if (parseInt(durSel.options[i].value) === targetDur) exists = true; }
-                    if (!exists) {
-                        const opt = document.createElement('option');
-                        opt.value = targetDur;
-                        opt.text = targetDur + "m";
-                        durSel.add(opt, 0);
-                    }
-                    durSel.value = targetDur;
-                } else {
-                    durSel.value = targetDur + "m";
-                }
+            const startInput = document.getElementById('startTimeValue');
+            if (startInput) startInput.value = startStr;
+
+            const totalMinInput = document.getElementById('totalMin');
+            if (totalMinInput) {
+                totalMinInput.value = (appDefaults.totalMin || 45) + "m";
             }
-
-            // Set Rest Time to 15s
-            document.getElementById('restSec').value = 15;
-
-            // Set Exercises to 8
-            document.getElementById('exercises').value = 8;
 
             syncTime('duration'); // Updates End Time based on Start + Duration
             setAudioMode('speech');
-            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = 'eva'; // UPDATED
+            if (document.getElementById('coach-preset-live')) document.getElementById('coach-preset-live').value = 'eva';
 
-            // Reset settings (Except Audio Mode)
-            // Force Tabataman & Enable Milestones on Reset
-            // Enable Milestones in Global Settings
+            // Reset Speech Settings
             ['mile_start', 'mile_half', 'mile_end'].forEach(k => {
                 if (!speechSettings[k]) speechSettings[k] = {};
                 speechSettings[k].enabled = true;
             });
             renderAudioToggles();
 
+            // 4. Persistence & UI Sync
+            saveRoundsToLocal();
             saveToLocal();
+            renderRoundsContainer();
             calculateRealTime();
         }
 
