@@ -2481,7 +2481,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.405";
+        const APP_VERSION = "1.31.406";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4989,9 +4989,41 @@
 
         function copyRound(index) {
             const source = workoutRounds[index];
+
+            // DUPLICATE CUSTOM NAMES (EXERCISES)
+            // 1. Shift names for subsequent rounds up by 1 position (backwards to avoid overwrite)
+            const totalRounds = workoutRounds.length; // Before push
+            const insertRoundNum = index + 2; // The new round number (1-based)
+
+            for (let r = totalRounds; r >= insertRoundNum; r--) {
+                const oldPrefix = `r${r}-`;
+                const newPrefix = `r${r + 1}-`;
+
+                Object.keys(customNames).forEach(key => {
+                    if (key.startsWith(oldPrefix)) {
+                        const suffix = key.substring(oldPrefix.length);
+                        customNames[newPrefix + suffix] = customNames[key];
+                        delete customNames[key];
+                    }
+                });
+            }
+
+            // 2. Clone names from Source (r{index+1}) to New Round (r{index+2})
+            const sourceRoundNum = index + 1;
+            const sourcePrefix = `r${sourceRoundNum}-`;
+            const targetPrefix = `r${insertRoundNum}-`;
+
+            Object.keys(customNames).forEach(key => {
+                if (key.startsWith(sourcePrefix)) {
+                    const suffix = key.substring(sourcePrefix.length);
+                    customNames[targetPrefix + suffix] = customNames[key];
+                }
+            });
+
             const newRound = { ...source, id: Date.now() };
             workoutRounds.splice(index + 1, 0, newRound);
             saveRoundsToLocal();
+            saveToLocal(); // Save customNames
             renderRoundsContainer();
         }
 
