@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.398";
+        const APP_VERSION = "1.31.399";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9100,11 +9100,17 @@
                 // Editing Set 1 - propagate to all sets
                 for (let s = 0; s < totalSets; s++) {
                     roundExercises[roundIdx][exIdx][s] = exerciseName;
+                    // Sync to customNames for Volledig Schema
+                    const key = `r${roundIdx + 1}-e${exIdx + 1}-s${s + 1}`;
+                    customNames[key] = exerciseName;
                 }
                 console.log(`Updated Exercise ${exIdx + 1}, ALL SETS to: ${exerciseName}`);
             } else {
                 // Editing Set 2+ - only update this specific set
                 roundExercises[roundIdx][exIdx][setIdx] = exerciseName;
+                // Sync to customNames for Volledig Schema
+                const key = `r${roundIdx + 1}-e${exIdx + 1}-s${setIdx + 1}`;
+                customNames[key] = exerciseName;
                 console.log(`Updated Exercise ${exIdx + 1}, Set ${setIdx + 1} to: ${exerciseName}`);
             }
 
