@@ -2295,7 +2295,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.005";
+        const APP_VERSION = "1.32.006";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3431,14 +3431,14 @@
             if (startTime) params.set('st', startTime);
             if (coach) params.set('c', coach);
 
-            // Bonus Settings
+            // Bonus Settings (Null-checked)
             for (let i = 1; i <= 3; i++) {
-                const name = document.getElementById(`bonus${i}-name`).value;
-                const dur = document.getElementById(`bonus${i}-duration`).value;
-                const freq = document.getElementById(`bonus${i}-freq`).value;
-                if (name) params.set(`b${i}n`, name);
-                if (dur) params.set(`b${i}d`, dur);
-                if (freq) params.set(`b${i}f`, freq);
+                const elName = document.getElementById(`bonus${i}-name`);
+                const elDur = document.getElementById(`bonus${i}-duration`);
+                const elFreq = document.getElementById(`bonus${i}-freq`);
+                if (elName) params.set(`b${i}n`, elName.value);
+                if (elDur) params.set(`b${i}d`, elDur.value);
+                if (elFreq) params.set(`b${i}f`, elFreq.value);
             }
 
             // Custom Names (Full Schedule)
