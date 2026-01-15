@@ -2481,7 +2481,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.408";
+        const APP_VERSION = "1.31.409";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4354,7 +4354,10 @@
         function resetSchedule() {
             if (!confirm("Weet je zeker dat je alle gekozen oefeningen wilt wissen en het schema wilt leegmaken?")) return;
             customNames = {};
+            roundExercises = {}; // Also clear inline exercises
+            saveRoundsToLocal(); // Save cleared state
             saveToLocal();
+            renderRoundsContainer(); // Re-render UI to remove exercise names
             showScheduleModal(); // Refresh table
             calculateRealTime(); // Update preview
         }
