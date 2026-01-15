@@ -2295,7 +2295,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.004";
+        const APP_VERSION = "1.32.005";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -3278,13 +3278,15 @@
             // 1. Reset Core UI Parameters
             applyDefaultsToUI();
 
-            // 2. Reset Workout Structure
+            // 2. Reset Workout Structure (Exactly 1 round)
             workoutRounds = [
-                { id: Date.now(), exercises: appDefaults.exercises, sets: appDefaults.sets, workTime: 45, restTime: 15, roundRest: 60 },
-                { id: Date.now() + 1, exercises: appDefaults.exercises, sets: appDefaults.sets, workTime: 45, restTime: 15, roundRest: 60 }
+                { id: Date.now(), exercises: appDefaults.exercises, sets: appDefaults.sets, workTime: 45, restTime: 15, roundRest: 60 }
             ];
             customNames = {};
             roundExercises = {};
+
+            // Update Rounds UI explicitly
+            if (document.getElementById('rounds')) document.getElementById('rounds').value = 1;
 
             // 3. Reset Timing & UI Elements
             const now = new Date();
