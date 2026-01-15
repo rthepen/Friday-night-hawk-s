@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.12"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.13"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -6846,7 +6846,49 @@
                     tr.children[1].innerHTML = desc;
 
                     // Update Duration
-                    tr.children[2].innerText = dur + "s";
+                    // Update Duration
+                    if (item.type === 'work' && item.info && item.info.exercise > 0) {
+                        tr.children[2].innerHTML = '';
+                        const inp = document.createElement('input');
+                        inp.type = 'number';
+                        inp.value = dur;
+                        inp.className = 'no-drag'; // Prevent drag issues if any
+                        inp.style.width = '50px';
+                        inp.style.textAlign = 'center';
+                        inp.style.background = 'transparent';
+                        inp.style.color = '#fff';
+                        inp.style.border = '1px solid #444';
+                        inp.style.borderRadius = '4px';
+                        inp.style.fontSize = '14px';
+                        inp.style.padding = '2px';
+
+                        inp.onclick = (e) => e.stopPropagation();
+
+                        inp.onchange = (e) => {
+                            const val = parseInt(e.target.value);
+                            if (val && val >= 5) {
+                                schedule.forEach((s, idx) => {
+                                    // Update ALL work steps (Past, Present, Future)
+                                    if (s.type === 'work' && s.info && s.info.exercise > 0) {
+                                        const oldInit = s.initialTime;
+                                        s.initialTime = val;
+
+                                        if (idx > currentIndex) {
+                                            s.time = val;
+                                        } else if (idx === currentIndex) {
+                                            s.time += (val - oldInit);
+                                            if (s.time < 0) s.time = 0;
+                                        }
+                                    }
+                                });
+                                renderLiveSchedule(true);
+                                triggerAudio('manual_override', "Tijd aangepast");
+                            }
+                        };
+                        tr.children[2].appendChild(inp);
+                    } else {
+                        tr.children[2].innerText = dur + "s";
+                    }
                 }
 
                 // Advance the pointer for the NEXT loop iteration
@@ -7940,6 +7982,12 @@
             }
         }
 
+        function updateExerciseDetail(uniqueId, field, value) {
+            if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+            customDetails[uniqueId][field] = value;
+            saveToLocal();
+        }
+
         function autoLoadFromCheckNumber(checkNum, uniqueId, roundIdx, exIdx, setIdx) {
             console.log('autoLoadFromCheckNumber called for uniqueId:', uniqueId, 'checkNum:', checkNum);
             if (!checkNum || !workoutDatabase) return;
@@ -7954,7 +8002,18 @@
                     if (nameSpan) nameSpan.innerText = newName;
                     console.log(`Updated exercise name for ${uniqueId}:`, newName);
                 }
-                // Populate other fields after possible re-render
+
+                // Update Storage directly
+                if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+                customDetails[uniqueId].checkNum = checkNum;
+                customDetails[uniqueId].desc = match.instructions || '';
+                customDetails[uniqueId].mat = match.material_name || '';
+                customDetails[uniqueId].matDesc = match.material_description || '';
+                customDetails[uniqueId].thumbUrl = match.thumbnail || '';
+                customDetails[uniqueId].videoUrl = match.video_search_url || '';
+                saveToLocal();
+
+                // Populate UI fields
                 setTimeout(() => {
                     const descElem = document.getElementById(`desc-${uniqueId}`);
                     if (descElem) descElem.value = match.instructions || '';
@@ -7970,7 +8029,6 @@
                         if (thumbUrl) {
                             img.src = thumbUrl;
                             img.style.display = 'block';
-                            // Store video URL for click handler
                             if (match.video_search_url) {
                                 img.setAttribute('data-video-url', match.video_search_url);
                                 img.title = "Klik om video te openen";
