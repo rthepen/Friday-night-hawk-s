@@ -2482,7 +2482,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.399";
+        const APP_VERSION = "1.31.400";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -9124,6 +9124,38 @@
         // Initialize exercise lists for all round cards when page loads
         function initializeRoundExerciseLists() {
             console.log('Initializing round exercise lists...');
+
+            // SYNC: Copy customNames to roundExercises on page load
+            // This ensures existing data from Volledig Schema appears in inline lists
+            if (customNames && Object.keys(customNames).length > 0) {
+                console.log('Syncing customNames to roundExercises...');
+                for (let roundIdx = 0; roundIdx < workoutRounds.length; roundIdx++) {
+                    const roundNum = roundIdx + 1;
+                    const round = workoutRounds[roundIdx];
+                    const numExercises = round.exercises || 5;
+                    const numSets = round.sets || 3;
+
+                    if (!roundExercises[roundIdx]) {
+                        roundExercises[roundIdx] = {};
+                    }
+
+                    for (let ex = 0; ex < numExercises; ex++) {
+                        const exNum = ex + 1;
+                        if (!roundExercises[roundIdx][ex]) {
+                            roundExercises[roundIdx][ex] = {};
+                        }
+
+                        for (let setIdx = 0; setIdx < numSets; setIdx++) {
+                            const setNum = setIdx + 1;
+                            const key = `r${roundNum}-e${exNum}-s${setNum}`;
+                            if (customNames[key]) {
+                                roundExercises[roundIdx][ex][setIdx] = customNames[key];
+                            }
+                        }
+                    }
+                }
+                console.log('Sync complete:', roundExercises);
+            }
 
             // Function to render all visible round cards
             function renderAllRounds() {
