@@ -2481,7 +2481,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.404";
+        const APP_VERSION = "1.31.405";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -4840,8 +4840,8 @@
                 // Header
                 const header = document.createElement('div');
                 header.style.display = 'flex';
-                header.style.justifyContent = 'space-between';
                 header.style.marginBottom = '10px';
+                header.style.paddingRight = '90px'; // Prevent text overlapping buttons
                 const defaultName = "RONDE " + roundNum;
                 const roundName = round.name || defaultName;
 
@@ -4853,25 +4853,39 @@
                                style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; width:100%; font-family:'Outfit',sans-serif;">
                     </div>
                 `;
-
-                if (workoutRounds.length > 1) {
-                    const delBtn = document.createElement('div');
-                    delBtn.innerHTML = '🗑️';
-                    delBtn.style.cursor = 'pointer';
-                    delBtn.onclick = () => removeRound(index);
-                    header.appendChild(delBtn);
-                }
                 card.appendChild(header);
 
-                // Copy Button
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'btn-header';
+                // Copy Button (+) - Positioned left of Delete
+                const copyBtn = document.createElement('div');
+                copyBtn.innerHTML = '+';
+                copyBtn.title = "Kopieer Ronde";
                 copyBtn.style.position = 'absolute';
-                copyBtn.style.right = '40px';
-                copyBtn.style.top = '10px';
-                copyBtn.innerText = '📋';
+                copyBtn.style.right = '60px'; // Spaced out
+                copyBtn.style.top = '15px';
+                copyBtn.style.fontSize = '24px';
+                copyBtn.style.fontWeight = 'bold';
+                copyBtn.style.color = '#30D158';
+                copyBtn.style.cursor = 'pointer';
+                copyBtn.style.lineHeight = '1';
                 copyBtn.onclick = () => copyRound(index);
                 card.appendChild(copyBtn);
+
+                // Delete Button (x) - Positioned Top Right
+                if (workoutRounds.length > 1) {
+                    const delBtn = document.createElement('div');
+                    delBtn.innerHTML = '✕';
+                    delBtn.title = "Verwijder Ronde";
+                    delBtn.style.position = 'absolute';
+                    delBtn.style.right = '20px';
+                    delBtn.style.top = '18px';
+                    delBtn.style.fontSize = '18px';
+                    delBtn.style.fontWeight = 'bold';
+                    delBtn.style.color = '#FF453A';
+                    delBtn.style.cursor = 'pointer';
+                    delBtn.style.lineHeight = '1';
+                    delBtn.onclick = () => removeRound(index);
+                    card.appendChild(delBtn);
+                }
 
                 // Controls
                 // Grid Container
