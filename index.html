@@ -2480,7 +2480,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "1.31.402";
+        const APP_VERSION = "1.31.403";
 
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
@@ -8998,11 +8998,7 @@
             // Clear existing content
             exerciseListContainer.innerHTML = '';
 
-            // Add header
-            const header = document.createElement('div');
-            header.style.cssText = 'font-size:11px; color:#888; margin-bottom:10px; text-transform:uppercase; font-weight:bold;';
-            header.innerHTML = '💡 Klik om oefening te wijzigen. Set 1 = alle sets, Set 2+ = alleen die set';
-            exerciseListContainer.appendChild(header);
+            // Header removed as per user request
 
             // Create list of all exercise-set combinations
             for (let exIdx = 0; exIdx < numExercises; exIdx++) {
