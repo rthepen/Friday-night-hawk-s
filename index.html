@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.22"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.24"; // Per-Exercise Time Limits
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -2246,6 +2246,7 @@
         let speechPlaylists = {};
         let editingSpeechKey = null;
         let customNames = {};
+        let customWorkTimes = {}; // Format: { "rX-eY-sZ": seconds }
         let roundExercises = {}; // Format: { roundIndex: { exerciseIndex: { setIndex: exerciseName } } }
         let failedAudioKeys = new Set(); // Cache for missing MP3s
 
@@ -3301,6 +3302,7 @@
                 iosMixMode: iosMixMode, // Save Mix Mode setting
                 // Save Custom Names
                 customNames: customNames,
+                customWorkTimes: customWorkTimes, // Pro-feature: per-exercise time
                 roundExercises: roundExercises // Save per-set exercise assignments
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
@@ -3322,6 +3324,7 @@
                     // Bonus Data Load Removed (UI Removed)
 
                     if (data.customNames) customNames = data.customNames;
+                    if (data.customWorkTimes) customWorkTimes = data.customWorkTimes;
                     if (data.roundExercises) roundExercises = data.roundExercises;
 
                     // Restore Volumes
@@ -3635,11 +3638,65 @@
                 } else {
                     workoutRounds[index][field] = parseInt(value) || 0;
                 }
+
+                // If Work Time changes, reset custom overrides for this round to ensure propagation
+                if (field === 'workTime') {
+                    const rNum = index + 1;
+                    const prefix = `r${rNum}-`;
+                    Object.keys(customWorkTimes).forEach(k => {
+                        if (k.startsWith(prefix)) delete customWorkTimes[k];
+                    });
+                    // Also refresh the list to remove the custom values from inputs
+                    // But we are outside the render scope? calculateRealTime calls renderRoundExerciseList? 
+                    // No, updateRound calls generateOrder -> renderPreview.
+                    // We need to trigger re-render of inline list inputs.
+                    const card = document.getElementById(`round-card-${index}`);
+                    if (card && card.querySelector('.exercise-list-container')) {
+                        setTimeout(() => renderRoundExerciseList(index), 50);
+                    }
+                }
+
                 saveRoundsToLocal();
                 calculateRealTime(); // Update total time
                 generateScheduleData(false); // Update preview 
                 renderPreviewList();
             }
+        }
+
+        function setCustomWorkTime(r, e, s, val) {
+            const rNum = r + 1;
+            const key = `r${rNum}-e${e + 1}-s${s + 1}`;
+            const intVal = parseInt(val);
+            const round = workoutRounds[r];
+            const defaultTime = round ? round.workTime : 45;
+
+            if (!isNaN(intVal) && intVal > 0 && intVal !== defaultTime) {
+                if (s === 0) {
+                    // Propagate to all sets
+                    const sts = round.sets;
+                    for (let i = 0; i < sts; i++) {
+                        const subKey = `r${rNum}-e${e + 1}-s${i + 1}`;
+                        customWorkTimes[subKey] = intVal;
+                    }
+                } else {
+                    customWorkTimes[key] = intVal;
+                }
+            } else {
+                // If empty or same as default, remove override
+                if (s === 0) {
+                    const sts = round.sets;
+                    for (let i = 0; i < sts; i++) {
+                        const subKey = `r${rNum}-e${e + 1}-s${i + 1}`;
+                        delete customWorkTimes[subKey];
+                    }
+                } else {
+                    delete customWorkTimes[key];
+                }
+            }
+            saveToLocal();
+            calculateRealTime();
+            // Re-render to update UI (other sets might have changed)
+            renderRoundExerciseList(r);
         }
 
         function addRound() {
@@ -3736,21 +3793,18 @@
             // New Logic: Sum up all rounds to determine End Time
             let totalSeconds = 15; // Prep time
 
-            workoutRounds.forEach(r => {
+            workoutRounds.forEach((r, rIndex) => { // Added index for custom key lookup
                 const ex = r.exercises;
                 const sts = r.sets;
                 if (ex > 0 && sts > 0) {
-                    const setTotal = r.workTime + r.restTime;
-                    // Logic: Work + Rest for each set? 
-                    // Usually last set of exercise has 'switchTime' (using restTime for now or default)
-                    // Let's approximate:
-                    // (Work + Rest) * Sets * Exercises
-                    // Minus last rest of round?
-
                     // Detailed calculation matching generateScheduleData logic:
                     for (let e = 1; e <= ex; e++) {
                         for (let s = 1; s <= sts; s++) {
-                            totalSeconds += r.workTime;
+                            let workT = r.workTime;
+                            const key = `r${rIndex + 1}-e${e}-s${s}`;
+                            if (customWorkTimes[key]) workT = customWorkTimes[key];
+
+                            totalSeconds += workT; // custom or default
 
                             // Rest logic
                             if (s < sts) totalSeconds += r.restTime;
@@ -3808,7 +3862,11 @@
                 if (ex > 0 && sts > 0) {
                     for (let e = 1; e <= ex; e++) {
                         for (let s = 1; s <= sts; s++) {
-                            roundDurationSec += r.workTime;
+                            let workT = r.workTime;
+                            const key = `r${index + 1}-e${e}-s${s}`;
+                            if (customWorkTimes[key]) workT = customWorkTimes[key];
+
+                            roundDurationSec += workT;
                             if (s < sts) roundDurationSec += r.restTime;
                             else if (e < ex) roundDurationSec += (r.exerciseRest || 15);
                             else roundDurationSec += r.roundRest; // End Round
@@ -3868,11 +3926,15 @@
                         let prefix = round.name || `Ronde ${roundNum}`;
                         let label = customNames[key] || `${prefix} - Oefening ${e}.${s}`;
 
+                        // Check Custom Work Time
+                        let workDuration = round.workTime;
+                        if (customWorkTimes[key]) workDuration = customWorkTimes[key];
+
                         // Add Work
                         schedule.push({
                             type: 'work',
-                            time: round.workTime,
-                            initialTime: round.workTime,
+                            time: workDuration,
+                            initialTime: workDuration,
                             label: label,
                             info: { round: roundNum, exercise: e, set: s, maxRounds: workoutRounds.length, maxEx: ex, maxSets: sts, globalSet: currentSetGlobal }
                         });
@@ -7835,6 +7897,47 @@
                     labelDiv.appendChild(label);
                     labelDiv.appendChild(nameSpan);
                     exerciseRow.appendChild(labelDiv);
+
+                    // Time Input (Right Side)
+                    const timeDiv = document.createElement('div');
+                    timeDiv.style.cssText = 'display:flex; align-items:center; gap:5px; margin-left:10px;';
+
+                    const timeIcon = document.createElement('span');
+                    timeIcon.innerText = '⏱️';
+                    timeIcon.style.cssText = 'font-size:12px; opacity:0.7;';
+
+                    const timeInput = document.createElement('input');
+                    timeInput.type = 'number';
+                    timeInput.className = 'highlight-input';
+
+                    const globalRound = workoutRounds[roundIndex];
+                    const defaultWt = globalRound ? globalRound.workTime : 45;
+                    const uniqueTimeKey = `r${roundIndex + 1}-e${exIdx + 1}-s${setIdx + 1}`;
+                    const customWt = customWorkTimes[uniqueTimeKey];
+
+                    timeInput.value = customWt || defaultWt;
+                    timeInput.placeholder = defaultWt;
+
+                    if (customWt) {
+                        timeInput.style.color = '#30D158';
+                        timeInput.style.borderBottom = '1px solid #30D158';
+                    } else {
+                        timeInput.style.color = '#888';
+                        timeInput.style.borderBottom = '1px solid transparent';
+                    }
+
+                    timeInput.style.cssText += 'width:40px; background:transparent; border:none; border-bottom:1px solid #444; text-align:center; color:white; font-size:12px; font-family:inherit; outline:none;';
+                    if (customWt) timeInput.style.color = '#30D158';
+
+                    timeInput.onchange = (e) => {
+                        setCustomWorkTime(roundIndex, exIdx, setIdx, e.target.value);
+                    };
+                    timeInput.onclick = (e) => e.stopPropagation();
+
+                    timeDiv.appendChild(timeIcon);
+                    timeDiv.appendChild(timeInput);
+                    exerciseRow.appendChild(timeDiv);
+
                     rowWrapper.appendChild(exerciseRow);
 
                     // --- DETAILS SECTION (Hidden by default) ---
