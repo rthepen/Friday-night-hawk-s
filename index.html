@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.14"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.15"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -6847,11 +6847,12 @@
 
                     // Update Duration
                     // Update Duration
-                    if (item.type === 'work' && item.info && item.info.exercise > 0) {
+                    if (item.type === 'work') {
                         tr.children[2].innerHTML = '';
                         const inp = document.createElement('input');
                         inp.type = 'number';
                         inp.value = dur;
+                        inp.onfocus = () => { inp.select(); }; // User convenience
                         inp.className = 'no-drag'; // Prevent drag issues if any
                         inp.style.width = '50px';
                         inp.style.textAlign = 'center';
@@ -6869,7 +6870,7 @@
                             if (val && val >= 5) {
                                 schedule.forEach((s, idx) => {
                                     // Update ALL work steps (Past, Present, Future)
-                                    if (s.type === 'work' && s.info && s.info.exercise > 0) {
+                                    if (s.type === 'work') {
                                         const oldInit = s.initialTime;
                                         s.initialTime = val;
 
