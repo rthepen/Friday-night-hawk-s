@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.19"; // Sync Add Round with Copy logic
+        const APP_VERSION = "2.0.3"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -3599,11 +3599,7 @@
                 // Info footer moved inside grid
                 // const infoDiv = document.createElement('div'); ... removed
 
-                // Add to container
                 container.appendChild(card);
-
-                // FIX: Render the inline exercise list immediately
-                renderRoundExerciseList(index);
 
                 // Add Connector if not last round
                 if (index < workoutRounds.length - 1) {
