@@ -1997,14 +1997,14 @@
                 FNH Timer <span class="version-tag"></span>
             </div>
             <div class="header-buttons">
-                <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
-                <button class="btn-header" style="background:#ddd; color:#000;" onclick="openPrintMenu()">🖨️
+                <button class="btn-header btn-reset" onclick="resetToDefaults()">?? Reset</button>
+                <button class="btn-header" style="background:#ddd; color:#000;" onclick="openPrintMenu()">???
                     Cards</button>
-                <button class="btn-header btn-dumbbell" onclick="openMaterialModal()"><span>🏋️</span></button>
+                <button class="btn-header btn-dumbbell" onclick="openMaterialModal()"><span>???</span></button>
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
-                    onclick="applyTabataPreset()">⏱️ Tabata</button>
-                <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
-                <button class="btn-header btn-share-app" onclick="shareApp()">📤 Delen</button>
+                    onclick="applyTabataPreset()">?? Tabata</button>
+                <button class="btn-header btn-save" onclick="shareSettings()">?? Save</button>
+                <button class="btn-header btn-share-app" onclick="shareApp()">?? Delen</button>
             </div>
         </div>
 
@@ -2627,7 +2627,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.47"; // Restored & Incremented
+        const APP_VERSION = "1.32.49"; // Updated Station Cards Layout
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9243,21 +9243,19 @@
 
 
         /* --- STATION CARDS PDF LOGIC --- */
+        /* --- STATION CARDS PDF LOGIC --- */
         function openPrintMenu() {
             const modal = document.getElementById('print-modal');
             if (!modal) return;
-
             // Populate Rounds
             const roundSelect = document.getElementById('print-round-select');
             roundSelect.innerHTML = '';
             const totalRounds = parseInt(document.getElementById('rounds').value) || 1;
-
             // All Option
             const optAll = document.createElement('option');
             optAll.value = 'all';
             optAll.innerText = `Alle ${totalRounds} Rondes`;
             roundSelect.appendChild(optAll);
-
             // Individual Rounds
             for (let r = 1; r <= totalRounds; r++) {
                 const opt = document.createElement('option');
@@ -9265,20 +9263,18 @@
                 opt.innerText = `Ronde ${r}`;
                 roundSelect.appendChild(opt);
             }
-
             modal.style.display = 'flex';
         }
 
         async function startPrintJob() {
             const roundVal = document.getElementById('print-round-select').value;
-            const setMode = document.getElementById('print-set-mode').value; // 'first' or 'all'
+            const setMode = document.getElementById('print-set-mode').value;
 
-            // Mock Data Fallback (Self-Correction for testing)
             if ((!WORKOUT_DB || WORKOUT_DB.length === 0)) {
                 console.log("Database empty, using Mock Data for PDF Test");
                 WORKOUT_DB = [
-                    { exercise_name: "Mock Squat", material_name: "Kettlebell", material_description: "16kg", instructions: "Diep zakken, rug recht.", video_search_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-                    { exercise_name: "Mock Pushup", material_name: "Eigen start", material_description: "Geen", instructions: "Borst naar de vloer.", video_search_url: "" }
+                    { exercise_name: "Mock Squat", material_name: "Kettlebell", material_description: "16kg", instructions: "Diep zakken, rug recht.", video_search_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnail: "FNH logo.jpg" },
+                    { exercise_name: "Mock Pushup", material_name: "Eigen start", material_description: "Geen", instructions: "Borst naar de vloer.", video_search_url: "", thumbnail: "" }
                 ];
             }
 
@@ -9305,7 +9301,7 @@
             let pageAdded = false;
             let cardCount = 0;
 
-            // QR Code Generator Helper (Using qrcode.js)
+            // Helper: Generate QR Data URL
             const generateQR = (url) => {
                 if (!url) return null;
                 const div = document.createElement('div');
@@ -9321,6 +9317,30 @@
                 return null;
             };
 
+            // Helper: Preload Image to Data URL
+            const preloadImage = (url) => {
+                return new Promise((resolve) => {
+                    if (!url) { resolve(null); return; }
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        try {
+                            resolve(canvas.toDataURL('image/jpeg'));
+                        } catch (e) {
+                            console.warn("CORS/Canvas Error:", e);
+                            resolve(null);
+                        }
+                    };
+                    img.onerror = () => resolve(null);
+                    img.src = url;
+                });
+            };
+
             const exCount = parseInt(document.getElementById('exercises').value) || 1;
             const setsCount = parseInt(document.getElementById('sets').value) || 1;
 
@@ -9329,34 +9349,42 @@
                     const setsToProcess = setMode === 'first' ? [1] : Array.from({ length: setsCount }, (_, i) => i + 1);
 
                     for (const s of setsToProcess) {
-                        // Get Name
+                        // Data Retrieval
                         let exName = `Exercise ${e}`;
                         if (typeof roundExercises !== 'undefined' && roundExercises[r] && roundExercises[r][e] && roundExercises[r][e][s]) {
                             exName = roundExercises[r][e][s];
                         }
 
-                        // Get Details
                         const uniqueId = `r${r}-e${e}-s${s}`;
                         let matName = "MATERIAAL ONBEKEND";
                         let matDesc = "Geen beschrijving";
                         let instructions = "Geen instructies beschikbaar.";
                         let videoUrl = "";
+                        let thumbUrl = "";
 
-                        // 1. Try Custom Details
+                        // 1. Custom Details
                         if (typeof customDetails !== 'undefined' && customDetails[uniqueId]) {
                             if (customDetails[uniqueId].mat) matName = customDetails[uniqueId].mat;
                             if (customDetails[uniqueId].matDesc) matDesc = customDetails[uniqueId].matDesc;
                             if (customDetails[uniqueId].desc) instructions = customDetails[uniqueId].desc;
                             if (customDetails[uniqueId].videoUrl) videoUrl = customDetails[uniqueId].videoUrl;
+                            if (customDetails[uniqueId].thumbUrl) thumbUrl = customDetails[uniqueId].thumbUrl;
                         }
 
-                        // 2. Try DB Lookup
+                        // 2. DB Lookup
                         const dbItem = WORKOUT_DB.find(item => item.exercise_name === exName);
                         if (dbItem) {
                             if (matName === "MATERIAAL ONBEKEND") matName = dbItem.material_name || matName;
                             if (matDesc === "Geen beschrijving") matDesc = dbItem.material_description || matDesc;
                             if (instructions === "Geen instructies beschikbaar.") instructions = dbItem.instructions || instructions;
                             if (!videoUrl) videoUrl = dbItem.video_search_url || "";
+                            if (!thumbUrl) thumbUrl = dbItem.thumbnail || "";
+                        }
+
+                        // Preload Image (if external)
+                        let rawThumb = null;
+                        if (thumbUrl) {
+                            rawThumb = await preloadImage(thumbUrl);
                         }
 
                         // Add Page
@@ -9364,63 +9392,85 @@
                         pageAdded = true;
                         cardCount++;
 
-                        // --- DESIGN (A4 Landscape: 297x210mm) ---
                         const width = 297;
-                        // const height = 210; 
+                        const height = 210;
 
-                        // Top Left: Huge Exercise Number
+                        // --- LAYOUT ---
+
+                        // 1. HUGE Station Number (Left) - No Leading Zero
                         doc.setFont("helvetica", "bold");
-                        doc.setFontSize(80);
-                        doc.setTextColor(220, 220, 220);
-                        doc.text(`${e < 10 ? '0' + e : e}`, 15, 35);
+                        doc.setFontSize(280); // Massive size
+                        doc.setTextColor(230, 230, 230); // Faint background grey
+                        const numStr = `${e}`; // No padding
+                        doc.text(numStr, 10, 80); // Bottom-left baseline for text
 
-                        // Top Right: QR Code
+                        // 2. QR Code (Top Right)
                         if (videoUrl) {
                             const qrData = generateQR(videoUrl);
                             if (qrData) {
-                                doc.addImage(qrData, 'PNG', width - 45, 10, 35, 35);
-                                doc.setFontSize(9);
+                                doc.addImage(qrData, 'PNG', width - 40, 10, 30, 30);
+                                doc.setFontSize(10);
                                 doc.setTextColor(0, 0, 0);
-                                doc.text("SCAN VIDEO", width - 45, 49, { align: 'left' });
+                                doc.text("VIDEO", width - 40, 44, { align: 'left' });
                             }
                         }
 
-                        // Center: Exercise Name
+                        // 3. Thumbnail (Center Top)
+                        let contentStartY = 20;
+                        if (rawThumb) {
+                            try {
+                                const imgProps = doc.getImageProperties(rawThumb);
+                                const ratio = imgProps.width / imgProps.height;
+                                let imgH = 80;
+                                let imgW = imgH * ratio;
+                                if (imgW > 150) {
+                                    imgW = 150;
+                                    imgH = imgW / ratio;
+                                }
+                                const imgX = (width - imgW) / 2;
+                                doc.addImage(rawThumb, 'JPEG', imgX, 15, imgW, imgH);
+                                contentStartY = 15 + imgH + 10;
+                            } catch (err) {
+                                console.error("PDF Image Add Error", err);
+                            }
+                        } else {
+                            contentStartY = 40;
+                        }
+
+                        // 4. Exercise Name
                         doc.setFont("helvetica", "bold");
-                        doc.setFontSize(40);
+                        doc.setFontSize(36);
                         doc.setTextColor(0, 0, 0);
-                        const splitName = doc.splitTextToSize(exName, width - 60);
-                        let textY = 70;
-                        if (splitName.length > 1) textY = 60;
+                        const splitName = doc.splitTextToSize(exName.toUpperCase(), width - 40);
+                        doc.text(splitName, width / 2, contentStartY + 10, { align: 'center' });
+                        const nameHeight = splitName.length * 15;
 
-                        doc.text(splitName, width / 2, textY, { align: 'center' });
-
-                        // Green Bar (Material)
-                        const barY = textY + (splitName.length * 15) + 5;
+                        // 5. Material Bar (Green)
+                        const barY = contentStartY + 10 + nameHeight;
                         doc.setFillColor(48, 209, 88);
-                        doc.rect(20, barY, width - 40, 20, 'F');
+                        doc.rect(20, barY, width - 40, 18, 'F');
 
-                        doc.setFontSize(20);
+                        doc.setFontSize(18);
                         doc.setTextColor(0, 0, 0);
-                        doc.text((matName || "").toUpperCase(), width / 2, barY + 13, { align: 'center' });
+                        doc.text((matName || "").toUpperCase(), width / 2, barY + 11, { align: 'center' });
 
-                        // Material Description
+                        // 6. Material Description
                         doc.setFont("helvetica", "italic");
-                        doc.setFontSize(14);
+                        doc.setFontSize(12);
                         doc.setTextColor(80, 80, 80);
-                        doc.text(matDesc || "", width / 2, barY + 28, { align: 'center' });
+                        doc.text(matDesc || "", width / 2, barY + 25, { align: 'center' });
 
-                        // Bottom: Instructions
+                        // 7. Instructions (Bottom)
                         doc.setFont("helvetica", "normal");
-                        doc.setFontSize(16);
+                        doc.setFontSize(14);
                         doc.setTextColor(0, 0, 0);
 
-                        const instrY = barY + 45;
+                        const instrY = barY + 40;
                         const splitInstr = doc.splitTextToSize(instructions, width - 40);
                         doc.text(splitInstr, 20, instrY);
 
                         // Footer
-                        doc.setFontSize(10);
+                        doc.setFontSize(9);
                         doc.setTextColor(150, 150, 150);
                         doc.text(`Ronde ${r} - Oefening ${e} - Set ${s}  |  Friday-night-hawk-s Station Card`, 20, 200);
                     }
