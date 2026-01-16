@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.17"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.18"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7975,22 +7975,45 @@
 
                     // --- INJECT REST / SWITCH ROWS ---
 
+                    // Helper for safe value retrieval
+                    const getVal = (id, def) => {
+                        const el = document.getElementById(id);
+                        return el ? parseInt(el.value) : def;
+                    };
+
                     // 1. RUST (Between Sets)
                     if (setIdx < numSets - 1) {
-                        const restVal = document.getElementById('restSec').value || 15;
+                        const restVal = getVal('restSec', 15);
                         const restRow = document.createElement('div');
-                        restRow.style.cssText = 'margin-bottom:6px; background:rgba(0,0,0,0.2); border-radius:4px; padding:4px 12px; display:flex; justify-content:center; align-items:center; color:#FF9F0A; font-size:10px; font-weight:bold; letter-spacing:1px; border:1px dashed rgba(255, 159, 10, 0.3);';
-                        restRow.innerText = `RUST (${restVal}s)`;
+                        // Styling matches Live Schedule "Bar" look
+                        restRow.className = 'schedule-item';
+                        restRow.style.cssText = 'margin-bottom:6px; background:#1c1c1e; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #FF9F0A; font-family: monospace; font-size: 13px; color: #ccc;';
+                        restRow.innerHTML = `
+                            <span style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:16px;">💤</span>
+                                <span style="font-weight:600; color:#FF9F0A;">RUST</span>
+                            </span>
+                            <span style="font-weight:bold; color:#fff;">${restVal}s</span>
+                        `;
                         exerciseListContainer.appendChild(restRow);
                     }
                 }
 
                 // 2. WISSEL (Between Exercises)
                 if (exIdx < numExercises - 1) {
-                    const switchVal = document.getElementById('exerciseRestSec').value || 45;
+                    const getVal = (id, def) => { const el = document.getElementById(id); return el ? parseInt(el.value) : def; };
+                    const switchVal = getVal('exerciseRestSec', 45);
                     const switchRow = document.createElement('div');
-                    switchRow.style.cssText = 'margin-bottom:15px; margin-top:10px; background:rgba(0,0,0,0.2); border-radius:4px; padding:6px 12px; display:flex; justify-content:center; align-items:center; color:#BF5AF2; font-size:10px; font-weight:bold; letter-spacing:1px; border:1px dashed rgba(191, 90, 242, 0.3);';
-                    switchRow.innerText = `WISSEL OEFENING (${switchVal}s)`;
+                    // Styling matches Live Schedule "Bar" look
+                    switchRow.className = 'schedule-item';
+                    switchRow.style.cssText = 'margin-bottom:15px; margin-top:10px; background:#1c1c1e; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #BF5AF2; font-family: monospace; font-size: 13px; color: #ccc;';
+                    switchRow.innerHTML = `
+                         <span style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:16px;">🔀</span>
+                            <span style="font-weight:600; color:#BF5AF2;">WISSEL</span>
+                        </span>
+                        <span style="font-weight:bold; color:#fff;">${switchVal}s</span>
+                    `;
                     exerciseListContainer.appendChild(switchRow);
                 }
             }
