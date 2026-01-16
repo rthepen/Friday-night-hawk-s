@@ -104,6 +104,8 @@
         .container {
             padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom)) 10px;
             height: 100%;
+            width: 100%;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -161,10 +163,12 @@
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #222;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .app-header {
-            font-size: 18px;
+            font-size: clamp(14px, 4vw, 18px);
             font-weight: 900;
             color: #fff;
             text-transform: uppercase;
@@ -187,6 +191,8 @@
         .header-buttons {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .btn-header {
@@ -2585,7 +2591,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.44"; // Auto-hydration update
+        const APP_VERSION = "1.32.27"; // Restored & Incremented
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
