@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.15"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.16"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -6847,13 +6847,17 @@
 
                     // Update Duration
                     // Update Duration
-                    if (item.type === 'work') {
+                    // Update Duration: ENABLE EDIT FOR WORK AND REST
+                    // Types allowed: work, rest, rest-exercise, rest-long
+                    const editableTypes = ['work', 'rest', 'rest-exercise', 'rest-long'];
+
+                    if (editableTypes.includes(item.type)) {
                         tr.children[2].innerHTML = '';
                         const inp = document.createElement('input');
                         inp.type = 'number';
                         inp.value = dur;
-                        inp.onfocus = () => { inp.select(); }; // User convenience
-                        inp.className = 'no-drag'; // Prevent drag issues if any
+                        inp.onfocus = () => { inp.select(); };
+                        inp.className = 'no-drag';
                         inp.style.width = '50px';
                         inp.style.textAlign = 'center';
                         inp.style.background = 'transparent';
@@ -6867,25 +6871,28 @@
 
                         inp.onchange = (e) => {
                             const val = parseInt(e.target.value);
-                            if (val && val >= 5) {
-                                schedule.forEach((s, idx) => {
-                                    // Update ALL work steps (Past, Present, Future)
-                                    if (s.type === 'work') {
-                                        const oldInit = s.initialTime;
-                                        s.initialTime = val;
+                            // Validate: Must be positive number (>= 5s purely for sanity, but could allow lower)
+                            if (val && val >= 1) {
+                                // INDIVIDUAL UPDATE (No Propagation)
+                                const s = schedule[idx];
+                                const oldInit = s.initialTime;
+                                s.initialTime = val;
 
-                                        if (idx > currentIndex) {
-                                            s.time = val;
-                                        } else if (idx === currentIndex) {
-                                            s.time += (val - oldInit);
-                                            if (s.time < 0) s.time = 0;
-                                        }
-                                    }
-                                });
+                                if (idx > currentIndex) {
+                                    // Future step: simple update
+                                    s.time = val;
+                                } else if (idx === currentIndex) {
+                                    // Current step: adjust remaining time relative to change
+                                    // If we increase total by 10s, we add 10s to remaining.
+                                    s.time += (val - oldInit);
+                                    if (s.time < 0) s.time = 0;
+                                }
+                                // Past steps: Only initialTime is updated (for records), time usually 0.
+
                                 renderLiveSchedule(true);
                                 triggerAudio('manual_override', "Tijd aangepast");
                             } else {
-                                // Invalid or empty: Revert to current duration
+                                // Invalid: Revert
                                 e.target.value = dur;
                             }
                         };
