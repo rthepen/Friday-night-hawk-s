@@ -2627,7 +2627,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.49"; // Updated Station Cards Layout
+        const APP_VERSION = "1.32.50"; // Updated Station Cards Layout
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9362,7 +9362,7 @@
                         let videoUrl = "";
                         let thumbUrl = "";
 
-                        // 1. Custom Details
+                        // 1. Custom Details (Fallback)
                         if (typeof customDetails !== 'undefined' && customDetails[uniqueId]) {
                             if (customDetails[uniqueId].mat) matName = customDetails[uniqueId].mat;
                             if (customDetails[uniqueId].matDesc) matDesc = customDetails[uniqueId].matDesc;
@@ -9371,14 +9371,14 @@
                             if (customDetails[uniqueId].thumbUrl) thumbUrl = customDetails[uniqueId].thumbUrl;
                         }
 
-                        // 2. DB Lookup
+                        // 2. DB Lookup (Primary - Overrides Custom if found)
                         const dbItem = WORKOUT_DB.find(item => item.exercise_name === exName);
                         if (dbItem) {
-                            if (matName === "MATERIAAL ONBEKEND") matName = dbItem.material_name || matName;
-                            if (matDesc === "Geen beschrijving") matDesc = dbItem.material_description || matDesc;
-                            if (instructions === "Geen instructies beschikbaar.") instructions = dbItem.instructions || instructions;
-                            if (!videoUrl) videoUrl = dbItem.video_search_url || "";
-                            if (!thumbUrl) thumbUrl = dbItem.thumbnail || "";
+                            matName = dbItem.material_name || matName;
+                            matDesc = dbItem.material_description || matDesc;
+                            instructions = dbItem.instructions || instructions;
+                            videoUrl = dbItem.video_search_url || videoUrl;
+                            thumbUrl = dbItem.thumbnail || thumbUrl;
                         }
 
                         // Preload Image (if external)
