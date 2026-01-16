@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.42"; // Move Close Button
+        const APP_VERSION = "1.32.43"; // Move Close Button
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8125,6 +8125,7 @@
                 workoutDatabase = data;
                 console.log("Workout Database Loaded:", workoutDatabase.length, "items");
                 populateExerciseDatalist(); // Populate datalist on load
+                hydrateMissingDetails(); // Auto-fill details for existing exercises
             })
             .catch(err => console.error("Failed to load workout database:", err));
 
@@ -8142,6 +8143,56 @@
                 const opt = document.createElement('option');
                 opt.value = name;
                 dl.appendChild(opt);
+            });
+        }
+
+        // AUTO-HYDRATION FUNCTION
+        function hydrateMissingDetails() {
+            console.log("Starting hydration of missing details...");
+            let updatesMade = false;
+
+            // Iterate over all possible round/exercise keys in customNames (which tracks all exercise names)
+            Object.keys(customNames).forEach(key => {
+                const exerciseName = customNames[key];
+                if (!exerciseName) return;
+
+                // Check if details are missing
+                const hasDetails = customDetails[key] && (customDetails[key].desc || customDetails[key].mat || customDetails[key].thumbUrl);
+
+                // If missing details (or we want to force check, but let's stick to missing for now or if just name exists)
+                if (!hasDetails) {
+                    const match = workoutDatabase.find(e => e.exercise_name.toLowerCase() === exerciseName.toLowerCase());
+                    if (match) {
+                        if (!customDetails[key]) customDetails[key] = {};
+
+                        customDetails[key].desc = match.instructions || '';
+                        customDetails[key].mat = match.material_name || '';
+                        customDetails[key].matDesc = match.material_description || '';
+                        customDetails[key].thumbUrl = match.thumbnail || '';
+                        customDetails[key].videoUrl = match.video_search_url || '';
+                        customDetails[key].checkNum = match.check_number || '';
+
+                        updatesMade = true;
+                        console.log(`Hydrated ${key}: ${exerciseName}`);
+                    }
+                }
+            });
+
+            if (updatesMade) {
+                saveToLocal();
+                console.log("Hydration complete. Saving and re-rendering...");
+                // Re-render all rounds to show new details
+                renderAllRounds();
+            } else {
+                console.log("Hydration complete. No updates needed.");
+            }
+        }
+
+        function renderAllRounds() {
+            // Re-render visible round cards if they exist
+            const roundCards = document.querySelectorAll('.round-card');
+            roundCards.forEach((card, idx) => {
+                renderRoundExerciseList(idx);
             });
         }
 
