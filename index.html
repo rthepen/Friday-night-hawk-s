@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.40"; // Move Close Button
+        const APP_VERSION = "1.32.41"; // Move Close Button
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8401,7 +8401,33 @@
 
                     thumbImg.onclick = function () {
                         const url = this.getAttribute('data-video-url');
-                        if (url) window.open(url, '_blank');
+                        if (!url) return;
+
+                        // Extract ID (Standard YouTube formats)
+                        let videoId = null;
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                        const match = url.match(regExp);
+                        if (match && match[2].length == 11) {
+                            videoId = match[2];
+                        }
+
+                        if (videoId) {
+                            // Create Iframe
+                            const iframe = document.createElement('iframe');
+                            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                            iframe.style.width = '100%';
+                            iframe.style.height = '140px';
+                            iframe.style.border = 'none';
+                            iframe.style.borderRadius = '8px';
+                            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                            iframe.allowFullscreen = true;
+
+                            // Swap
+                            this.style.display = 'none';
+                            thumbContainer.insertBefore(iframe, this); // Insert before implies it takes the spot, logic valid
+                        } else {
+                            window.open(url, '_blank');
+                        }
                     };
 
                     // Hover Effect (via JS since inline)
