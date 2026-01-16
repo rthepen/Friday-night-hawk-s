@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.35"; // Smart Exercise Menu
+        const APP_VERSION = "1.32.37"; // Smart Menu Fix
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8850,6 +8850,9 @@
             trigger.innerHTML = '▼'; // Down arrow
             trigger.onclick = (e) => {
                 e.stopPropagation();
+                // REFRESH DATA ON OPEN
+                const dropdown = document.getElementById(`menu-dropdown-${uniqueId}`);
+                populateExerciseMenu(dropdown, uniqueId, roundIndex, exIdx, setIdx);
                 toggleExerciseMenu(uniqueId);
             };
 
@@ -8884,11 +8887,19 @@
             }
         });
 
-        function populateExerciseMenu(dropdown, uniqueId, roundIndex, exIdx, setIdx) {
+        async function populateExerciseMenu(dropdown, uniqueId, roundIndex, exIdx, setIdx) {
             dropdown.innerHTML = '';
 
+            // Auto-fetch if empty
+            if (allExercises.length === 0) {
+                dropdown.innerHTML = '<div style="padding:10px; color:#aaa;">Laden...</div>';
+                await fetchWorkoutData();
+            }
+
+            console.log(`Populating Menu [${uniqueId}]. Total: ${allExercises.length}, SelectedFilters:`, Array.from(selectedMaterials));
+
             // Filter exercises based on global 'selectedMaterials'
-            // If no materials selected, show all (or limit to top 20 for perf?)
+            // If no materials selected, show all
             let filtered = allExercises;
 
             if (selectedMaterials.size > 0) {
