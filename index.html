@@ -11,6 +11,7 @@
     <!-- script src="workout_data.js"></script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         // FIX: Ensure jsPDF is available globally for autotable
         window.jsPDF = window.jspdf.jsPDF;
@@ -1997,6 +1998,8 @@
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
+                <button class="btn-header" style="background:#ddd; color:#000;" onclick="openPrintMenu()">🖨️
+                    Cards</button>
                 <button class="btn-header btn-dumbbell" onclick="openMaterialModal()"><span>🏋️</span></button>
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
                     onclick="applyTabataPreset()">⏱️ Tabata</button>
@@ -2586,12 +2589,45 @@
         </div>
     </div>
 
+    <!-- Print Station Cards Modal -->
+    <div id="print-modal" class="modal"
+        style="display:none; z-index:10001; justify-content:center; align-items:center;">
+        <div class="modal-content"
+            style="max-width:400px; text-align:left; background:#1c1c1e; border-radius:24px; padding:25px; border:1px solid #333;">
+            <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards Printen 🖨️</h3>
+
+            <label style="color:#aaa; font-size:12px; font-weight:bold; margin-top:15px; display:block;">Ronde
+                Selectie:</label>
+            <select id="print-round-select" class="text-input"
+                style="width:100%; margin-bottom:15px; background:#111; color:white; border:1px solid #333; padding:10px; border-radius:8px;">
+                <!-- Populated by JS -->
+            </select>
+
+            <label style="color:#aaa; font-size:12px; font-weight:bold; display:block;">Sets Modus:</label>
+            <select id="print-set-mode" class="text-input"
+                style="width:100%; margin-bottom:25px; background:#111; color:white; border:1px solid #333; padding:10px; border-radius:8px;">
+                <option value="first">Alleen Eerste Set (1 kaart p/oef)</option>
+                <option value="all">Alle Sets (Meerdere kaarten)</option>
+            </select>
+
+            <button class="modal-btn" style="background:#30D158; color:black; text-align:center; font-weight:900;"
+                onclick="startPrintJob()">
+                Genereren (PDF Downloaden)
+            </button>
+            <button class="modal-btn"
+                style="background:transparent; border:1px solid #333; color:#aaa; margin-top:10px; text-align:center;"
+                onclick="document.getElementById('print-modal').style.display='none'">
+                Annuleren
+            </button>
+        </div>
+    </div>
+
 
 
 
 
     <script>
-        const APP_VERSION = "1.32.45"; // Restored & Incremented
+        const APP_VERSION = "1.32.46"; // Restored & Incremented
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9205,5 +9241,165 @@
         }
     </script>
 </body>
+
+/* --- STATION CARDS PDF LOGIC --- */
+function openPrintMenu() {
+const modal = document.getElementById('print-modal');
+if(!modal) return;
+
+// Populate Rounds
+const roundSelect = document.getElementById('print-round-select');
+roundSelect.innerHTML = '';
+const totalRounds = parseInt(document.getElementById('rounds').value) || 1;
+
+// All Option
+const optAll = document.createElement('option');
+optAll.value = 'all';
+optAll.innerText = `Alle ${totalRounds} Rondes`;
+roundSelect.appendChild(optAll);
+
+// Individual Rounds
+for(let r=1; r<=totalRounds; r++) { const opt=document.createElement('option'); opt.value=r; opt.innerText=`Ronde ${r}`;
+    roundSelect.appendChild(opt); } modal.style.display='flex' ; } async function startPrintJob() { const
+    roundVal=document.getElementById('print-round-select').value; const
+    setMode=document.getElementById('print-set-mode').value; // 'first' or 'all' const
+    totalRounds=parseInt(document.getElementById('rounds').value) || 1; // Mock Data Fallback (Self-Correction for
+    testing) // If DB is empty, fill with mock data so the user can test immediately if((!WORKOUT_DB ||
+    WORKOUT_DB.length===0)) { console.log("Database empty, using Mock Data for PDF Test"); WORKOUT_DB=[ {
+    exercise_name: "Mock Squat" , material_name: "Kettlebell" , material_description: "16kg" ,
+    instructions: "Diep zakken, rug recht." , video_search_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }, {
+    exercise_name: "Mock Pushup" , material_name: "Eigen start" , material_description: "Geen" ,
+    instructions: "Borst naar de vloer." , video_search_url: "" } ]; } await generateStationCards(roundVal, setMode);
+    document.getElementById('print-modal').style.display='none' ; } async function generateStationCards(targetRound,
+    setMode) { if (!window.jsPDF) { alert("jsPDF library niet geladen!"); return; } const doc=new window.jsPDF({
+    orientation: 'landscape' , unit: 'mm' , format: 'a4' }); const roundsToProcess=targetRound==='all' ?
+    Array.from({length: parseInt(document.getElementById('rounds').value)}, (_, i)=> i + 1)
+    : [parseInt(targetRound)];
+
+    let pageAdded = false;
+    let cardCount = 0;
+
+    // QR Code Generator Helper (Using qrcode.js)
+    const generateQR = (url) => {
+    if(!url) return null;
+    const div = document.createElement('div');
+    // qrcode.js renders synchronously usually
+    try {
+    new QRCode(div, { text: url, width: 256, height: 256 });
+    const canvas = div.querySelector('canvas');
+    if (canvas) return canvas.toDataURL('image/png');
+    // Fallback for older browsers if img is used
+    const img = div.querySelector('img');
+    if (img) return img.src;
+    } catch(e) {
+    console.error("QR Gen Error:", e);
+    }
+    return null;
+    };
+
+    const exCount = parseInt(document.getElementById('exercises').value) || 1;
+    const setsCount = parseInt(document.getElementById('sets').value) || 1;
+
+    for (const r of roundsToProcess) {
+    for (let e = 1; e <= exCount; e++) { const setsToProcess=setMode==='first' ? [1] : Array.from({length: setsCount},
+        (_, i)=> i + 1);
+
+        for (const s of setsToProcess) {
+        // Get Name
+        let exName = `Exercise ${e}`;
+        if (typeof roundExercises !== 'undefined' && roundExercises[r] && roundExercises[r][e] &&
+        roundExercises[r][e][s]) {
+        exName = roundExercises[r][e][s];
+        }
+
+        // Get Details (Try customDetails first, then DB)
+        const uniqueId = `r${r}-e${e}-s${s}`;
+        let matName = "MATERIAAL ONBEKEND";
+        let matDesc = "Geen beschrijving";
+        let instructions = "Geen instructies beschikbaar.";
+        let videoUrl = "";
+
+        // 1. Try Custom Details (Live Edits)
+        if (typeof customDetails !== 'undefined' && customDetails[uniqueId]) {
+        if(customDetails[uniqueId].mat) matName = customDetails[uniqueId].mat;
+        if(customDetails[uniqueId].matDesc) matDesc = customDetails[uniqueId].matDesc;
+        if(customDetails[uniqueId].desc) instructions = customDetails[uniqueId].desc;
+        if(customDetails[uniqueId].videoUrl) videoUrl = customDetails[uniqueId].videoUrl;
+        }
+
+        // 2. Try DB Lookup if we still look like default or if we just want to enhance
+        // Note: If customDetails has data, we usually trust it. But if it lacks specific fields, we might fallback.
+        // Here we prioritize customDetails fully if present for that field.
+
+        const dbItem = WORKOUT_DB.find(item => item.exercise_name === exName);
+        if (dbItem) {
+        if (matName === "MATERIAAL ONBEKEND") matName = dbItem.material_name || matName;
+        if (matDesc === "Geen beschrijving") matDesc = dbItem.material_description || matDesc;
+        if (instructions === "Geen instructies beschikbaar.") instructions = dbItem.instructions || instructions;
+        if (!videoUrl) videoUrl = dbItem.video_search_url || "";
+        }
+
+        // Add Page
+        if (pageAdded) doc.addPage();
+        pageAdded = true;
+        cardCount++;
+
+        // --- DESIGN (A4 Landscape: 297x210mm) ---
+        const width = 297;
+        const height = 210;
+
+        // Top Left: Huge Exercise Number
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(80);
+        doc.setTextColor(220, 220, 220); // Very Light Grey
+        doc.text(`${e < 10 ? '0' +e : e}`, 15, 35); // Big Index // Top Right: QR Code if (videoUrl) { const
+            qrData=generateQR(videoUrl); if (qrData) { doc.addImage(qrData, 'PNG' , width - 45, 10, 35, 35);
+            doc.setFontSize(9); doc.setTextColor(0, 0, 0); doc.text("SCAN VIDEO", width - 45, 49, { align: 'left' }); }
+            } // Center: Exercise Name doc.setFont("helvetica", "bold" ); doc.setFontSize(40); doc.setTextColor(0, 0,
+            0); // Split long names const splitName=doc.splitTextToSize(exName, width - 60); // Vertical align
+            calculation let textY=70; if (splitName.length> 1) textY = 60;
+
+            doc.text(splitName, width / 2, textY, { align: 'center' });
+
+            // Green Bar (Material)
+            const barY = textY + (splitName.length * 15) + 5;
+            doc.setFillColor(48, 209, 88); // #30D158 Green
+            doc.rect(20, barY, width - 40, 20, 'F');
+
+            doc.setFontSize(20);
+            doc.setTextColor(0, 0, 0); // Black on Green
+            doc.text((matName || "").toUpperCase(), width / 2, barY + 13, { align: 'center' });
+
+            // Material Description
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(14);
+            doc.setTextColor(80, 80, 80);
+            doc.text(matDesc || "", width / 2, barY + 28, { align: 'center' });
+
+            // Bottom: Instructions
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 0);
+
+            const instrY = barY + 45;
+            const splitInstr = doc.splitTextToSize(instructions, width - 40);
+            doc.text(splitInstr, 20, instrY);
+
+            // Footer
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Ronde ${r} - Oefening ${e} - Set ${s} | Friday-night-hawk-s Station Card`, 20, height - 10);
+            }
+            }
+            }
+
+            if(cardCount > 0) {
+            doc.save(`StationCards_${new Date().toISOString().slice(0,10)}.pdf`);
+            } else {
+            alert("Geen kaarten gegenereerd. Check selectie.");
+            }
+            }
+            </script>
+            </body>
 
 </html>
