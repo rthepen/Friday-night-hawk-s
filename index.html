@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.21"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.22"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -6847,17 +6847,13 @@
 
                     // Update Duration
                     // Update Duration
-                    // Update Duration: ENABLE EDIT FOR WORK AND REST
-                    // Types allowed: work, rest, rest-exercise, rest-long
-                    const editableTypes = ['work', 'rest', 'rest-exercise', 'rest-long'];
-
-                    if (editableTypes.includes(item.type)) {
+                    if (item.type === 'work') {
                         tr.children[2].innerHTML = '';
                         const inp = document.createElement('input');
                         inp.type = 'number';
                         inp.value = dur;
-                        inp.onfocus = () => { inp.select(); };
-                        inp.className = 'no-drag';
+                        inp.onfocus = () => { inp.select(); }; // User convenience
+                        inp.className = 'no-drag'; // Prevent drag issues if any
                         inp.style.width = '50px';
                         inp.style.textAlign = 'center';
                         inp.style.background = 'transparent';
@@ -6871,28 +6867,25 @@
 
                         inp.onchange = (e) => {
                             const val = parseInt(e.target.value);
-                            // Validate: Must be positive number (>= 5s purely for sanity, but could allow lower)
-                            if (val && val >= 1) {
-                                // INDIVIDUAL UPDATE (No Propagation)
-                                const s = schedule[idx];
-                                const oldInit = s.initialTime;
-                                s.initialTime = val;
+                            if (val && val >= 5) {
+                                schedule.forEach((s, idx) => {
+                                    // Update ALL work steps (Past, Present, Future)
+                                    if (s.type === 'work') {
+                                        const oldInit = s.initialTime;
+                                        s.initialTime = val;
 
-                                if (idx > currentIndex) {
-                                    // Future step: simple update
-                                    s.time = val;
-                                } else if (idx === currentIndex) {
-                                    // Current step: adjust remaining time relative to change
-                                    // If we increase total by 10s, we add 10s to remaining.
-                                    s.time += (val - oldInit);
-                                    if (s.time < 0) s.time = 0;
-                                }
-                                // Past steps: Only initialTime is updated (for records), time usually 0.
-
+                                        if (idx > currentIndex) {
+                                            s.time = val;
+                                        } else if (idx === currentIndex) {
+                                            s.time += (val - oldInit);
+                                            if (s.time < 0) s.time = 0;
+                                        }
+                                    }
+                                });
                                 renderLiveSchedule(true);
                                 triggerAudio('manual_override', "Tijd aangepast");
                             } else {
-                                // Invalid: Revert
+                                // Invalid or empty: Revert to current duration
                                 e.target.value = dur;
                             }
                         };
@@ -7972,287 +7965,245 @@
 
                     rowWrapper.appendChild(detailsDiv);
                     exerciseListContainer.appendChild(rowWrapper);
-
-                    // --- INJECT REST / SWITCH ROWS ---
-
-                    // Helper for safe value retrieval
-                    const getVal = (id, def) => {
-                        const el = document.getElementById(id);
-                        return el ? parseInt(el.value) : def;
-                    };
-
-                    // 1. RUST (Between Sets)
-                    if (setIdx < numSets - 1) {
-                        const restVal = getVal('restSec', 15);
-                        const restRow = document.createElement('div');
-                        // Styling matches Live Schedule "Bar" look
-                        restRow.className = 'schedule-item';
-                        restRow.style.cssText = 'margin-bottom:6px; background:#1c1c1e; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #FF9F0A; font-family: monospace; font-size: 13px; color: #ccc;';
-                        restRow.innerHTML = `
-                            <span style="display:flex; align-items:center; gap:8px;">
-                                <span style="font-size:16px;">💤</span>
-                                <span style="font-weight:600; color:#FF9F0A;">RUST</span>
-                            </span>
-                            <span style="font-weight:bold; color:#fff;">${restVal}s</span>
-                        `;
-                        exerciseListContainer.appendChild(restRow);
-                    }
-                }
-
-                // 2. WISSEL (Between Exercises)
-                if (exIdx < numExercises - 1) {
-                    const getVal = (id, def) => { const el = document.getElementById(id); return el ? parseInt(el.value) : def; };
-                    const switchVal = getVal('exerciseRestSec', 45);
-                    const switchRow = document.createElement('div');
-                    // Styling matches Live Schedule "Bar" look
-                    switchRow.className = 'schedule-item';
-                    switchRow.style.cssText = 'margin-bottom:15px; margin-top:10px; background:#1c1c1e; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #BF5AF2; font-family: monospace; font-size: 13px; color: #ccc;';
-                    switchRow.innerHTML = `
-                         <span style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:16px;">🔀</span>
-                            <span style="font-weight:600; color:#BF5AF2;">WISSEL</span>
-                        </span>
-                        <span style="font-weight:bold; color:#fff;">${switchVal}s</span>
-                    `;
-                    exerciseListContainer.appendChild(switchRow);
                 }
             }
+        }
 
-            // --- NEW HELPER FUNCTIONS ---
+        // --- NEW HELPER FUNCTIONS ---
 
-            function toggleExerciseDetails(uniqueId) {
-                const details = document.getElementById(`details-${uniqueId}`);
-                const arrow = document.getElementById(`arrow-${uniqueId}`);
+        function toggleExerciseDetails(uniqueId) {
+            const details = document.getElementById(`details-${uniqueId}`);
+            const arrow = document.getElementById(`arrow-${uniqueId}`);
 
-                if (details.style.display === 'none') {
-                    details.style.display = 'flex';
-                    arrow.innerHTML = '▼'; // Down arrow
-                    arrow.style.color = '#30D158';
-                } else {
-                    details.style.display = 'none';
-                    arrow.innerHTML = '▶'; // Right arrow
-                    arrow.style.color = '#888';
-                }
+            if (details.style.display === 'none') {
+                details.style.display = 'flex';
+                arrow.innerHTML = '▼'; // Down arrow
+                arrow.style.color = '#30D158';
+            } else {
+                details.style.display = 'none';
+                arrow.innerHTML = '▶'; // Right arrow
+                arrow.style.color = '#888';
             }
+        }
 
-            function updateExerciseDetail(uniqueId, field, value) {
+        function updateExerciseDetail(uniqueId, field, value) {
+            if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+            customDetails[uniqueId][field] = value;
+            saveToLocal();
+        }
+
+        function autoLoadFromCheckNumber(checkNum, uniqueId, roundIdx, exIdx, setIdx) {
+            console.log('autoLoadFromCheckNumber called for uniqueId:', uniqueId, 'checkNum:', checkNum);
+            if (!checkNum || !workoutDatabase) return;
+
+            const match = workoutDatabase.find(ex => ex.check_number === checkNum);
+            if (match) {
+                const newName = match.exercise_name || '';
+                if (newName) {
+                    updateExerciseSlot(roundIdx, exIdx, setIdx, newName);
+                    const headerDiv = document.getElementById(`details-${uniqueId}`)?.previousElementSibling;
+                    const nameSpan = headerDiv?.querySelector('span[contenteditable]');
+                    if (nameSpan) nameSpan.innerText = newName;
+                    console.log(`Updated exercise name for ${uniqueId}:`, newName);
+                }
+
+                // Update Storage directly
                 if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
-                customDetails[uniqueId][field] = value;
+                customDetails[uniqueId].checkNum = checkNum;
+                customDetails[uniqueId].desc = match.instructions || '';
+                customDetails[uniqueId].mat = match.material_name || '';
+                customDetails[uniqueId].matDesc = match.material_description || '';
+                customDetails[uniqueId].thumbUrl = match.thumbnail || '';
+                customDetails[uniqueId].videoUrl = match.video_search_url || '';
                 saveToLocal();
-            }
 
-            function autoLoadFromCheckNumber(checkNum, uniqueId, roundIdx, exIdx, setIdx) {
-                console.log('autoLoadFromCheckNumber called for uniqueId:', uniqueId, 'checkNum:', checkNum);
-                if (!checkNum || !workoutDatabase) return;
-
-                const match = workoutDatabase.find(ex => ex.check_number === checkNum);
-                if (match) {
-                    const newName = match.exercise_name || '';
-                    if (newName) {
-                        updateExerciseSlot(roundIdx, exIdx, setIdx, newName);
-                        const headerDiv = document.getElementById(`details-${uniqueId}`)?.previousElementSibling;
-                        const nameSpan = headerDiv?.querySelector('span[contenteditable]');
-                        if (nameSpan) nameSpan.innerText = newName;
-                        console.log(`Updated exercise name for ${uniqueId}:`, newName);
-                    }
-
-                    // Update Storage directly
-                    if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
-                    customDetails[uniqueId].checkNum = checkNum;
-                    customDetails[uniqueId].desc = match.instructions || '';
-                    customDetails[uniqueId].mat = match.material_name || '';
-                    customDetails[uniqueId].matDesc = match.material_description || '';
-                    customDetails[uniqueId].thumbUrl = match.thumbnail || '';
-                    customDetails[uniqueId].videoUrl = match.video_search_url || '';
-                    saveToLocal();
-
-                    // Populate UI fields
-                    setTimeout(() => {
-                        const descElem = document.getElementById(`desc-${uniqueId}`);
-                        if (descElem) descElem.value = match.instructions || '';
-                        const matElem = document.getElementById(`mat-${uniqueId}`);
-                        if (matElem) matElem.value = match.material_name || '';
-                        const matDescElem = document.getElementById(`matdesc-${uniqueId}`);
-                        if (matDescElem) matDescElem.value = match.material_description || '';
-                        const thumbUrl = match.thumbnail || '';
-                        const thumbInput = document.getElementById(`thumb-url-${uniqueId}`);
-                        if (thumbInput) thumbInput.value = thumbUrl;
-                        const img = document.getElementById(`img-${uniqueId}`);
-                        if (img) {
-                            if (thumbUrl) {
-                                img.src = thumbUrl;
-                                img.style.display = 'block';
-                                if (match.video_search_url) {
-                                    img.setAttribute('data-video-url', match.video_search_url);
-                                    img.title = "Klik om video te openen";
-                                }
-                            } else {
-                                img.style.display = 'none';
+                // Populate UI fields
+                setTimeout(() => {
+                    const descElem = document.getElementById(`desc-${uniqueId}`);
+                    if (descElem) descElem.value = match.instructions || '';
+                    const matElem = document.getElementById(`mat-${uniqueId}`);
+                    if (matElem) matElem.value = match.material_name || '';
+                    const matDescElem = document.getElementById(`matdesc-${uniqueId}`);
+                    if (matDescElem) matDescElem.value = match.material_description || '';
+                    const thumbUrl = match.thumbnail || '';
+                    const thumbInput = document.getElementById(`thumb-url-${uniqueId}`);
+                    if (thumbInput) thumbInput.value = thumbUrl;
+                    const img = document.getElementById(`img-${uniqueId}`);
+                    if (img) {
+                        if (thumbUrl) {
+                            img.src = thumbUrl;
+                            img.style.display = 'block';
+                            if (match.video_search_url) {
+                                img.setAttribute('data-video-url', match.video_search_url);
+                                img.title = "Klik om video te openen";
                             }
+                        } else {
+                            img.style.display = 'none';
                         }
-                        console.log(`Populated fields for ${uniqueId}`);
-                    }, 0);
-                }
+                    }
+                    console.log(`Populated fields for ${uniqueId}`);
+                }, 0);
+            }
+        }
+
+        // Update an exercise slot with smart propagation (same logic as before)
+        function updateExerciseSlot(roundIdx, exIdx, setIdx, exerciseName) {
+            // Initialize data structures if needed
+            if (!roundExercises[roundIdx]) {
+                roundExercises[roundIdx] = {};
+            }
+            if (!roundExercises[roundIdx][exIdx]) {
+                roundExercises[roundIdx][exIdx] = {};
             }
 
-            // Update an exercise slot with smart propagation (same logic as before)
-            function updateExerciseSlot(roundIdx, exIdx, setIdx, exerciseName) {
-                // Initialize data structures if needed
-                if (!roundExercises[roundIdx]) {
-                    roundExercises[roundIdx] = {};
-                }
-                if (!roundExercises[roundIdx][exIdx]) {
-                    roundExercises[roundIdx][exIdx] = {};
-                }
+            // Get total number of sets
+            const roundCard = document.getElementById(`round-card-${roundIdx}`);
+            const setsInput = roundCard ? roundCard.querySelector('input[onchange*="\'sets\'"]') : null;
+            const totalSets = setsInput ? parseInt(setsInput.value) : 3;
 
-                // Get total number of sets
-                const roundCard = document.getElementById(`round-card-${roundIdx}`);
-                const setsInput = roundCard ? roundCard.querySelector('input[onchange*="\'sets\'"]') : null;
-                const totalSets = setsInput ? parseInt(setsInput.value) : 3;
-
-                // Smart propagation logic
-                if (setIdx === 0) {
-                    // Editing Set 1 - propagate to all sets
-                    for (let s = 0; s < totalSets; s++) {
-                        roundExercises[roundIdx][exIdx][s] = exerciseName;
-                        // Sync to customNames for Volledig Schema
-                        const key = `r${roundIdx + 1}-e${exIdx + 1}-s${s + 1}`;
-                        customNames[key] = exerciseName;
-                    }
-                    console.log(`Updated Exercise ${exIdx + 1}, ALL SETS to: ${exerciseName}`);
-                } else {
-                    // Editing Set 2+ - only update this specific set
-                    roundExercises[roundIdx][exIdx][setIdx] = exerciseName;
+            // Smart propagation logic
+            if (setIdx === 0) {
+                // Editing Set 1 - propagate to all sets
+                for (let s = 0; s < totalSets; s++) {
+                    roundExercises[roundIdx][exIdx][s] = exerciseName;
                     // Sync to customNames for Volledig Schema
-                    const key = `r${roundIdx + 1}-e${exIdx + 1}-s${setIdx + 1}`;
+                    const key = `r${roundIdx + 1}-e${exIdx + 1}-s${s + 1}`;
                     customNames[key] = exerciseName;
-                    console.log(`Updated Exercise ${exIdx + 1}, Set ${setIdx + 1} to: ${exerciseName}`);
                 }
-
-                // Save to localStorage
-                saveToLocal();
-
-                // Re-render the exercise list for this round
-                renderRoundExerciseList(roundIdx);
+                console.log(`Updated Exercise ${exIdx + 1}, ALL SETS to: ${exerciseName}`);
+            } else {
+                // Editing Set 2+ - only update this specific set
+                roundExercises[roundIdx][exIdx][setIdx] = exerciseName;
+                // Sync to customNames for Volledig Schema
+                const key = `r${roundIdx + 1}-e${exIdx + 1}-s${setIdx + 1}`;
+                customNames[key] = exerciseName;
+                console.log(`Updated Exercise ${exIdx + 1}, Set ${setIdx + 1} to: ${exerciseName}`);
             }
 
-            // Initialize exercise lists for all round cards when page loads
-            function initializeRoundExerciseLists() {
-                console.log('Initializing round exercise lists...');
+            // Save to localStorage
+            saveToLocal();
 
-                // SYNC: Copy customNames to roundExercises on page load
-                // This ensures existing data from Volledig Schema appears in inline lists
-                if (customNames && Object.keys(customNames).length > 0) {
-                    console.log('Syncing customNames to roundExercises...');
-                    for (let roundIdx = 0; roundIdx < workoutRounds.length; roundIdx++) {
-                        const roundNum = roundIdx + 1;
-                        const round = workoutRounds[roundIdx];
-                        const numExercises = round.exercises || 5;
-                        const numSets = round.sets || 3;
+            // Re-render the exercise list for this round
+            renderRoundExerciseList(roundIdx);
+        }
 
-                        if (!roundExercises[roundIdx]) {
-                            roundExercises[roundIdx] = {};
-                        }
+        // Initialize exercise lists for all round cards when page loads
+        function initializeRoundExerciseLists() {
+            console.log('Initializing round exercise lists...');
 
-                        for (let ex = 0; ex < numExercises; ex++) {
-                            const exNum = ex + 1;
-                            if (!roundExercises[roundIdx][ex]) {
-                                roundExercises[roundIdx][ex] = {};
-                            }
+            // SYNC: Copy customNames to roundExercises on page load
+            // This ensures existing data from Volledig Schema appears in inline lists
+            if (customNames && Object.keys(customNames).length > 0) {
+                console.log('Syncing customNames to roundExercises...');
+                for (let roundIdx = 0; roundIdx < workoutRounds.length; roundIdx++) {
+                    const roundNum = roundIdx + 1;
+                    const round = workoutRounds[roundIdx];
+                    const numExercises = round.exercises || 5;
+                    const numSets = round.sets || 3;
 
-                            for (let setIdx = 0; setIdx < numSets; setIdx++) {
-                                const setNum = setIdx + 1;
-                                const key = `r${roundNum}-e${exNum}-s${setNum}`;
-                                if (customNames[key]) {
-                                    roundExercises[roundIdx][ex][setIdx] = customNames[key];
-                                }
-                            }
-                        }
+                    if (!roundExercises[roundIdx]) {
+                        roundExercises[roundIdx] = {};
                     }
-                    console.log('Sync complete:', roundExercises);
-                }
 
-                // Function to render all visible round cards
-                function renderAllRounds() {
-                    const roundCards = document.querySelectorAll('[id^="round-card-"]');
-                    if (roundCards.length > 0) {
-                        console.log(`Found ${roundCards.length} round cards, rendering exercise lists...`);
-                        roundCards.forEach((card, index) => {
-                            // Only render if not already rendered or needs update
-                            const existingContainer = card.querySelector('.exercise-list-container');
-                            if (!existingContainer || existingContainer.children.length === 0) {
-                                renderRoundExerciseList(index);
+                    for (let ex = 0; ex < numExercises; ex++) {
+                        const exNum = ex + 1;
+                        if (!roundExercises[roundIdx][ex]) {
+                            roundExercises[roundIdx][ex] = {};
+                        }
+
+                        for (let setIdx = 0; setIdx < numSets; setIdx++) {
+                            const setNum = setIdx + 1;
+                            const key = `r${roundNum}-e${exNum}-s${setNum}`;
+                            if (customNames[key]) {
+                                roundExercises[roundIdx][ex][setIdx] = customNames[key];
                             }
-                        });
+                        }
                     }
                 }
+                console.log('Sync complete:', roundExercises);
+            }
 
-                // Initial render
-                renderAllRounds();
-
-                // Re-render when inputs change
-                document.addEventListener('input', function (e) {
-                    if (e.target.matches('[id^="round-card-"] input[onchange*="exercises"], [id^="round-card-"] input[onchange*="sets"]')) {
-                        const roundCard = e.target.closest('[id^="round-card-"]');
-                        if (roundCard) {
-                            const roundIndex = parseInt(roundCard.id.replace('round-card-', ''));
-                            if (!isNaN(roundIndex)) {
-                                // Delay to allow the value to update
-                                setTimeout(() => renderRoundExerciseList(roundIndex), 100);
-                            }
-                        }
-                    }
-                });
-
-                // Watch for DOM changes (when round blocks are rebuilt)
-                const observer = new MutationObserver(function (mutations) {
-                    let shouldRender = false;
-                    mutations.forEach(mutation => {
-                        // Check if round cards were added or modified
-                        if (mutation.addedNodes.length > 0) {
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === 1) { // Element node
-                                    if (node.id && node.id.startsWith('round-card-')) {
-                                        shouldRender = true;
-                                    } else if (node.querySelector && node.querySelector('[id^="round-card-"]')) {
-                                        shouldRender = true;
-                                    }
-                                }
-                            });
-                        }
-                    });
-
-                    if (shouldRender) {
-                        console.log('DOM changed - re-rendering exercise lists');
-                        setTimeout(renderAllRounds, 50);
-                    }
-                });
-
-                // Observe the document body for changes
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-
-                // Also periodically check and render (fallback in case observer misses something)
-                setInterval(function () {
-                    const roundCards = document.querySelectorAll('[id^="round-card-"]');
+            // Function to render all visible round cards
+            function renderAllRounds() {
+                const roundCards = document.querySelectorAll('[id^="round-card-"]');
+                if (roundCards.length > 0) {
+                    console.log(`Found ${roundCards.length} round cards, rendering exercise lists...`);
                     roundCards.forEach((card, index) => {
-                        const container = card.querySelector('.exercise-list-container');
-                        // Only re-render if container is missing
-                        if (!container) {
+                        // Only render if not already rendered or needs update
+                        const existingContainer = card.querySelector('.exercise-list-container');
+                        if (!existingContainer || existingContainer.children.length === 0) {
                             renderRoundExerciseList(index);
                         }
                     });
-                }, 1000); // Check every second
+                }
             }
 
-            // Initialize when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initializeRoundExerciseLists);
-            } else {
-                initializeRoundExerciseLists();
-            }
+            // Initial render
+            renderAllRounds();
+
+            // Re-render when inputs change
+            document.addEventListener('input', function (e) {
+                if (e.target.matches('[id^="round-card-"] input[onchange*="exercises"], [id^="round-card-"] input[onchange*="sets"]')) {
+                    const roundCard = e.target.closest('[id^="round-card-"]');
+                    if (roundCard) {
+                        const roundIndex = parseInt(roundCard.id.replace('round-card-', ''));
+                        if (!isNaN(roundIndex)) {
+                            // Delay to allow the value to update
+                            setTimeout(() => renderRoundExerciseList(roundIndex), 100);
+                        }
+                    }
+                }
+            });
+
+            // Watch for DOM changes (when round blocks are rebuilt)
+            const observer = new MutationObserver(function (mutations) {
+                let shouldRender = false;
+                mutations.forEach(mutation => {
+                    // Check if round cards were added or modified
+                    if (mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                if (node.id && node.id.startsWith('round-card-')) {
+                                    shouldRender = true;
+                                } else if (node.querySelector && node.querySelector('[id^="round-card-"]')) {
+                                    shouldRender = true;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                if (shouldRender) {
+                    console.log('DOM changed - re-rendering exercise lists');
+                    setTimeout(renderAllRounds, 50);
+                }
+            });
+
+            // Observe the document body for changes
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Also periodically check and render (fallback in case observer misses something)
+            setInterval(function () {
+                const roundCards = document.querySelectorAll('[id^="round-card-"]');
+                roundCards.forEach((card, index) => {
+                    const container = card.querySelector('.exercise-list-container');
+                    // Only re-render if container is missing
+                    if (!container) {
+                        renderRoundExerciseList(index);
+                    }
+                });
+            }, 1000); // Check every second
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeRoundExerciseLists);
+        } else {
+            initializeRoundExerciseLists();
+        }
 
 
 
