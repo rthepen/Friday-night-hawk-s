@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.41"; // Move Close Button
+        const APP_VERSION = "1.32.42"; // Move Close Button
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8124,8 +8124,26 @@
             .then(data => {
                 workoutDatabase = data;
                 console.log("Workout Database Loaded:", workoutDatabase.length, "items");
+                populateExerciseDatalist(); // Populate datalist on load
             })
             .catch(err => console.error("Failed to load workout database:", err));
+
+        function populateExerciseDatalist() {
+            let dl = document.getElementById('exercise-datalist');
+            if (!dl) {
+                dl = document.createElement('datalist');
+                dl.id = 'exercise-datalist';
+                document.body.appendChild(dl);
+            }
+            dl.innerHTML = '';
+            // unique names
+            const names = new Set(workoutDatabase.map(e => e.exercise_name));
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                dl.appendChild(opt);
+            });
+        }
 
         // INLINE ROUND EXERCISE EDITOR (NO POPUP)
 
@@ -8171,7 +8189,7 @@
 
                 for (let setIdx = 0; setIdx < numSets; setIdx++) {
                     const exerciseName = roundExercises[roundIndex][exIdx][setIdx] || '';
-                    const uniqueId = `r${roundIndex}-e${exIdx}-s${setIdx}`;
+                    const uniqueId = `r${roundIndex + 1}-e${exIdx + 1}-s${setIdx + 1}`;
 
                     // --- MAIN ROW WRAPPER ---
                     const rowWrapper = document.createElement('div');
@@ -8207,45 +8225,41 @@
                     label.innerText = `Oefening ${exIdx + 1}, Set ${setIdx + 1}`;
 
 
-                    const nameSpan = document.createElement('span');
-                    nameSpan.contentEditable = 'true';
-                    nameSpan.style.cssText = 'font-size:13px; color:' + (exerciseName === '' ? '#666' : '#fff') + '; font-weight:600; outline:none; cursor:text; padding:4px 8px; border-radius:4px; transition:all 0.2s; min-width: 100px;';
-                    nameSpan.innerText = exerciseName;
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'text';
+                    nameInput.setAttribute('list', 'exercise-datalist');
+                    nameInput.value = exerciseName;
+                    nameInput.style.cssText = 'font-size:13px; color:' + (exerciseName === '' ? '#666' : '#fff') + '; font-weight:600; outline:none; background:transparent; border:1px solid transparent; border-radius:4px; transition:all 0.2s; min-width: 100px; padding:4px 8px; font-family:inherit; width:100%;';
 
                     // Prevent row click when editing name
-                    nameSpan.onclick = (e) => e.stopPropagation();
+                    nameInput.onclick = (e) => e.stopPropagation();
 
-                    // Select all text on focus for easy replacement
-                    nameSpan.onfocus = () => {
-                        nameSpan.style.background = 'rgba(10,132,255,0.2)';
-                        nameSpan.style.color = '#fff';
-                        const range = document.createRange();
-                        range.selectNodeContents(nameSpan);
-                        const sel = window.getSelection();
-                        sel.removeAllRanges();
-                        sel.addRange(range);
+                    nameInput.onfocus = () => {
+                        nameInput.style.background = 'rgba(10,132,255,0.2)';
+                        nameInput.style.color = '#fff';
+                        nameInput.select();
                     };
 
-                    nameSpan.onblur = () => {
-                        nameSpan.style.background = 'transparent';
-                        const newExercise = nameSpan.innerText.trim();
+                    nameInput.onblur = () => {
+                        nameInput.style.background = 'transparent';
+                        const newExercise = nameInput.value.trim();
                         if (newExercise !== '' && newExercise !== exerciseName) {
                             updateExerciseSlot(roundIndex, exIdx, setIdx, newExercise);
                         } else if (newExercise === '') {
-                            nameSpan.innerText = exerciseName;
+                            nameInput.value = exerciseName;
                         }
                     };
 
-                    nameSpan.onkeydown = (e) => {
+                    nameInput.onkeydown = (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
-                            nameSpan.blur();
+                            nameInput.blur();
                         }
                     };
 
                     labelDiv.appendChild(arrowBtn);
                     labelDiv.appendChild(label);
-                    labelDiv.appendChild(nameSpan);
+                    labelDiv.appendChild(nameInput);
                     exerciseRow.appendChild(labelDiv);
 
                     // Time Input (Right Side)
@@ -8558,10 +8572,17 @@
                 roundExercises[roundIdx][exIdx] = {};
             }
 
+            // AUTO-LOAD DETAILS LOGIC
+            // Check if name matches DB
+            const match = workoutDatabase ? workoutDatabase.find(e => e.exercise_name.toLowerCase() === exerciseName.toLowerCase()) : null;
+
             // Get total number of sets
             const roundCard = document.getElementById(`round-card-${roundIdx}`);
             const setsInput = roundCard ? roundCard.querySelector('input[onchange*="\'sets\'"]') : null;
             const totalSets = setsInput ? parseInt(setsInput.value) : 3;
+
+            // Define keys to update depending on set logic
+            const keysToUpdate = [];
 
             // Smart propagation logic
             if (setIdx === 0) {
@@ -8571,6 +8592,7 @@
                     // Sync to customNames for Volledig Schema
                     const key = `r${roundIdx + 1}-e${exIdx + 1}-s${s + 1}`;
                     customNames[key] = exerciseName;
+                    keysToUpdate.push(key);
                 }
                 console.log(`Updated Exercise ${exIdx + 1}, ALL SETS to: ${exerciseName}`);
             } else {
@@ -8579,7 +8601,22 @@
                 // Sync to customNames for Volledig Schema
                 const key = `r${roundIdx + 1}-e${exIdx + 1}-s${setIdx + 1}`;
                 customNames[key] = exerciseName;
+                keysToUpdate.push(key);
                 console.log(`Updated Exercise ${exIdx + 1}, Set ${setIdx + 1} to: ${exerciseName}`);
+            }
+
+            // Apply Auto-Load Details
+            if (match) {
+                console.log("Auto-loading details for match:", match.exercise_name);
+                keysToUpdate.forEach(uniqueId => {
+                    if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+                    customDetails[uniqueId].desc = match.instructions || '';
+                    customDetails[uniqueId].mat = match.material_name || '';
+                    customDetails[uniqueId].matDesc = match.material_description || ''; // Assuming field exists
+                    customDetails[uniqueId].thumbUrl = match.thumbnail || '';
+                    customDetails[uniqueId].videoUrl = match.video_search_url || '';
+                    customDetails[uniqueId].checkNum = match.check_number || '';
+                });
             }
 
             // Save to localStorage
