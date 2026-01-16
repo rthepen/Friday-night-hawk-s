@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.43"; // Move Close Button
+        const APP_VERSION = "1.32.44"; // Auto-hydration update
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4121,6 +4121,7 @@
             saveRoundsToLocal();
             saveToLocal(); // Persist all changes
             renderRoundsContainer();
+            hydrateMissingDetails(); // Auto-fill details for the new round
         }
 
         function removeRound(index) {
