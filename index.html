@@ -2247,8 +2247,6 @@
         let editingSpeechKey = null;
         let customNames = {};
         let customWorkTimes = {}; // Format: { "rX-eY-sZ": seconds }
-        let customRestTimes = {}; // Format: { "rX-eY-sZ": seconds } (Rest AFTER this set)
-        let customSwitchTimes = {}; // Format: { "rX-eY-sZ": seconds } (Switch AFTER this set - usually last set)
         let roundExercises = {}; // Format: { roundIndex: { exerciseIndex: { setIndex: exerciseName } } }
         let failedAudioKeys = new Set(); // Cache for missing MP3s
 
@@ -3304,9 +3302,7 @@
                 iosMixMode: iosMixMode, // Save Mix Mode setting
                 // Save Custom Names
                 customNames: customNames,
-                customWorkTimes: customWorkTimes,
-                customRestTimes: customRestTimes,
-                customSwitchTimes: customSwitchTimes,
+                customWorkTimes: customWorkTimes, // Pro-feature: per-exercise time
                 roundExercises: roundExercises // Save per-set exercise assignments
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
@@ -3329,8 +3325,6 @@
 
                     if (data.customNames) customNames = data.customNames;
                     if (data.customWorkTimes) customWorkTimes = data.customWorkTimes;
-                    if (data.customRestTimes) customRestTimes = data.customRestTimes;
-                    if (data.customSwitchTimes) customSwitchTimes = data.customSwitchTimes;
                     if (data.roundExercises) roundExercises = data.roundExercises;
 
                     // Restore Volumes
@@ -3705,60 +3699,6 @@
             renderRoundExerciseList(r);
         }
 
-        function setCustomRestTime(r, e, s, val) {
-            const rNum = r + 1;
-            const key = `r${rNum}-e${e + 1}-s${s + 1}`;
-            const intVal = parseInt(val);
-            const round = workoutRounds[r];
-            const defaultTime = round ? round.restTime : 10;
-
-            if (!isNaN(intVal) && intVal >= 0 && intVal !== defaultTime) {
-                if (s === 0) { // Propagate to all sets of this exercise
-                    const sts = round.sets;
-                    for (let i = 0; i < sts; i++) {
-                        // Only apply if it's a REST slot (usually s < sts-1)
-                        // But we just store it for all, usage logic determines if it's used.
-                        if (i < sts - 1) { // Logic: Rest exists between sets. 
-                            const subKey = `r${rNum}-e${e + 1}-s${i + 1}`;
-                            customRestTimes[subKey] = intVal;
-                        }
-                    }
-                } else {
-                    customRestTimes[key] = intVal;
-                }
-            } else {
-                if (s === 0) {
-                    const sts = round.sets;
-                    for (let i = 0; i < sts; i++) {
-                        const subKey = `r${rNum}-e${e + 1}-s${i + 1}`;
-                        delete customRestTimes[subKey];
-                    }
-                } else {
-                    delete customRestTimes[key];
-                }
-            }
-            saveToLocal();
-            calculateRealTime();
-            renderRoundExerciseList(r);
-        }
-
-        function setCustomSwitchTime(r, e, s, val) {
-            const rNum = r + 1;
-            const key = `r${rNum}-e${e + 1}-s${s + 1}`;
-            const intVal = parseInt(val);
-            const round = workoutRounds[r];
-            const defaultTime = round ? (round.exerciseRest || 15) : 15;
-
-            if (!isNaN(intVal) && intVal >= 0 && intVal !== defaultTime) {
-                customSwitchTimes[key] = intVal;
-            } else {
-                delete customSwitchTimes[key];
-            }
-            saveToLocal();
-            calculateRealTime();
-            renderRoundExerciseList(r);
-        }
-
         function addRound() {
             if (workoutRounds.length > 0) {
                 // User Request: Use copy logic of last round
@@ -3866,19 +3806,9 @@
 
                             totalSeconds += workT; // custom or default
 
-                            totalSeconds += workT; // custom or default
-
                             // Rest logic
-                            if (s < sts) {
-                                let restT = r.restTime;
-                                if (customRestTimes[key]) restT = customRestTimes[key];
-                                totalSeconds += restT;
-                            }
-                            else if (e < ex) {
-                                let switchT = r.exerciseRest || 15;
-                                if (customSwitchTimes[key]) switchT = customSwitchTimes[key];
-                                totalSeconds += switchT;
-                            }
+                            if (s < sts) totalSeconds += r.restTime;
+                            else if (e < ex) totalSeconds += 15; // Switch Time hardcoded/default logic for now
                             else totalSeconds += r.roundRest; // End of Round
                         }
                     }
@@ -4028,24 +3958,18 @@
                                 });
                             }
                         } else if (isLastSetOfExercise) {
-                            let switchT = round.exerciseRest || 15;
-                            if (customSwitchTimes[key]) switchT = customSwitchTimes[key];
-
                             schedule.push({
                                 type: 'rest-exercise',
-                                time: switchT,
-                                initialTime: switchT,
+                                time: round.exerciseRest || 15,
+                                initialTime: round.exerciseRest || 15,
                                 label: "WISSEL OEFENING",
                                 info: { round: roundNum, text: "Volgende oefening" }
                             });
                         } else {
-                            let restT = round.restTime;
-                            if (customRestTimes[key]) restT = customRestTimes[key];
-
                             schedule.push({
                                 type: 'rest',
-                                time: restT,
-                                initialTime: restT,
+                                time: round.restTime,
+                                initialTime: round.restTime,
                                 label: "RUST",
                                 info: { round: roundNum, text: "Even ontspannen" }
                             });
@@ -8016,68 +7940,6 @@
 
                     timeDiv.appendChild(timeIcon);
                     timeDiv.appendChild(timeInput);
-
-                    // --- SECOND INPUT: REST or SWITCH (Zzz or Refresh) ---
-                    // Logic: If NOT last set -> Show Rest Input (Red)
-                    // If IS last set -> Show Switch Input (Purple)
-
-                    const isLastSet = (setIdx === numSets - 1);
-
-                    const restDiv = document.createElement('div');
-                    restDiv.style.cssText = 'display:flex; align-items:center; gap:5px; margin-left:8px; flex-shrink:0;';
-
-                    const restIcon = document.createElement('span');
-                    restIcon.innerText = isLastSet ? '🔄' : '💤';
-                    restIcon.style.cssText = 'font-size:12px; opacity:0.7;';
-
-                    const restInput = document.createElement('input');
-                    restInput.type = 'number';
-
-                    let defaultRest = 0;
-                    let customRest = null;
-                    let highlightColor = '#FF453A'; // Red for Rest
-
-                    if (isLastSet) {
-                        // Switch Time
-                        defaultRest = (globalRound && globalRound.exerciseRest) ? globalRound.exerciseRest : 15;
-                        customRest = customSwitchTimes[uniqueTimeKey];
-                        highlightColor = '#BF5AF2'; // Purple for Switch
-                    } else {
-                        // Rest Time
-                        defaultRest = (globalRound && globalRound.restTime) ? globalRound.restTime : 10;
-                        customRest = customRestTimes[uniqueTimeKey];
-                    }
-
-                    const displayRest = customRest !== undefined && customRest !== null ? customRest : defaultRest;
-                    restInput.value = displayRest;
-                    restInput.placeholder = defaultRest;
-
-                    // Style Logic
-                    let rColor = '#FFFFFF';
-                    let rBorder = '1px solid #3A3A3C';
-                    let rBg = '#2C2C2E';
-
-                    if (customRest !== undefined && customRest !== null) {
-                        rColor = highlightColor;
-                        rBorder = `1px solid ${highlightColor}`;
-                        rBg = `rgba(${highlightColor === '#FF453A' ? '255,69,58' : '191,90,242'}, 0.15)`;
-                    }
-
-                    restInput.style.cssText = `width:50px; height:28px; background:${rBg}; border:${rBorder}; border-radius:6px; text-align:center; color:${rColor}; font-size:14px; font-weight:bold; font-family:inherit; outline:none; -moz-appearance:textfield; display:block; padding:0;`;
-
-                    restInput.onchange = (e) => {
-                        if (isLastSet) {
-                            setCustomSwitchTime(roundIndex, exIdx, setIdx, e.target.value);
-                        } else {
-                            setCustomRestTime(roundIndex, exIdx, setIdx, e.target.value);
-                        }
-                    };
-                    restInput.onclick = (e) => e.stopPropagation();
-
-                    restDiv.appendChild(restIcon);
-                    restDiv.appendChild(restInput);
-                    timeDiv.appendChild(restDiv); // Add to same container
-
                     exerciseRow.appendChild(timeDiv);
 
                     rowWrapper.appendChild(exerciseRow);
