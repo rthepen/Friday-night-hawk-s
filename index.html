@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.24"; // Per-Exercise Time Limits
+        const APP_VERSION = "1.32.25"; // Per-Exercise Time Limits
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7900,7 +7900,7 @@
 
                     // Time Input (Right Side)
                     const timeDiv = document.createElement('div');
-                    timeDiv.style.cssText = 'display:flex; align-items:center; gap:5px; margin-left:10px;';
+                    timeDiv.style.cssText = 'display:flex; align-items:center; gap:5px; margin-left:10px; flex-shrink:0;';
 
                     const timeIcon = document.createElement('span');
                     timeIcon.innerText = '⏱️';
@@ -7908,26 +7908,30 @@
 
                     const timeInput = document.createElement('input');
                     timeInput.type = 'number';
-                    timeInput.className = 'highlight-input';
+                    // removed highlight-input class to avoid conflicts
 
                     const globalRound = workoutRounds[roundIndex];
-                    const defaultWt = globalRound ? globalRound.workTime : 45;
+                    const defaultWt = (globalRound && globalRound.workTime) ? globalRound.workTime : 45;
                     const uniqueTimeKey = `r${roundIndex + 1}-e${exIdx + 1}-s${setIdx + 1}`;
                     const customWt = customWorkTimes[uniqueTimeKey];
 
-                    timeInput.value = customWt || defaultWt;
+                    const displayVal = customWt || defaultWt;
+                    timeInput.value = displayVal;
                     timeInput.placeholder = defaultWt;
 
+                    // High Contrast Styling 
+                    let inputColor = '#FFFFFF';
+                    let inputBorder = '1px solid #3A3A3C';
+                    let inputBg = '#2C2C2E';
+
                     if (customWt) {
-                        timeInput.style.color = '#30D158';
-                        timeInput.style.borderBottom = '1px solid #30D158';
-                    } else {
-                        timeInput.style.color = '#888';
-                        timeInput.style.borderBottom = '1px solid transparent';
+                        inputColor = '#30D158';
+                        inputBorder = '1px solid #30D158';
+                        inputBg = 'rgba(48,209,88,0.15)';
                     }
 
-                    timeInput.style.cssText += 'width:40px; background:transparent; border:none; border-bottom:1px solid #444; text-align:center; color:white; font-size:12px; font-family:inherit; outline:none;';
-                    if (customWt) timeInput.style.color = '#30D158';
+                    // Force explicit dimensions and visibility
+                    timeInput.style.cssText = `width:50px; height:28px; background:${inputBg}; border:${inputBorder}; border-radius:6px; text-align:center; color:${inputColor}; font-size:14px; font-weight:bold; font-family:inherit; outline:none; -moz-appearance:textfield; display:block; padding:0;`;
 
                     timeInput.onchange = (e) => {
                         setCustomWorkTime(roundIndex, exIdx, setIdx, e.target.value);
