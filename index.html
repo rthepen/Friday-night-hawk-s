@@ -2585,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.39"; // Move Close Button
+        const APP_VERSION = "1.32.40"; // Move Close Button
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8734,12 +8734,16 @@
         function processData() {
             isDataLoaded = true;
             uniqueMaterials.clear();
+            selectedMaterials.clear(); // Ensure clean start
 
             allExercises.forEach(ex => {
                 if (ex.material_name) {
                     uniqueMaterials.add(ex.material_name);
                 }
             });
+
+            // Select ALL by default
+            uniqueMaterials.forEach(mat => selectedMaterials.add(mat));
 
             renderMaterialFilters();
             renderMaterialExerciseList();
@@ -8751,6 +8755,32 @@
 
             const sortedMaterials = Array.from(uniqueMaterials).sort(); // Alphabetical
 
+            // --- SELECT ALL / NONE BUTTON ---
+            const allBtn = document.createElement('div');
+            allBtn.className = 'material-tag';
+            allBtn.style.cssText = "background: #fff; color: #000; font-weight: 800; border: 1px solid #fff;";
+
+            // Check state
+            const isAllSelected = (selectedMaterials.size === uniqueMaterials.size);
+
+            if (isAllSelected) {
+                allBtn.innerText = "❌ NIETS";
+                allBtn.onclick = () => {
+                    selectedMaterials.clear();
+                    renderMaterialFilters();
+                    renderMaterialExerciseList();
+                };
+            } else {
+                allBtn.innerText = "✅ ALLES";
+                allBtn.onclick = () => {
+                    uniqueMaterials.forEach(m => selectedMaterials.add(m));
+                    renderMaterialFilters();
+                    renderMaterialExerciseList();
+                };
+            }
+            container.appendChild(allBtn);
+
+            // --- INDIVIDUAL TAGS ---
             sortedMaterials.forEach(mat => {
                 const tag = document.createElement('div');
                 tag.className = 'material-tag';
@@ -8822,9 +8852,67 @@
             const meta = document.getElementById('prev-meta');
             const desc = document.getElementById('prev-desc');
 
+            // Reset video container if exists (remove old iframe if any)
+            const parent = img.parentNode; // #preview-content (likely, or direct wrapper)
+            // Actually, we just need to ensure the img is displayed and any iframe is removed?
+            // The structure is likely static HTML, so we just toggle visibility.
+            // Let's assume we append iframe to a container or replace img.
+            // Better: Remove any existing iframes in the preview-image container area.
+            // Looking at HTML structure (from memory/view), #prev-img is inside.
+            // Let's rely on standard ID behavior.
+
+            // Clear previous iframe if any
+            const oldIframe = document.getElementById('preview-iframe');
+            if (oldIframe) oldIframe.remove();
+
             if (ex.thumbnail) {
                 img.src = ex.thumbnail;
                 img.style.display = 'block';
+
+                // Store video URL
+                if (ex.video_search_url) {
+                    img.setAttribute('data-video-url', ex.video_search_url);
+                    img.style.cursor = 'pointer';
+                    img.title = "Klik om video te starten";
+
+                    // Click Handler for Video
+                    img.onclick = () => {
+                        const url = ex.video_search_url;
+                        let videoId = null;
+
+                        // Extract ID (Standard YouTube formats)
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                        const match = url.match(regExp);
+                        if (match && match[2].length == 11) {
+                            videoId = match[2];
+                        }
+
+                        if (videoId) {
+                            // Create Iframe
+                            const iframe = document.createElement('iframe');
+                            iframe.id = 'preview-iframe';
+                            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                            iframe.style.width = '100%';
+                            iframe.style.aspectRatio = '16/9';
+                            iframe.style.border = 'none';
+                            iframe.style.borderRadius = '12px';
+                            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                            iframe.allowFullscreen = true;
+
+                            // Swap
+                            img.style.display = 'none';
+                            img.parentNode.insertBefore(iframe, img);
+                        } else {
+                            window.open(url, '_blank');
+                        }
+                    };
+
+                } else {
+                    img.onclick = null;
+                    img.style.cursor = 'default';
+                    img.title = "";
+                }
+
             } else {
                 img.style.display = 'none';
             }
@@ -8835,7 +8923,6 @@
 
             // Highlight active item
             document.querySelectorAll('.exercise-item').forEach(el => el.classList.remove('active'));
-            // (Optional: add active class to clicked element if passed or found)
         }
 
 
