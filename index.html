@@ -1885,6 +1885,91 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(191, 90, 242, 0.4);
         }
+
+        /* --- SMART EXERCISE MENU --- */
+        .exercise-menu-container {
+            flex: 0 0 40px;
+            position: relative;
+        }
+
+        .exercise-menu-trigger {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2C2C2E;
+            border: 1px solid #3A3A3C;
+            border-radius: 8px;
+            color: #30D158;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .exercise-menu-trigger:active {
+            background: #3A3A3C;
+        }
+
+        .exercise-dropdown {
+            display: none;
+            position: absolute;
+            top: 110%;
+            left: 0;
+            width: 280px;
+            /* Wider than trigger */
+            max-height: 250px;
+            overflow-y: auto;
+            background: #1c1c1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        .exercise-dropdown.active {
+            display: block;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: #2c2c2e;
+        }
+
+        .menu-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-right: 10px;
+            background: #000;
+        }
+
+        .menu-item-info {
+            flex: 1;
+        }
+
+        .menu-item-name {
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .menu-item-meta {
+            color: #888;
+            font-size: 11px;
+        }
     </style>
 </head>
 
@@ -2500,7 +2585,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.33"; // Fix ReferenceError
+        const APP_VERSION = "1.32.35"; // Smart Exercise Menu
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8225,25 +8310,19 @@
                     const topRow = document.createElement('div');
                     topRow.style.cssText = rowStyle;
 
-                    // Group: Check #
-                    const checkGroup = document.createElement('div');
-                    checkGroup.style.cssText = 'flex: 0 0 80px;'; // Fixed width
-                    const checkLabel = document.createElement('span');
-                    checkLabel.innerText = 'Check #';
-                    checkLabel.style.cssText = labelStyle;
-                    const checkInput = document.createElement('input');
-                    checkInput.type = 'number';
-                    checkInput.placeholder = '#';
-                    checkInput.className = 'check-input';
-                    checkInput.style.cssText = inputStyle + 'text-align:center; font-weight:bold;';
-                    // Populate from Saved Data
-                    if (savedDetails.checkNum) checkInput.value = savedDetails.checkNum;
 
-                    checkInput.oninput = (e) => {
-                        autoLoadFromCheckNumber(parseInt(e.target.value), uniqueId, roundIndex, exIdx, setIdx);
-                    };
-                    checkGroup.appendChild(checkLabel);
-                    checkGroup.appendChild(checkInput);
+                    // Group: Smart Menu Trigger (Formerly Check #)
+                    const menuGroup = document.createElement('div');
+                    menuGroup.style.cssText = 'flex: 0 0 50px; display:flex; flex-direction:column;';
+                    const menuLabel = document.createElement('span');
+                    menuLabel.innerText = 'Kies';
+                    menuLabel.style.cssText = labelStyle + 'text-align:center;';
+
+                    const smartMenu = createExerciseMenu(uniqueId, roundIndex, exIdx, setIdx);
+                    // Append
+                    menuGroup.appendChild(menuLabel);
+                    menuGroup.appendChild(smartMenu);
+
 
                     // Group: Materiaal
                     const matGroup = document.createElement('div');
@@ -8262,7 +8341,7 @@
                     matGroup.appendChild(matLabel);
                     matGroup.appendChild(matInput);
 
-                    topRow.appendChild(checkGroup);
+                    topRow.appendChild(menuGroup);
                     topRow.appendChild(matGroup);
                     detailsDiv.appendChild(topRow);
 
@@ -8759,6 +8838,152 @@
             // (Optional: add active class to clicked element if passed or found)
         }
 
+
+        // --- SMART EXERCISE MENU LOGIC ---
+        function createExerciseMenu(uniqueId, roundIndex, exIdx, setIdx) {
+            const container = document.createElement('div');
+            container.className = 'exercise-menu-container';
+            container.id = `menu-container-${uniqueId}`;
+
+            const trigger = document.createElement('div');
+            trigger.className = 'exercise-menu-trigger';
+            trigger.innerHTML = '▼'; // Down arrow
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                toggleExerciseMenu(uniqueId);
+            };
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'exercise-dropdown';
+            dropdown.id = `menu-dropdown-${uniqueId}`;
+
+            // Populate initially (or lazily on click to save perf, but eagerly is fine for now)
+            populateExerciseMenu(dropdown, uniqueId, roundIndex, exIdx, setIdx);
+
+            container.appendChild(trigger);
+            container.appendChild(dropdown);
+            return container;
+        }
+
+        function toggleExerciseMenu(uniqueId) {
+            // Close all others first
+            document.querySelectorAll('.exercise-dropdown.active').forEach(el => {
+                if (el.id !== `menu-dropdown-${uniqueId}`) el.classList.remove('active');
+            });
+
+            const dropdown = document.getElementById(`menu-dropdown-${uniqueId}`);
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        }
+
+        // Close menus when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.exercise-menu-container')) {
+                document.querySelectorAll('.exercise-dropdown.active').forEach(el => el.classList.remove('active'));
+            }
+        });
+
+        function populateExerciseMenu(dropdown, uniqueId, roundIndex, exIdx, setIdx) {
+            dropdown.innerHTML = '';
+
+            // Filter exercises based on global 'selectedMaterials'
+            // If no materials selected, show all (or limit to top 20 for perf?)
+            let filtered = allExercises;
+
+            if (selectedMaterials.size > 0) {
+                filtered = allExercises.filter(ex => selectedMaterials.has(ex.material_name));
+            }
+
+            // sort alpha
+            filtered.sort((a, b) => a.exercise_name.localeCompare(b.exercise_name));
+
+            if (filtered.length === 0) {
+                const empty = document.createElement('div');
+                empty.style.padding = '10px';
+                empty.style.color = '#888';
+                empty.style.fontSize = '12px';
+                empty.innerText = 'Geen oefeningen gevonden voor geselecteerde filter.';
+                dropdown.appendChild(empty);
+                return;
+            }
+
+            filtered.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'menu-item';
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    selectExerciseFromMenu(ex, uniqueId, roundIndex, exIdx, setIdx);
+                    toggleExerciseMenu(uniqueId); // Close
+                };
+
+                const img = document.createElement('img');
+                img.src = ex.thumbnail || 'FNH logo.jpg';
+
+                const div = document.createElement('div');
+                div.className = 'menu-item-info';
+
+                const name = document.createElement('div');
+                name.className = 'menu-item-name';
+                name.innerText = ex.exercise_name;
+
+                const meta = document.createElement('div');
+                meta.className = 'menu-item-meta';
+                meta.innerText = ex.material_name || '';
+
+                div.appendChild(name);
+                div.appendChild(meta);
+
+                item.appendChild(img);
+                item.appendChild(div);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function selectExerciseFromMenu(ex, uniqueId, roundIndex, exIdx, setIdx) {
+            console.log("Selected:", ex.exercise_name);
+
+            // 1. Update Name in Slot
+            updateExerciseSlot(roundIndex, exIdx, setIdx, ex.exercise_name);
+            const headerDiv = document.getElementById(`details-${uniqueId}`)?.previousElementSibling;
+            const nameSpan = headerDiv?.querySelector('span[contenteditable]');
+            if (nameSpan) nameSpan.innerText = ex.exercise_name;
+
+            // 2. Update Details
+            if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+            customDetails[uniqueId].checkNum = ex.check_number; // Keep legacy ref
+            customDetails[uniqueId].desc = ex.instructions || '';
+            customDetails[uniqueId].mat = ex.material_name || '';
+            customDetails[uniqueId].matDesc = ex.material_description || '';
+            customDetails[uniqueId].thumbUrl = ex.thumbnail || '';
+            customDetails[uniqueId].videoUrl = ex.video_search_url || '';
+            saveToLocal();
+
+            // 3. Update UI Inputs immediately
+            const descElem = document.getElementById(`desc-${uniqueId}`);
+            if (descElem) descElem.value = ex.instructions || '';
+
+            const matElem = document.getElementById(`mat-${uniqueId}`);
+            if (matElem) matElem.value = ex.material_name || '';
+
+            const matDescElem = document.getElementById(`matdesc-${uniqueId}`);
+            if (matDescElem) matDescElem.value = ex.material_description || '';
+
+            /// Update Thumbnail Preview
+            const img = document.getElementById(`img-${uniqueId}`);
+            if (img) {
+                if (ex.thumbnail) {
+                    img.src = ex.thumbnail;
+                    img.style.display = 'block';
+                    if (ex.video_search_url) {
+                        img.setAttribute('data-video-url', ex.video_search_url);
+                        img.title = "Klik om video te openen";
+                    }
+                } else {
+                    img.style.display = 'none';
+                }
+            }
+        }
     </script>
 </body>
 
