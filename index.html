@@ -2234,7 +2234,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.13"; // Sync Add Round with Copy logic
+        const APP_VERSION = "1.32.14"; // Sync Add Round with Copy logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -6883,6 +6883,9 @@
                                 });
                                 renderLiveSchedule(true);
                                 triggerAudio('manual_override', "Tijd aangepast");
+                            } else {
+                                // Invalid or empty: Revert to current duration
+                                e.target.value = dur;
                             }
                         };
                         tr.children[2].appendChild(inp);
