@@ -222,6 +222,233 @@
             color: white;
         }
 
+        .btn-dumbbell {
+            background: #FF9F0A;
+            /* Warm accent color */
+            color: white;
+        }
+
+        /* --- MATERIAL SELECTOR MODAL --- */
+        #material-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.85);
+            /* Darker backdrop */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #material-modal.active {
+            display: flex;
+        }
+
+        .material-content {
+            background: #1c1c1e;
+            width: 100%;
+            max-width: 600px;
+            height: 90vh;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .material-header {
+            padding: 20px;
+            background: #2c2c2e;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .material-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .material-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Section 1: Material Toggles */
+        .material-filters {
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #151516;
+        }
+
+        .material-tag {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #333;
+            color: #ccc;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .material-tag.selected {
+            background: #30D158;
+            color: #000;
+            box-shadow: 0 0 10px rgba(48, 209, 88, 0.3);
+        }
+
+        /* Split View: List & Preview */
+        .material-split-view {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            /* Prevent body scroll */
+        }
+
+        /* Left: List */
+        .exercise-list-col {
+            flex: 1;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            padding: 10px;
+        }
+
+        .exercise-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #2c2c2e;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exercise-item:hover,
+        .exercise-item.active {
+            background: #3a3a3c;
+            border: 1px solid #555;
+        }
+
+        .ex-list-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .ex-list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ex-list-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ex-list-cat {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Right: Preview (Sticky-ish) */
+        .exercise-preview-col {
+            flex: 1.2;
+            background: #000;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #222;
+        }
+
+        .preview-image {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #222;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            object-fit: cover;
+            border: 1px solid #333;
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #30D158;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .preview-meta {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .preview-desc {
+            font-size: 13px;
+            color: #ddd;
+            line-height: 1.5;
+            background: #1c1c1e;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+
+        /* Mobile Responsive for Split View */
+        @media (max-width: 600px) {
+            .material-split-view {
+                flex-direction: column;
+            }
+
+            .exercise-list-col {
+                height: 40%;
+                border-right: none;
+                border-bottom: 1px solid #333;
+            }
+
+            .exercise-preview-col {
+                height: 60%;
+                flex: none;
+            }
+        }
+
         /* --- GRID SYSTEMS --- */
         .compact-row {
             display: grid;
@@ -1679,6 +1906,7 @@
             </div>
             <div class="header-buttons">
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
+                <button class="btn-header btn-dumbbell" onclick="openMaterialModal()"><span>🏋️</span></button>
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
                     onclick="applyTabataPreset()">⏱️ Tabata</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
@@ -2229,12 +2457,50 @@
 
     <input type="time" id="hidden-endtime-input" onchange="handleNewEndTime(this.value)" style="display:none;">
 
+    <!-- Material Selector Modal -->
+    <div id="material-modal">
+        <div class="material-content">
+            <div class="material-header">
+                <div class="material-title">Kies Materiaal & Oefening</div>
+                <button class="btn-close-modal" onclick="closeMaterialModal()">×</button>
+            </div>
+
+            <div class="material-body">
+                <!-- Section 1: Materials -->
+                <div class="material-filters" id="material-filters">
+                    <!-- JS Populated -->
+                </div>
+
+                <!-- Split View -->
+                <div class="material-split-view">
+                    <!-- List -->
+                    <div class="exercise-list-col">
+                        <div id="material-ex-list">
+                            <!-- JS Populated -->
+                        </div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="exercise-preview-col">
+                        <div id="preview-content">
+                            <img id="prev-img" class="preview-image" src="" style="display:none;">
+                            <div id="prev-title" class="preview-title">Selecteer een oefening</div>
+                            <div id="prev-meta" class="preview-meta">...</div>
+                            <div id="prev-desc" class="preview-desc">Klik op een filter of oefening om details te zien.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 
 
     <script>
-        const APP_VERSION = "1.32.28"; // Per-Exercise Time Limits
+        const APP_VERSION = "1.32.30"; // Material Selector Feature
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -7945,6 +8211,9 @@
                     detailsDiv.id = `details-${uniqueId}`;
                     detailsDiv.style.cssText = 'display:none; padding:10px 12px; background:rgba(0,0,0,0.2); border-top:1px solid rgba(255,255,255,0.05); flex-direction:column; gap:8px;';
 
+                    // LOAD SAVED DETAILS
+                    const savedDetails = customDetails && customDetails[uniqueId] ? customDetails[uniqueId] : {};
+
                     // 1. Check Number Input & Auto-load
                     // --- CSS STYLES (Inline optimized) ---
                     const labelStyle = 'font-size:11px; color:#8E8E93; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; display:block;';
@@ -7966,6 +8235,9 @@
                     checkInput.placeholder = '#';
                     checkInput.className = 'check-input';
                     checkInput.style.cssText = inputStyle + 'text-align:center; font-weight:bold;';
+                    // Populate from Saved Data
+                    if (savedDetails.checkNum) checkInput.value = savedDetails.checkNum;
+
                     checkInput.oninput = (e) => {
                         autoLoadFromCheckNumber(parseInt(e.target.value), uniqueId, roundIndex, exIdx, setIdx);
                     };
@@ -7983,6 +8255,9 @@
                     matInput.type = 'text';
                     matInput.placeholder = 'Bijv. Dumbbells';
                     matInput.style.cssText = inputStyle;
+                    // Populate from Saved Data
+                    if (savedDetails.mat) matInput.value = savedDetails.mat;
+
                     matGroup.appendChild(matLabel);
                     matGroup.appendChild(matInput);
 
@@ -8000,6 +8275,9 @@
                     descText.id = `desc-${uniqueId}`;
                     descText.placeholder = 'Instructies / Beschrijving van de oefening...';
                     descText.style.cssText = inputStyle + 'min-height:70px; resize:vertical; line-height:1.4;';
+                    // Populate from Saved Data
+                    if (savedDetails.desc) descText.value = savedDetails.desc;
+
                     // descGroup.appendChild(descLabel);
                     descGroup.appendChild(descText);
                     detailsDiv.appendChild(descGroup);
@@ -8014,6 +8292,9 @@
                     matDescTextarea.id = `matdesc-${uniqueId}`;
                     matDescTextarea.placeholder = 'Extra details over het materiaal...';
                     matDescTextarea.style.cssText = inputStyle + 'min-height:50px; resize:vertical; color:#ccc;';
+                    // Populate from Saved Data
+                    if (savedDetails.matDesc) matDescTextarea.value = savedDetails.matDesc;
+
                     matDescGroup.appendChild(matDescLabel);
                     matDescGroup.appendChild(matDescTextarea);
                     detailsDiv.appendChild(matDescGroup);
@@ -8027,6 +8308,17 @@
                     thumbImg.src = '';
                     // Improved Image Style: Rounded, Border, Shadow, Transition
                     thumbImg.style.cssText = 'width:100%; height:140px; object-fit:cover; background:#1C1C1E; border-radius:8px; border:1px solid #333; cursor:pointer; display:none; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);';
+
+                    // Populate from Saved Data
+                    if (savedDetails.thumbUrl) {
+                        thumbImg.src = savedDetails.thumbUrl;
+                        thumbImg.style.display = 'block';
+                    }
+                    if (savedDetails.videoUrl) {
+                        thumbImg.setAttribute('data-video-url', savedDetails.videoUrl);
+                        thumbImg.title = "Klik om video te openen";
+                    }
+
                     thumbImg.onclick = function () {
                         const url = this.getAttribute('data-video-url');
                         if (url) window.open(url, '_blank');
@@ -8040,6 +8332,7 @@
                     thumbUrlInput.id = `thumb-url-${uniqueId}`;
                     thumbUrlInput.type = 'text';
                     thumbUrlInput.style.cssText = 'display:none;';
+                    if (savedDetails.thumbUrl) thumbUrlInput.value = savedDetails.thumbUrl;
 
                     thumbUrlInput.oninput = (e) => {
                         const url = e.target.value;
@@ -8310,6 +8603,160 @@
 
 
 
+
+
+        // --- MATERIAL SELECTOR LOGIC ---
+        let allExercises = [];
+        let uniqueMaterials = new Set();
+        let selectedMaterials = new Set();
+        let isDataLoaded = false;
+
+        function openMaterialModal() {
+            const modal = document.getElementById('material-modal');
+            modal.classList.add('active');
+
+            if (!isDataLoaded) {
+                fetchWorkoutData();
+            }
+        }
+
+        function closeMaterialModal() {
+            document.getElementById('material-modal').classList.remove('active');
+        }
+
+        async function fetchWorkoutData() {
+            // Already fetched earlier?
+            if (workoutDatabase && workoutDatabase.length > 0) {
+                console.log("Using existing workoutDatabase");
+                allExercises = workoutDatabase;
+                processData();
+                return;
+            }
+
+            try {
+                const response = await fetch('workoutdatabase.json');
+                if (!response.ok) throw new Error("Failed to load database");
+
+                const data = await response.json();
+                allExercises = data;
+                // Assign to global if needed by other legacy code
+                if (typeof workoutDatabase === 'undefined' || !workoutDatabase) {
+                    workoutDatabase = data;
+                }
+
+                processData();
+            } catch (err) {
+                console.error("Error loading workout data:", err);
+                // Fallback attempt if variable exists but fetch failed (unlikely)
+            }
+        }
+
+        function processData() {
+            isDataLoaded = true;
+            uniqueMaterials.clear();
+
+            allExercises.forEach(ex => {
+                if (ex.material_name) {
+                    uniqueMaterials.add(ex.material_name);
+                }
+            });
+
+            renderMaterialFilters();
+            renderMaterialExerciseList();
+        }
+
+        function renderMaterialFilters() {
+            const container = document.getElementById('material-filters');
+            container.innerHTML = '';
+
+            const sortedMaterials = Array.from(uniqueMaterials).sort(); // Alphabetical
+
+            sortedMaterials.forEach(mat => {
+                const tag = document.createElement('div');
+                tag.className = 'material-tag';
+                tag.innerText = mat;
+                if (selectedMaterials.has(mat)) {
+                    tag.classList.add('selected');
+                }
+                tag.onclick = () => toggleMaterial(mat);
+                container.appendChild(tag);
+            });
+        }
+
+        function toggleMaterial(mat) {
+            if (selectedMaterials.has(mat)) {
+                selectedMaterials.delete(mat);
+            } else {
+                selectedMaterials.add(mat);
+            }
+            renderMaterialFilters(); // Update styles
+            renderMaterialExerciseList();
+        }
+
+        function renderMaterialExerciseList() {
+            const listContainer = document.getElementById('material-ex-list');
+            listContainer.innerHTML = '';
+
+            // Filter
+            const filtered = allExercises.filter(ex => {
+                if (selectedMaterials.size === 0) return true; // Show all if no filter
+                return selectedMaterials.has(ex.material_name);
+            });
+
+            // Sort by name
+            filtered.sort((a, b) => a.exercise_name.localeCompare(b.exercise_name));
+
+            filtered.forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'exercise-item';
+                item.onclick = () => showPreview(ex);
+
+                const thumb = document.createElement('img');
+                thumb.className = 'ex-list-thumb';
+                thumb.src = ex.thumbnail || 'FNH logo.jpg';
+
+                const info = document.createElement('div');
+                info.className = 'ex-list-info';
+
+                const name = document.createElement('div');
+                name.className = 'ex-list-name';
+                name.innerText = ex.exercise_name;
+
+                const cat = document.createElement('div');
+                cat.className = 'ex-list-cat';
+                cat.innerText = ex.material_name || 'Geen materiaal';
+
+                info.appendChild(name);
+                info.appendChild(cat);
+
+                item.appendChild(thumb);
+                item.appendChild(info);
+
+                listContainer.appendChild(item);
+            });
+        }
+
+        function showPreview(ex) {
+            const img = document.getElementById('prev-img');
+            const title = document.getElementById('prev-title');
+            const meta = document.getElementById('prev-meta');
+            const desc = document.getElementById('prev-desc');
+
+            if (ex.thumbnail) {
+                img.src = ex.thumbnail;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+
+            title.innerText = ex.exercise_name;
+            meta.innerText = `${ex.category} • ${ex.material_name}`;
+            desc.innerText = ex.instructions || "Geen instructies beschikbaar.";
+
+            // Highlight active item
+            document.querySelectorAll('.exercise-item').forEach(el => el.classList.remove('active'));
+            // (Optional: add active class to clicked element if passed or found)
+        }
 
     </script>
 </body>
