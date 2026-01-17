@@ -2067,7 +2067,7 @@
             left: 10px;
             font-size: 60px;
             font-weight: bold;
-            color: #bbb;
+            color: #000;
             line-height: 1;
             pointer-events: none;
         }
@@ -2785,7 +2785,7 @@
 
 
     <script>
-        const APP_VERSION = "v1.32.55"; // Fix Station Card Count Logic
+        const APP_VERSION = "v1.32.56"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9649,7 +9649,7 @@
                 // 1. Station Number
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(280);
-                doc.setTextColor(230, 230, 230);
+                doc.setTextColor(0, 0, 0);
                 doc.text(data.stationNum, 10, 80);
 
                 // 2. QR
