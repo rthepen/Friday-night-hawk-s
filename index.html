@@ -1977,6 +1977,165 @@
             color: #888;
             font-size: 11px;
         }
+
+        /* --- STATION CARD PREVIEW MODAL --- */
+        #card-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10001;
+            background: #000;
+            flex-direction: column;
+        }
+
+        #card-preview-header {
+            padding: 15px 20px;
+            background: #1c1c1e;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #card-preview-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 10px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+        }
+
+        #card-preview-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .station-card-preview {
+            background: #fff;
+            color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+            /* Selection border? */
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .station-card-preview.selected {
+            border-color: #30D158;
+            box-shadow: 0 0 15px rgba(48, 209, 88, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .scp-header {
+            height: 60px;
+            /* reduced for preview */
+            background: #f0f0f0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scp-check {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            /* Custom checkbox style */
+            z-index: 10;
+            cursor: pointer;
+            accent-color: #30D158;
+            transform: scale(1.5);
+        }
+
+        .scp-num {
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            font-size: 60px;
+            font-weight: bold;
+            color: #e6e6e6;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .scp-img {
+            height: 120px;
+            width: 100%;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .scp-body {
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .scp-input {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 4px;
+            font-family: inherit;
+            width: 100%;
+            background: transparent;
+        }
+
+        .scp-title-input {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .scp-mat-bar {
+            background: #30D158;
+            padding: 4px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .scp-mat-input {
+            font-weight: bold;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+        }
+
+        .scp-desc-input {
+            font-size: 11px;
+            resize: vertical;
+            min-height: 50px;
+            border: 1px dashed #ccc;
+        }
+
+        /* Print control select styles override */
+        .preview-select {
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            flex: 1;
+            min-width: 150px;
+        }
     </style>
 </head>
 
@@ -2589,36 +2748,35 @@
         </div>
     </div>
 
-    <!-- Print Station Cards Modal -->
-    <div id="print-modal" class="modal"
-        style="display:none; z-index:10001; justify-content:center; align-items:center;">
-        <div class="modal-content"
-            style="max-width:400px; text-align:left; background:#1c1c1e; border-radius:24px; padding:25px; border:1px solid #333;">
-            <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards Printen 🖨️</h3>
+    <!-- Station Card Preview Modal -->
+    <div id="card-preview-modal">
+        <div id="card-preview-header">
+            <h3 style="margin:0; text-transform:uppercase; color:#fff;">Station Cards Preview</h3>
+            <button onclick="document.getElementById('card-preview-modal').style.display='none'"
+                style="background:none; border:none; color:#888; font-size:24px; cursor:pointer;">×</button>
+        </div>
 
-            <label style="color:#aaa; font-size:12px; font-weight:bold; margin-top:15px; display:block;">Ronde
-                Selectie:</label>
-            <select id="print-round-select" class="text-input"
-                style="width:100%; margin-bottom:15px; background:#111; color:white; border:1px solid #333; padding:10px; border-radius:8px;">
-                <!-- Populated by JS -->
+        <div id="card-preview-controls">
+            <label style="color:#aaa; font-size:12px; margin-right:10px;">Ronde:</label>
+            <select id="preview-round-select" class="preview-select" onchange="updatePreviewSelection()">
+                <!-- Populated via JS -->
             </select>
 
-            <label style="color:#aaa; font-size:12px; font-weight:bold; display:block;">Sets Modus:</label>
-            <select id="print-set-mode" class="text-input"
-                style="width:100%; margin-bottom:25px; background:#111; color:white; border:1px solid #333; padding:10px; border-radius:8px;">
+            <label style="color:#aaa; font-size:12px; margin-right:10px;">Sets:</label>
+            <select id="preview-set-mode" class="preview-select" onchange="updatePreviewSelection()">
                 <option value="first">Alleen Eerste Set (1 kaart p/oef)</option>
                 <option value="all">Alle Sets (Meerdere kaarten)</option>
             </select>
 
-            <button class="modal-btn" style="background:#30D158; color:black; text-align:center; font-weight:900;"
-                onclick="startPrintJob()">
-                Genereren (PDF Downloaden)
-            </button>
             <button class="modal-btn"
-                style="background:transparent; border:1px solid #333; color:#aaa; margin-top:10px; text-align:center;"
-                onclick="document.getElementById('print-modal').style.display='none'">
-                Annuleren
+                style="width:auto; padding:8px 20px; background:#30D158; color:#000; margin:0; flex:1;"
+                onclick="downloadSelectedCards()">
+                Download Geselecteerd
             </button>
+        </div>
+
+        <div id="card-preview-grid">
+            <!-- Cards populated via JS -->
         </div>
     </div>
 
@@ -2627,7 +2785,7 @@
 
 
     <script>
-        const APP_VERSION = "v1.32.52"; // Updated Station Cards Layout
+        const APP_VERSION = "v1.32.53"; // Added Station Card Preview
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9244,18 +9402,22 @@
 
         /* --- STATION CARDS PDF LOGIC --- */
         /* --- STATION CARDS PDF LOGIC --- */
+        /* --- STATION CARDS PREVIEW & PDF LOGIC --- */
         function openPrintMenu() {
-            const modal = document.getElementById('print-modal');
+            const modal = document.getElementById('card-preview-modal');
             if (!modal) return;
-            // Populate Rounds
-            const roundSelect = document.getElementById('print-round-select');
+
+            // Populate Rounds Dropdown
+            const roundSelect = document.getElementById('preview-round-select');
             roundSelect.innerHTML = '';
             const totalRounds = parseInt(document.getElementById('rounds').value) || 1;
-            // All Option
+
+            // "All Rounds" Option
             const optAll = document.createElement('option');
             optAll.value = 'all';
             optAll.innerText = `Alle ${totalRounds} Rondes`;
             roundSelect.appendChild(optAll);
+
             // Individual Rounds
             for (let r = 1; r <= totalRounds; r++) {
                 const opt = document.createElement('option');
@@ -9263,26 +9425,160 @@
                 opt.innerText = `Ronde ${r}`;
                 roundSelect.appendChild(opt);
             }
+
+            // Show Modal
             modal.style.display = 'flex';
+
+            // Render Previews
+            renderCardPreviews();
         }
 
-        async function startPrintJob() {
-            const roundVal = document.getElementById('print-round-select').value;
-            const setMode = document.getElementById('print-set-mode').value;
+        function renderCardPreviews() {
+            const grid = document.getElementById('card-preview-grid');
+            grid.innerHTML = ''; // Clear
 
-            if ((!WORKOUT_DB || WORKOUT_DB.length === 0)) {
-                console.log("Database empty, using Mock Data for PDF Test");
-                WORKOUT_DB = [
-                    { exercise_name: "Mock Squat", material_name: "Kettlebell", material_description: "16kg", instructions: "Diep zakken, rug recht.", video_search_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", thumbnail: "FNH logo.jpg" },
-                    { exercise_name: "Mock Pushup", material_name: "Eigen start", material_description: "Geen", instructions: "Borst naar de vloer.", video_search_url: "", thumbnail: "" }
-                ];
+            const totalRounds = parseInt(document.getElementById('rounds').value) || 1;
+            const exCount = parseInt(document.getElementById('exercises').value) || 1;
+            const setsCount = parseInt(document.getElementById('sets').value) || 1;
+
+            // Iterate EVERYTHING (filters only affect selection checkbox)
+            for (let r = 1; r <= totalRounds; r++) {
+                for (let e = 1; e <= exCount; e++) {
+                    for (let s = 1; s <= setsCount; s++) {
+
+                        // DATA GATHERING (Same as PDF Logic)
+                        const uniqueId = `r${r}-e${e}-s${s}`;
+                        let exName = `Exercise ${e}`;
+
+                        // Get Name from RoundExercises
+                        if (typeof roundExercises !== 'undefined' && roundExercises[r - 1] && roundExercises[r - 1][e - 1] && roundExercises[r - 1][e - 1][s - 1]) {
+                            exName = roundExercises[r - 1][e - 1][s - 1];
+                        } else if (typeof customNames !== 'undefined' && customNames[uniqueId]) {
+                            exName = customNames[uniqueId];
+                        }
+
+                        // Default Values
+                        let matName = "MATERIAAL ONBEKEND";
+                        let matDesc = "Geen beschrijving";
+                        let instructions = "Geen instructies beschikbaar.";
+                        let videoUrl = "";
+                        let thumbUrl = "";
+
+                        // 1. DB Lookup (Primary)
+                        // Ensure DB exists
+                        if (typeof WORKOUT_DB !== 'undefined') {
+                            const dbItem = WORKOUT_DB.find(item => item.exercise_name === exName);
+                            if (dbItem) {
+                                matName = dbItem.material_name || "";
+                                matDesc = dbItem.material_description || "";
+                                instructions = dbItem.instructions || "";
+                                videoUrl = dbItem.video_search_url || "";
+                                thumbUrl = dbItem.thumbnail || "";
+                            }
+                        }
+
+                        // 2. Custom Details (Overrides)
+                        if (typeof customDetails !== 'undefined' && customDetails[uniqueId]) {
+                            if (customDetails[uniqueId].mat) matName = customDetails[uniqueId].mat;
+                            if (customDetails[uniqueId].matDesc) matDesc = customDetails[uniqueId].matDesc;
+                            if (customDetails[uniqueId].desc) instructions = customDetails[uniqueId].desc;
+                            if (customDetails[uniqueId].videoUrl) videoUrl = customDetails[uniqueId].videoUrl;
+                            if (customDetails[uniqueId].thumbUrl) thumbUrl = customDetails[uniqueId].thumbUrl;
+                        }
+
+                        // --- BUILD DOM ELEMENT ---
+                        const card = document.createElement('div');
+                        card.className = 'station-card-preview';
+                        card.dataset.round = r;
+                        card.dataset.set = s;
+                        card.dataset.videoUrl = videoUrl; // Store hidden
+
+                        card.innerHTML = `
+                    <div class="scp-header">
+                        <input type="checkbox" class="scp-check" checked onchange="this.closest('.station-card-preview').classList.toggle('selected', this.checked)">
+                        <div class="scp-num">${e}</div>
+                        <input class="scp-input scp-title-input" value="${exName}">
+                    </div>
+                    <img class="scp-img" src="${thumbUrl || 'FNH logo.jpg'}">
+                    <div class="scp-body">
+                         <div class="scp-mat-bar">
+                            <input class="scp-input scp-mat-input" value="${matName}" style="color:black;">
+                         </div>
+                         <textarea class="scp-input scp-desc-input">${instructions}</textarea>
+                         <input class="scp-input scp-mat-input" value="${matDesc}" style="color:#555; font-style:italic;">
+                    </div>
+                    <div style="font-size:10px; color:#aaa; text-align:center; padding-bottom:5px;">R${r} - S${s}</div>
+                `;
+
+                        grid.appendChild(card);
+                    }
+                }
             }
 
-            await generateStationCards(roundVal, setMode);
-            document.getElementById('print-modal').style.display = 'none';
+            updatePreviewSelection();
         }
 
-        async function generateStationCards(targetRound, setMode) {
+        function updatePreviewSelection() {
+            const roundVal = document.getElementById('preview-round-select').value;
+            const setMode = document.getElementById('preview-set-mode').value;
+
+            document.querySelectorAll('.station-card-preview').forEach(card => {
+                const r = parseInt(card.dataset.round);
+                const s = parseInt(card.dataset.set);
+                const checkbox = card.querySelector('.scp-check');
+
+                let shouldSelect = true;
+
+                // Round Filter
+                if (roundVal !== 'all' && r !== parseInt(roundVal)) {
+                    shouldSelect = false;
+                }
+
+                // Set Filter
+                if (setMode === 'first' && s !== 1) {
+                    shouldSelect = false;
+                }
+
+                checkbox.checked = shouldSelect;
+
+                // Visual
+                if (shouldSelect) card.classList.add('selected');
+                else card.classList.remove('selected');
+            });
+        }
+
+        async function downloadSelectedCards() {
+            const selectedCards = [];
+            document.querySelectorAll('.station-card-preview').forEach((card, index) => {
+                if (card.querySelector('.scp-check').checked) {
+                    // SCRAPE DATA from inputs
+                    selectedCards.push({
+                        exName: card.querySelector('.scp-title-input').value,
+                        matName: card.querySelector('.scp-mat-input').value, // First one
+                        instructions: card.querySelector('.scp-desc-input').value,
+                        matDesc: card.querySelectorAll('.scp-mat-input')[1].value, // Second one
+                        thumbSrc: card.querySelector('.scp-img').src,
+                        videoUrl: card.dataset.videoUrl,
+                        stationNum: card.querySelector('.scp-num').innerText,
+
+                        // footer info
+                        round: card.dataset.round,
+                        set: card.dataset.set,
+                        exercise: card.querySelector('.scp-num').innerText
+                    });
+                }
+            });
+
+            if (selectedCards.length === 0) {
+                alert("Geen kaarten geselecteerd!");
+                return;
+            }
+
+            // Using Mock if JS PDF not available in dev, but in prod we rely on jsPDF
+            await generatePDFFromData(selectedCards);
+        }
+
+        async function generatePDFFromData(cardDataList) {
             if (!window.jsPDF) {
                 alert("jsPDF library niet geladen!");
                 return;
@@ -9294,14 +9590,9 @@
                 format: 'a4'
             });
 
-            const roundsToProcess = targetRound === 'all'
-                ? Array.from({ length: parseInt(document.getElementById('rounds').value) }, (_, i) => i + 1)
-                : [parseInt(targetRound)];
-
             let pageAdded = false;
-            let cardCount = 0;
 
-            // Helper: Generate QR Data URL
+            // Helpers (Reused)
             const generateQR = (url) => {
                 if (!url) return null;
                 const div = document.createElement('div');
@@ -9317,10 +9608,12 @@
                 return null;
             };
 
-            // Helper: Preload Image to Data URL
             const preloadImage = (url) => {
                 return new Promise((resolve) => {
                     if (!url) { resolve(null); return; }
+                    // If it's a data URL already, resolve immediately
+                    if (url.startsWith('data:')) { resolve(url); return; }
+
                     const img = new Image();
                     img.crossOrigin = "Anonymous";
                     img.onload = () => {
@@ -9331,157 +9624,99 @@
                         ctx.drawImage(img, 0, 0);
                         try {
                             resolve(canvas.toDataURL('image/jpeg'));
-                        } catch (e) {
-                            console.warn("CORS/Canvas Error:", e);
-                            resolve(null);
-                        }
+                        } catch (e) { resolve(null); }
                     };
                     img.onerror = () => resolve(null);
                     img.src = url;
                 });
             };
 
-            const exCount = parseInt(document.getElementById('exercises').value) || 1;
-            const setsCount = parseInt(document.getElementById('sets').value) || 1;
+            for (const data of cardDataList) {
+                if (pageAdded) doc.addPage();
+                pageAdded = true;
 
-            for (const r of roundsToProcess) {
-                for (let e = 1; e <= exCount; e++) {
-                    const setsToProcess = setMode === 'first' ? [1] : Array.from({ length: setsCount }, (_, i) => i + 1);
+                const width = 297;
+                const height = 210;
 
-                    for (const s of setsToProcess) {
-                        // Data Retrieval
-                        let exName = `Exercise ${e}`;
-                        if (typeof roundExercises !== 'undefined' && roundExercises[r] && roundExercises[r][e] && roundExercises[r][e][s]) {
-                            exName = roundExercises[r][e][s];
-                        }
+                // 1. Station Number
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(280);
+                doc.setTextColor(230, 230, 230);
+                doc.text(data.stationNum, 10, 80);
 
-                        const uniqueId = `r${r}-e${e}-s${s}`;
-                        let matName = "MATERIAAL ONBEKEND";
-                        let matDesc = "Geen beschrijving";
-                        let instructions = "Geen instructies beschikbaar.";
-                        let videoUrl = "";
-                        let thumbUrl = "";
-
-                        // 1. Custom Details (Fallback)
-                        if (typeof customDetails !== 'undefined' && customDetails[uniqueId]) {
-                            if (customDetails[uniqueId].mat) matName = customDetails[uniqueId].mat;
-                            if (customDetails[uniqueId].matDesc) matDesc = customDetails[uniqueId].matDesc;
-                            if (customDetails[uniqueId].desc) instructions = customDetails[uniqueId].desc;
-                            if (customDetails[uniqueId].videoUrl) videoUrl = customDetails[uniqueId].videoUrl;
-                            if (customDetails[uniqueId].thumbUrl) thumbUrl = customDetails[uniqueId].thumbUrl;
-                        }
-
-                        // 2. DB Lookup (Primary - Overrides Custom if found)
-                        const dbItem = WORKOUT_DB.find(item => item.exercise_name === exName);
-                        if (dbItem) {
-                            matName = dbItem.material_name || matName;
-                            matDesc = dbItem.material_description || matDesc;
-                            instructions = dbItem.instructions || instructions;
-                            videoUrl = dbItem.video_search_url || videoUrl;
-                            thumbUrl = dbItem.thumbnail || thumbUrl;
-                        }
-
-                        // Preload Image (if external)
-                        let rawThumb = null;
-                        if (thumbUrl) {
-                            rawThumb = await preloadImage(thumbUrl);
-                        }
-
-                        // Add Page
-                        if (pageAdded) doc.addPage();
-                        pageAdded = true;
-                        cardCount++;
-
-                        const width = 297;
-                        const height = 210;
-
-                        // --- LAYOUT ---
-
-                        // 1. HUGE Station Number (Left) - No Leading Zero
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(280); // Massive size
-                        doc.setTextColor(230, 230, 230); // Faint background grey
-                        const numStr = `${e}`; // No padding
-                        doc.text(numStr, 10, 80); // Bottom-left baseline for text
-
-                        // 2. QR Code (Top Right)
-                        if (videoUrl) {
-                            const qrData = generateQR(videoUrl);
-                            if (qrData) {
-                                doc.addImage(qrData, 'PNG', width - 40, 10, 30, 30);
-                                doc.setFontSize(10);
-                                doc.setTextColor(0, 0, 0);
-                                doc.text("VIDEO", width - 40, 44, { align: 'left' });
-                            }
-                        }
-
-                        // 3. Thumbnail (Center Top)
-                        let contentStartY = 20;
-                        if (rawThumb) {
-                            try {
-                                const imgProps = doc.getImageProperties(rawThumb);
-                                const ratio = imgProps.width / imgProps.height;
-                                let imgH = 80;
-                                let imgW = imgH * ratio;
-                                if (imgW > 150) {
-                                    imgW = 150;
-                                    imgH = imgW / ratio;
-                                }
-                                const imgX = (width - imgW) / 2;
-                                doc.addImage(rawThumb, 'JPEG', imgX, 15, imgW, imgH);
-                                contentStartY = 15 + imgH + 10;
-                            } catch (err) {
-                                console.error("PDF Image Add Error", err);
-                            }
-                        } else {
-                            contentStartY = 40;
-                        }
-
-                        // 4. Exercise Name
-                        doc.setFont("helvetica", "bold");
-                        doc.setFontSize(36);
+                // 2. QR
+                if (data.videoUrl) {
+                    const qrData = generateQR(data.videoUrl);
+                    if (qrData) {
+                        doc.addImage(qrData, 'PNG', width - 40, 10, 30, 30);
+                        doc.setFontSize(10);
                         doc.setTextColor(0, 0, 0);
-                        const splitName = doc.splitTextToSize(exName.toUpperCase(), width - 40);
-                        doc.text(splitName, width / 2, contentStartY + 10, { align: 'center' });
-                        const nameHeight = splitName.length * 15;
-
-                        // 5. Material Bar (Green)
-                        const barY = contentStartY + 10 + nameHeight;
-                        doc.setFillColor(48, 209, 88);
-                        doc.rect(20, barY, width - 40, 18, 'F');
-
-                        doc.setFontSize(18);
-                        doc.setTextColor(0, 0, 0);
-                        doc.text((matName || "").toUpperCase(), width / 2, barY + 11, { align: 'center' });
-
-                        // 6. Material Description
-                        doc.setFont("helvetica", "italic");
-                        doc.setFontSize(12);
-                        doc.setTextColor(80, 80, 80);
-                        doc.text(matDesc || "", width / 2, barY + 25, { align: 'center' });
-
-                        // 7. Instructions (Bottom)
-                        doc.setFont("helvetica", "normal");
-                        doc.setFontSize(14);
-                        doc.setTextColor(0, 0, 0);
-
-                        const instrY = barY + 40;
-                        const splitInstr = doc.splitTextToSize(instructions, width - 40);
-                        doc.text(splitInstr, 20, instrY);
-
-                        // Footer
-                        doc.setFontSize(9);
-                        doc.setTextColor(150, 150, 150);
-                        doc.text(`Ronde ${r} - Oefening ${e} - Set ${s}  |  Friday-night-hawk-s Station Card`, 20, 200);
+                        doc.text("VIDEO", width - 40, 44, { align: 'left' });
                     }
                 }
+
+                // 3. Thumbnail
+                let contentStartY = 20;
+                let thumbData = null;
+                if (data.thumbSrc && !data.thumbSrc.endsWith('nopreview') && !data.thumbSrc.includes('FNH logo.jpg')) { // Don't print logo as exercise
+                    thumbData = await preloadImage(data.thumbSrc);
+                }
+
+                if (thumbData) {
+                    try {
+                        const imgProps = doc.getImageProperties(thumbData);
+                        const ratio = imgProps.width / imgProps.height;
+                        let imgH = 80;
+                        let imgW = imgH * ratio;
+                        if (imgW > 150) {
+                            imgW = 150;
+                            imgH = imgW / ratio;
+                        }
+                        const imgX = (width - imgW) / 2;
+                        doc.addImage(thumbData, 'JPEG', imgX, 15, imgW, imgH);
+                        contentStartY = 15 + imgH + 10;
+                    } catch (e) { console.error(e); }
+                } else {
+                    contentStartY = 40;
+                }
+
+                // 4. Name
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(36);
+                doc.setTextColor(0, 0, 0);
+                const splitName = doc.splitTextToSize((data.exName || "").toUpperCase(), width - 40);
+                doc.text(splitName, width / 2, contentStartY + 10, { align: 'center' });
+                const nameHeight = splitName.length * 15;
+
+                // 5. Material Bar
+                const barY = contentStartY + 10 + nameHeight;
+                doc.setFillColor(48, 209, 88);
+                doc.rect(20, barY, width - 40, 18, 'F');
+                doc.setFontSize(18);
+                doc.setTextColor(0, 0, 0);
+                doc.text((data.matName || "").toUpperCase(), width / 2, barY + 11, { align: 'center' });
+
+                // 6. Mat Desc
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(12);
+                doc.setTextColor(80, 80, 80);
+                doc.text(data.matDesc || "", width / 2, barY + 25, { align: 'center' });
+
+                // 7. Instructions
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                const instrY = barY + 40;
+                const splitInstr = doc.splitTextToSize(data.instructions || "", width - 40);
+                doc.text(splitInstr, 20, instrY);
+
+                // Footer
+                doc.setFontSize(9);
+                doc.setTextColor(150, 150, 150);
+                doc.text(`Ronde ${data.round} - Oefening ${data.stationNum} - Set ${data.set}  |  Friday-night-hawk-s Station Card`, 20, 200);
             }
 
-            if (cardCount > 0) {
-                doc.save(`StationCards_${new Date().toISOString().slice(0, 10)}.pdf`);
-            } else {
-                alert("Geen kaarten gegenereerd. Check selectie.");
-            }
+            doc.save(`StationCards_${new Date().toISOString().slice(0, 10)}.pdf`);
         }
     </script>
 </body>
