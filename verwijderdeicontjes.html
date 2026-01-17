@@ -1,0 +1,816 @@
+     <div class="resume-options" style="display:none;">
+            <div class="collapsible-header resume-header open" onclick="toggleSection('sec-resume')">
+                <div>Beginnen vanaf moment in training</div>
+                <span class="arrow">▼</span>
+                <span class="arrow">?</span>
+            </div>
+            <div id="sec-resume" class="collapsible-content">
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Vul hieronder in waar je wilt starten.</div>
+@@ -2093,10 +2093,10 @@
+        </div>
+
+        <div class="intro-banner">
+            <div class="intro-title">🦅 Welcome to the Friday Night Hawks!</div>
+            <div class="intro-title">?? Welcome to the Friday Night Hawks!</div>
+            <div class="intro-text">
+                De legendarische triathlon: <b>Spinning 🚴 » Bootcamp 🏋️ » Zwemmen 🏊</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! 🍖🍻
+                De legendarische triathlon: <b>Spinning ?? » Bootcamp ??? » Zwemmen ??</b>.
+                <br>Iedere vrijdagavond om 19:45. We sluiten af met <b>bitterballen</b> & gezelligheid! ????
+            </div>
+        </div>
+
+@@ -2137,31 +2137,31 @@
+                <div class="stats-row-1">
+                    <div class="stat-box editable">
+                        <select id="jump-round" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
+                        <div class="stat-label">Ronde</div>
+                        <div class="stat-value" id="val-round">-</div>
+                    </div>
+                    <div class="stat-box editable">
+                        <select id="jump-exercise" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
+                        <div class="stat-label">Oefening</div>
+                        <div class="stat-value" id="val-exercise">-</div>
+                    </div>
+                    <div class="stat-box editable">
+                        <select id="jump-set" class="transparent-input" onchange="handleJump()"></select>
+                        <div class="edit-icon">▼</div>
+                        <div class="edit-icon">?</div>
+                        <div class="stat-label">Set</div>
+                        <div class="stat-value" id="val-set">-</div>
+                    </div>
+                </div>
+                <div class="stats-row-2">
+                    <div class="stat-box editable" onclick="openLiveEndAdjustment()" style="cursor:pointer;">
+                        <div class="edit-icon">🏁</div>
+                        <div class="edit-icon">??</div>
+                        <div class="stat-label">Einde</div>
+                        <div class="stat-value" id="val-endtime">--:--</div>
+                    </div>
+                    <div class="stat-box editable" onclick="openLiveWorkAdjustment()" style="cursor:pointer;">
+                        <div class="edit-icon">⏱️</div>
+                        <div class="edit-icon">??</div>
+                        <div class="stat-label">Werktijd</div>
+                        <div class="stat-value" id="val-worktime">--s</div>
+                    </div>
+@@ -2170,19 +2170,19 @@
+                <div class="stats-row-3" style="display:flex; justify-content:space-between; margin-top:10px; gap:8px;">
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">💤</div>
+                        <div class="edit-icon">??</div>
+                        <div class="stat-label">Rust</div>
+                        <div class="stat-value" id="val-rest">--s</div>
+                    </div>
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-exercise')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">🔀</div>
+                        <div class="edit-icon">??</div>
+                        <div class="stat-label">Wissel</div>
+                        <div class="stat-value" id="val-switch">--s</div>
+                    </div>
+                    <div class="stat-box editable" onclick="openLiveRestAdjustment('rest-long')"
+                        style="cursor:pointer; flex:1;">
+                        <div class="edit-icon">☕</div>
+                        <div class="edit-icon">?</div>
+                        <div class="stat-label">Pauze Ronde</div>
+                        <div class="stat-value" id="val-pause-round">--s</div>
+                    </div>
+@@ -2197,15 +2197,15 @@
+        </div>
+
+        <div class="controls-container">
+            <button class="btn-control btn-skip" onclick="handlePrevClick()">⏮</button>
+            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">⏸</button>
+            <button class="btn-control btn-skip" onclick="handleNextClick()">⏭</button>
+            <button class="btn-control btn-stop" onclick="confirmStop()">⏹</button>
+            <button class="btn-control btn-skip" onclick="handlePrevClick()">?</button>
+            <button class="btn-control btn-pause" id="btn-pause" onclick="handlePauseClick()">?</button>
+            <button class="btn-control btn-skip" onclick="handleNextClick()">?</button>
+            <button class="btn-control btn-stop" onclick="confirmStop()">?</button>
+        </div>
+
+        <button onclick="toggleLiveEdit()" class="action-btn"
+            style="margin-top:20px; background:#333; font-size:14px; padding:10px;">
+            ⚙️ Bewerk Schema (Training loopt door)
+            ?? Bewerk Schema (Training loopt door)
+        </button>
+
+        <div id="live-schedule-container">
+@@ -2233,39 +2233,39 @@ <h2 id="pause-modal-title" style="margin-top:0;">PAUZE VOORBIJ</h2>
+            <button class="modal-btn"
+                style="background: linear-gradient(135deg, #32d74b 0%, #28cd41 100%); color: #000; font-weight: 800; border: none; box-shadow: 0 5px 15px rgba(50, 215, 75, 0.4);"
+                onclick="resolvePause('push')">
+                ✅ Eindtijd verzetten
+                ? Eindtijd verzetten
+                <span class="btn-subtext" id="btn-text-push" style="color: rgba(0,0,0,0.6); font-weight:600;">...</span>
+                <div style="font-size: 11px; font-weight: normal; opacity: 0.8; margin-top: 2px;">Werk- en rusttijden
+                    blijven intact</div>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-work" style="background: #0A84FF; color: white;"
+                onclick="resolvePause('work')">
+                ⏱️ Inhalen via Werktijd
+                ?? Inhalen via Werktijd
+                <span class="btn-subtext" id="btn-text-work">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-rest" style="background: #FF9F0A; color: black;"
+                onclick="resolvePause('rest')">
+                💤 Inhalen via Rust (Set)
+                ?? Inhalen via Rust (Set)
+                <span class="btn-subtext" id="btn-text-rest">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-switch" style="background: #BF5AF2; color: white;"
+                onclick="resolvePause('switch')">
+                🔀 Inhalen via Wissels
+                ?? Inhalen via Wissels
+                <span class="btn-subtext" id="btn-text-switch">...</span>
+            </button>
+
+            <button class="modal-btn" id="btn-catch-round" style="background: #0A84FF; color: white;"
+                onclick="resolvePause('round')">
+                ☕ Inhalen via Ronde Rust
+                ? Inhalen via Ronde Rust
+                <span class="btn-subtext" id="btn-text-round">...</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelPause()">
+                ❌ Annuleren (Terug)
+                ? Annuleren (Terug)
+            </button>
+        </div>
+    </div>
+@@ -2277,7 +2277,7 @@ <h2 id="pause-modal-title" style="margin-top:0;">PAUZE VOORBIJ</h2>
+            <h3 style="margin-top:0;">Spraak aanpassen</h3>
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">Gebruik | voor variatie</div>
+            <textarea id="speech-edit-area"></textarea>
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">💾
+            <button class="modal-btn" style="background: #30D158; color: black;" onclick="saveSpeechEdit()">??
+                Opslaan</button>
+            <button class="modal-btn" style="background: #333; color: white; margin-top:10px;"
+                onclick="closeSpeechEdit()">Annuleren</button>
+@@ -2301,25 +2301,25 @@ <h2 style="margin-top:0;">Eindtijd Verzetten</h2>
+
+            <button class="modal-btn" id="btn-live-work" style="background: #0A84FF; color: white;"
+                onclick="applyLiveEndAdjustment('work')">
+                ⏱️ Verdeel over Werk
+                ?? Verdeel over Werk
+                <span class="btn-subtext" id="sub-live-work">Effect: +/- 0s per set</span>
+            </button>
+
+            <button class="modal-btn" id="btn-live-rest" style="background: #FF9F0A; color: black;"
+                onclick="applyLiveEndAdjustment('rest')">
+                💤 Verdeel over Rust
+                ?? Verdeel over Rust
+                <span class="btn-subtext" id="sub-live-rest">Effect: +/- 0s per set</span>
+            </button>
+
+            <button class="modal-btn" id="btn-live-switch" style="background: #BF5AF2; color: white;"
+                onclick="applyLiveEndAdjustment('switch')">
+                🔀 Verdeel over Wissels
+                ?? Verdeel over Wissels
+                <span class="btn-subtext" id="sub-live-switch">Effect: +/- 0s per wissel</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelLiveAdjustment()">
+                ❌ Annuleren
+                ? Annuleren
+            </button>
+        </div>
+    </div>
+@@ -2347,25 +2347,25 @@ <h2 style="margin-top:0;">Werktijd Aanpassen</h2>
+
+            <button class="modal-btn" id="btn-work-push" style="background: #0A84FF; color: white;"
+                onclick="applyLiveWorkAdjustment('push')">
+                🗓️ Verzet Eindtijd
+                ??? Verzet Eindtijd
+                <span class="btn-subtext" id="sub-work-push">Eindtijd schuift op met Xm</span>
+            </button>
+
+            <button class="modal-btn" id="btn-work-rest" style="background: #FF9F0A; color: black;"
+                onclick="applyLiveWorkAdjustment('rest')">
+                💤 Compenseer met Rust
+                ?? Compenseer met Rust
+                <span class="btn-subtext" id="sub-work-rest">Rust wordt X seconden</span>
+            </button>
+
+            <button class="modal-btn" id="btn-work-switch" style="background: #BF5AF2; color: white;"
+                onclick="applyLiveWorkAdjustment('switch')">
+                🔀 Compenseer met Wissels
+                ?? Compenseer met Wissels
+                <span class="btn-subtext" id="sub-work-switch">Wissel wordt X seconden</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelLiveWorkAdjustment()">
+                ❌ Annuleren
+                ? Annuleren
+            </button>
+        </div>
+    </div>
+@@ -2393,19 +2393,19 @@ <h2 style="margin-top:0;"><span id="live-rest-type-label">Rust</span> Aanpassen<
+
+            <button class="modal-btn" id="btn-rest-push" style="background: #0A84FF; color: white;"
+                onclick="applyLiveRestAdjustment('push')">
+                🗓️ Verzet Eindtijd
+                ??? Verzet Eindtijd
+                <span class="btn-subtext" id="sub-rest-push">Eindtijd schuift op met Xm</span>
+            </button>
+
+            <button class="modal-btn" id="btn-rest-work" style="background: #FF9F0A; color: black;"
+                onclick="applyLiveRestAdjustment('work')">
+                💪 Compenseer met Werk
+                ?? Compenseer met Werk
+                <span class="btn-subtext" id="sub-rest-work">Werk wordt X seconden</span>
+            </button>
+
+            <button class="modal-btn" style="background: #333; color: #888; margin-top:15px; border:1px solid #444;"
+                onclick="cancelLiveRestAdjustment()">
+                ❌ Annuleren
+                ? Annuleren
+            </button>
+        </div>
+    </div>
+@@ -2479,7 +2479,7 @@ <h2 id="detail-tit" style="margin-top:0; color:white;">Oefening</h2>
+                    <img id="detail-vid-thumb"
+                        style="width:100%; border-radius:8px; display:none; object-fit:cover; aspect-ratio:16/9; border:1px solid #333;" />
+                    <span id="detail-vid-fallback"
+                        style="background:#5856D6; color:white; width:100%; padding:15px; border-radius:12px; text-align:center;">📺
+                        style="background:#5856D6; color:white; width:100%; padding:15px; border-radius:12px; text-align:center;">??
+                        Bekijk Video</span>
+                </a>
+
+@@ -2594,7 +2594,7 @@ <h3>Audio Bestanden Controleren</h3>
+        style="display:none; z-index:10001; justify-content:center; align-items:center;">
+        <div class="modal-content"
+            style="max-width:400px; text-align:left; background:#1c1c1e; border-radius:24px; padding:25px; border:1px solid #333;">
+            <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards Printen 🖨️</h3>
+            <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards Printen ???</h3>
+
+            <label style="color:#aaa; font-size:12px; font-weight:bold; margin-top:15px; display:block;">Ronde
+                Selectie:</label>
+@@ -2627,7 +2627,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+
+    <script>
+        const APP_VERSION = "1.32.46"; // Restored & Incremented
+        const APP_VERSION = "1.32.47"; // Restored & Incremented
+        // GLOBAL START TIME REFERENCE
+        // We use this to calculate sync when returning from "Edit Mode"
+        let globalWorkoutStartVal = null; // Date.now() timestamp
+@@ -2743,7 +2743,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+        // Cache-busting: append timestamp
+        // Check for local file protocol
+        if (window.location.protocol === 'file:') {
+            alert("⚠️ LET OP: Je opent de app lokaal (file://).\n\nVanwege beveiliging in browsers kan de database NIET geladen worden.\nGebruik de online versie of een lokale webserver.");
+            alert("?? LET OP: Je opent de app lokaal (file://).\n\nVanwege beveiliging in browsers kan de database NIET geladen worden.\nGebruik de online versie of een lokale webserver.");
+        }
+
+        // Load Database
+@@ -3204,7 +3204,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                    list.appendChild(li);
+                });
+            } else {
+                status.innerText = "Alle audio bestanden zijn aanwezig! ✅";
+                status.innerText = "Alle audio bestanden zijn aanwezig! ?";
+                status.style.color = "#30D158";
+                setTimeout(() => {
+                    if (modal.style.display === 'flex') modal.style.display = 'none';
+@@ -3235,7 +3235,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            const customLi = document.createElement('li');
+            customLi.className = "ex-list-item";
+            customLi.style.borderBottom = "2px solid #333";
+            customLi.innerHTML = `<span style="font-weight:bold; color:white;">✏️ Eigen Naam Invoeren...</span>`;
+            customLi.innerHTML = `<span style="font-weight:bold; color:white;">?? Eigen Naam Invoeren...</span>`;
+            customLi.onclick = () => {
+                const name = prompt("Voer naam in:", currentName);
+                if (name) {
+@@ -3539,7 +3539,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+        function wakeUpAudio() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                audioCtx.resume().then(() => logAudioDebug("⚡ Audio Resumed (WakeUp)"));
+                audioCtx.resume().then(() => logAudioDebug("? Audio Resumed (WakeUp)"));
+            }
+            // Force silent oscillator to wake up iOS Audio Engine
+            try {
+@@ -3561,21 +3561,21 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+        function shareApp() {
+            const cleanUrl = window.location.origin + window.location.pathname;
+            let text = "🦅 **FNH Timer: De enige timer die terugrekent!**\n\n";
+            text += "🏁 **Jij kiest de eindtijd, de app doet de rest.**\n";
+            let text = "?? **FNH Timer: De enige timer die terugrekent!**\n\n";
+            text += "?? **Jij kiest de eindtijd, de app doet de rest.**\n";
+            text += "Hij berekent automatisch de werk- en rusttijden zodat je precies op tijd klaar bent. Nooit meer gokken of haasten.\n\n";
+            text += "✅ **Waarom deze app?**\n";
+            text += "- ⏳ **Aftellen tot start:** Zie precies hoe lang je nog hebt voor uitleg of warming-up. De training start automatisch!\n";
+            text += "- 🍦 **Trainer Logica:** Snapt bonussen, 'toetjes' en onderscheidt rust vs. wisselen.\n";
+            text += "- 🛠️ Pas live tijden aan (zonder rekenen)\n";
+            text += "- 🎧 Muziek blijft aanstaan (Mix-mode)\n";
+            text += "- 📱 **Draait op alles:** Werkt op iOS, Android, Windows en Mac.\n";
+            text += "- 🚀 **Geen installatie:** Werkt direct in je browser (Web App)!\n\n";
+            text += "👇 **Gebruik 'm hier (gratis):**";
+            text += "? **Waarom deze app?**\n";
+            text += "- ? **Aftellen tot start:** Zie precies hoe lang je nog hebt voor uitleg of warming-up. De training start automatisch!\n";
+            text += "- ?? **Trainer Logica:** Snapt bonussen, 'toetjes' en onderscheidt rust vs. wisselen.\n";
+            text += "- ??? Pas live tijden aan (zonder rekenen)\n";
+            text += "- ?? Muziek blijft aanstaan (Mix-mode)\n";
+            text += "- ?? **Draait op alles:** Werkt op iOS, Android, Windows en Mac.\n";
+            text += "- ?? **Geen installatie:** Werkt direct in je browser (Web App)!\n\n";
+            text += "?? **Gebruik 'm hier (gratis):**";
+
+            if (navigator.share) {
+                navigator.share({
+                    title: "FNH Timer 🦅",
+                    title: "FNH Timer ??",
+                    text: text,
+                    url: cleanUrl
+                }).catch(console.error);
+@@ -3939,7 +3939,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                // Delete Button (x) - Positioned Top Right
+                if (workoutRounds.length > 1) {
+                    const delBtn = document.createElement('div');
+                    delBtn.innerHTML = '✕';
+                    delBtn.innerHTML = '?';
+                    delBtn.title = "Verwijder Ronde";
+                    delBtn.style.position = 'absolute';
+                    delBtn.style.right = '20px';
+@@ -4960,7 +4960,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+                if (nowEl) {
+                    const cleanTitle = trackName.replace('.mp3', '');
+                    nowEl.innerText = `🎵 ${genre} - ${cleanTitle} (${type})`;
+                    nowEl.innerText = `?? ${genre} - ${cleanTitle} (${type})`;
+                }
+
+                if (listEl) {
+@@ -4987,7 +4987,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                        if (i === this.playlistIndex) {
+                            div.style.color = "#30D158";
+                            div.style.fontWeight = "bold";
+                            div.innerText = `▶ ${cleanTrack} (${item.genre})`;
+                            div.innerText = `? ${cleanTrack} (${item.genre})`;
+                        } else {
+                            div.style.color = "#aaa";
+                            div.innerText = `${displayIndex}. ${cleanTrack} (${item.genre})`;
+@@ -5073,7 +5073,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+            // Check Cache
+            if (audioCache[url]) {
+                logAudioDebug(`✅ WebAudio Cache: ${key} (P${priority})`);
+                logAudioDebug(`? WebAudio Cache: ${key} (P${priority})`);
+                playBuffer(audioCache[url], priority, key);
+                return;
+            }
+@@ -5087,12 +5087,12 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
+                .then(audioBuffer => {
+                    audioCache[url] = audioBuffer;
+                    logAudioDebug(`✅ WebAudio Play: ${key} (P${priority})`);
+                    logAudioDebug(`? WebAudio Play: ${key} (P${priority})`);
+                    playBuffer(audioBuffer, priority, key);
+                })
+                .catch(e => {
+                    failedAudioKeys.add(key);
+                    logAudioDebug(`❌ WebAudio Fail: ${key}`);
+                    logAudioDebug(`? WebAudio Fail: ${key}`);
+                    console.error("WebAudio Error", e);
+                });
+        }
+@@ -5112,13 +5112,13 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                const shouldOverlap = (isWorkStart && isCountdown);
+
+                if (!shouldOverlap) {
+                    logAudioDebug(`🛑 Stopping ${curKey} for ${newKey}`);
+                    logAudioDebug(`?? Stopping ${curKey} for ${newKey}`);
+                    try {
+                        currentActiveSource.stop();
+                        currentActiveSource = null;
+                    } catch (e) { console.log("Stop error", e); }
+                } else {
+                    logAudioDebug(`🔀 Mixing: ${curKey} + ${newKey}`);
+                    logAudioDebug(`?? Mixing: ${curKey} + ${newKey}`);
+                }
+            }
+
+@@ -5183,7 +5183,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                runningDate.setSeconds(runningDate.getSeconds() + item.time);
+                const div = document.createElement('div'); div.className = `schedule-item`;
+                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '☕'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '🔀'; } else if (item.type === 'work') icon = '🔥'; else if (item.type === 'rest') icon = '💤'; else icon = '🚀';
+                let icon = ""; if (item.type === 'rest-long') { div.style.borderLeft = "4px solid #0A84FF"; icon = '?'; } else if (item.type === 'rest-exercise') { div.style.borderLeft = "4px solid #BF5AF2"; icon = '??'; } else if (item.type === 'work') icon = '??'; else if (item.type === 'rest') icon = '??'; else icon = '??';
+                let desc = item.label;
+                // If it's a generic label and we have a custom name, use that?
+                // Actually, generateScheduleData now sets item.label to customNames if available.
+@@ -5216,7 +5216,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+                // Check Enable/Disable Toggle
+                if (speechSettings[key] && speechSettings[key].enabled === false) {
+                    logAudioDebug(`🔇 Silenced by user setting: ${key}`);
+                    logAudioDebug(`?? Silenced by user setting: ${key}`);
+                    return;
+                }
+
+@@ -5246,7 +5246,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                        finalKey = `${key}_${variantId}`;
+                    }
+
+                    logAudioDebug(`🎵 Attempting MP3: ${coachId}/${finalKey}.mp3`);
+                    logAudioDebug(`?? Attempting MP3: ${coachId}/${finalKey}.mp3`);
+                    const mp3Path = `coaches/${coachId}/${finalKey}.mp3`;
+
+                    // ALWAYS USE WEB AUDIO MIX MODE (Better Priority & Overlap Handling)
+@@ -5270,7 +5270,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                    // If P2 comes in -> Stop everything (handled in playBuffer) and Play.
+                    // If P1 comes in -> ONLY play if current is 0. If current is 2, IGNORE P1.
+                    if (priority === 1 && currentAudioPriority === 2) {
+                        logAudioDebug(`🚫 Skipped Low Priority: ${key} (Busy w/ High)`);
+                        logAudioDebug(`?? Skipped Low Priority: ${key} (Busy w/ High)`);
+                        return;
+                    }
+
+@@ -5282,21 +5282,21 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                return;
+            } catch (e) {
+                console.error("Audio Trigger Error", e);
+                logAudioDebug(`⚠️ Audio Error: ${e.message}`);
+                logAudioDebug(`?? Audio Error: ${e.message}`);
+            }
+        }
+
+        function testMixModeSound() {
+            logAudioDebug("🔊 Sound Check Triggered");
+            logAudioDebug("?? Sound Check Triggered");
+
+            // Replicate triggerAudio logic regarding Mix Mode
+            if (iosMixMode) {
+                playMp3WebAudio('sound_check.mp3', 'sound_check', 2);
+            } else {
+                globalCoachAudio.src = 'sound_check.mp3';
+                globalCoachAudio.play()
+                    .then(() => logAudioDebug("✅ Standard Audio Check"))
+                    .catch(e => logAudioDebug("❌ Standard Audio Fail: " + e.message));
+                    .then(() => logAudioDebug("? Standard Audio Check"))
+                    .catch(e => logAudioDebug("? Standard Audio Fail: " + e.message));
+            }
+        }
+
+@@ -5949,7 +5949,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            if (!isPaused) {
+                isPaused = true;
+                pauseStartTime = Date.now();
+                if (btn) btn.innerText = "▶️";
+                if (btn) btn.innerText = "??";
+                document.body.classList.add('mode-pause');
+                const titleEl = document.getElementById('gym-phase-title');
+                if (titleEl) titleEl.innerText = "GEPAUZEERD";
+@@ -6198,7 +6198,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+            document.body.classList.remove('mode-pause');
+            const btn = document.getElementById('btn-pause');
+            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
+
+            // Re-render
+            renderLiveSchedule(true);
+@@ -6587,7 +6587,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+            document.body.classList.remove('mode-pause');
+            const btn = document.getElementById('btn-pause');
+            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
+
+            renderLiveSchedule(true);
+        }
+@@ -6716,7 +6716,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+            document.body.classList.remove('mode-pause');
+            const btn = document.getElementById('btn-pause');
+            if (btn) btn.innerText = "⏸";
+            if (btn) btn.innerText = "?";
+
+            renderLiveSchedule(true);
+        }
+@@ -6954,9 +6954,9 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                // FIX: If we skipped performStart (Jump Mode), we must manually Resume!
+                // Otherwise app stays paused.
+                const btn = document.getElementById('btn-pause');
+                if (btn.innerText === "▶️" || isPaused) {
+                    btn.innerText = "⏸"; btn.classList.remove('paused');
+                    btn.innerText = "⏸"; btn.classList.remove('paused');
+                if (btn.innerText === "??" || isPaused) {
+                    btn.innerText = "?"; btn.classList.remove('paused');
+                    btn.innerText = "?"; btn.classList.remove('paused');
+                    isPaused = false;
+                    if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+                    document.body.classList.remove('mode-pause');
+@@ -6968,8 +6968,8 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+
+            // STANDARD PAUSE RESOLUTION
+            const btn = document.getElementById('btn-pause');
+            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "⏸"; btn.classList.remove('paused');
+            btn.innerText = "?"; btn.classList.remove('paused');
+            btn.innerText = "?"; btn.classList.remove('paused');
+            isPaused = false;
+            if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+            document.body.classList.remove('mode-pause');
+@@ -7150,7 +7150,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+            document.body.className = 'mode-finish';
+            document.getElementById('gym-phase-title').innerText = "KLAAR!";
+            document.getElementById('gym-phase-title').classList.remove('huge-text');
+            document.getElementById('countdown').innerText = "🎉";
+            document.getElementById('countdown').innerText = "??";
+            document.getElementById('gym-stats-container').style.display = 'none';
+            document.getElementById('btn-pause').style.display = 'none';
+            // Force 100% progress
+@@ -7220,7 +7220,7 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+                isPaused = false;
+                document.body.classList.remove('mode-pause');
+                const btn = document.getElementById('btn-pause');
+                if (btn) { btn.innerText = "⏸"; btn.classList.remove('paused'); }
+                if (btn) { btn.innerText = "?"; btn.classList.remove('paused'); }
+                triggerAudio('manual_override', "We gaan weer door");
+                if (bgMusicManager.hasStartedForWorkout) bgMusicManager.audio.play();
+            }
+@@ -7536,39 +7536,39 @@ <h3 style="margin-top:0; color:#30D158; text-transform:uppercase;">Station Cards
+        function showAudioPopup(type) {
+            if (sessionStorage.getItem("audio_popup_seen")) return;
+
+            let title = "🔈 Geluid Aanzetten";
+            let title = "?? Geluid Aanzetten";
+            let msg = "";
+            let icon = "";
+
+            switch (type) {
+                case "ipad":
+                    title = "Instellen";
+                    icon = "📱";
+                    icon = "??";
+                    msg = `
+                        <b>1. Bedieningspaneel:</b> Veeg rechtsboven omlaag.<br>
+                        <b>2. Belletje:</b> Zorg dat het bel-icoon 🔔 AAN staat.<br>
+                        <b>2. Belletje:</b> Zorg dat het bel-icoon ?? AAN staat.<br>
+                        <b>3. Focus:</b> Zet 'Niet Storen' aan.
+                    `;
+                    break;
+                case "action":
+                    title = "Instellen";
+                    icon = "🔘";
+                    icon = "??";
+                    msg = `
+                        <b>Optie 1:</b> Houd de <b>Actieknop</b> (zijkant) ingedrukt tot 'Stille modus: Uit'.<br>
+                        <b>Optie 2:</b> Via Bedieningspaneel (belletje 🔔).
+                        <b>Optie 2:</b> Via Bedieningspaneel (belletje ??).
+                    `;
+                    break;
+                case "ambiguous":
+                    title = "Instellen";
+                    icon = "📱";
+                    icon = "??";
+                    msg = `
+                        <b>Heb je een Actieknop?</b><br> Houd ingedrukt tot Stille Modus UIT gaat.<br><br>
+                        <b>Heb je een Schakelaar?</b><br> Zet het schuifje links omhoog.
+                    `;
+                    break;
+                default:
+                    title = "Zet Geluid Aan";
+                    icon = "🔕 ➡️ 🔔";
+                    icon = "?? ?? ??";
+                    msg = `
+                        <b>De fysieke schakelaar:</b><br>
+                        Zet het schuifje aan de linkerkant omhoog.<br>
+@@ -7587,11 +7587,11 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:20px;">${title}</h2>
+                    <div style="font-size:13px; color:#ccc; line-height:1.4; text-align:left; margin-bottom:15px;">${msg}</div>
+                    
+                    <div style="background:rgba(255, 214, 10, 0.1); border:1px solid rgba(255, 214, 10, 0.3); padding:10px; border-radius:8px; text-align:left; margin-bottom:15px;">
+                        <div style="font-size:12px; font-weight:bold; color:#FFD60A; margin-bottom:2px;">🔒 PRO TIP: Begeleide Toegang</div>
+                        <div style="font-size:12px; font-weight:bold; color:#FFD60A; margin-bottom:2px;">?? PRO TIP: Begeleide Toegang</div>
+                        <div style="font-size:11px; color:#ddd;">
+                            Voorkomt dat je de app wegveegt én blokkeert notificaties.
+                            <br><br>
+                            👉 <b>Druk 3x snel op de zijknop</b> om te starten.
+                            ?? <b>Druk 3x snel op de zijknop</b> om te starten.
+                        </div>
+                    </div>
+
+@@ -7601,7 +7601,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:20px;">${title}</h2>
+                    </label>
+
+                    <button id="btn-audio-ok" style="background:#0A84FF; color:white; border:none; padding:12px 30px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; width:100%;">
+                        Begrepen ✅
+                        Begrepen ?
+                    </button>
+                </div>
+            `;
+@@ -7667,15 +7667,15 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:20px;">${title}</h2>
+
+            div.innerHTML = `
+                <div style="background:#1c1c1e; color:white; padding:25px; border-radius:24px; max-width:340px; text-align:center; border:1px solid #333; box-shadow:0 10px 40px rgba(0,0,0,0.6);">
+                    <div style="font-size:40px; margin-bottom:15px;">📱</div>
+                    <div style="font-size:40px; margin-bottom:15px;">??</div>
+                    <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h2>
+                    <div style="font-size:14px; color:#ccc; line-height:1.5; text-align:left; margin-bottom:20px;">
+                        Op iPhone/iPad werkt dit knopje niet direct in Safari.
+                        <br><br>
+                        <b>Voor de beste ervaring:</b>
+                        <ol style="margin:10px 0; padding-left:20px; color:#fff;">
+                            <li>Tik op de <b style="color:#0A84FF">Deel-knop</b> 🛫 (onderin).</li>
+                            <li>Kies <b style="color:#fff">"Zet op beginscherm"</b> ➕.</li>
+                            <li>Tik op de <b style="color:#0A84FF">Deel-knop</b> ?? (onderin).</li>
+                            <li>Kies <b style="color:#fff">"Zet op beginscherm"</b> ?.</li>
+                        </ol>
+                        Start de app daarna via het nieuwe icoontje!
+                    </div>
+@@ -7768,7 +7768,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+            if (!btn) return;
+
+            if (isWorkoutActive) {
+                btn.innerText = "⏱️ TERUG NAAR TRAINING";
+                btn.innerText = "?? TERUG NAAR TRAINING";
+                btn.classList.add('active-session-btn'); // CSS for pulsing green?
+                btn.style.background = "#30D158";
+                btn.style.color = "black";
+@@ -7850,12 +7850,12 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+
+        <button onclick="previewEarlyStartOptions()" class="action-btn"
+            style="margin-top:50px; padding:15px 40px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); width:auto;">
+            🚀 NU BEGINNEN (OVERSLAAN)
+            ?? NU BEGINNEN (OVERSLAAN)
+        </button>
+
+        <button id="btn-jump-in" onclick="startSyncWorkout()" class="action-btn"
+            style="display:none; margin-top:15px; padding:15px 40px; background:rgba(48,209,88,0.2); border:1px solid rgba(48,209,88,0.4); backdrop-filter:blur(10px); width:auto; color:#30D158;">
+            ⏱️ IN HAKEN (MOMENTEEL BEZIG)
+            ?? IN HAKEN (MOMENTEEL BEZIG)
+        </button>
+        <script>
+            function getFingerprint() {
+@@ -7919,7 +7919,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                // 2. Inject DOM
+                const ptr = document.createElement('div');
+                ptr.id = 'ptr-spinner';
+                ptr.innerHTML = '<div id="ptr-icon">⬇️</div>';
+                ptr.innerHTML = '<div id="ptr-icon">??</div>';
+                document.body.appendChild(ptr);
+
+                // 3. Variables
+@@ -7951,10 +7951,10 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                        const icon = document.getElementById('ptr-icon');
+                        if (diff > threshold) {
+                            icon.style.transform = 'rotate(180deg)';
+                            icon.innerText = "🔄";
+                            icon.innerText = "??";
+                        } else {
+                            icon.style.transform = 'rotate(0deg)';
+                            icon.innerText = "⬇️";
+                            icon.innerText = "??";
+                        }
+                    } else {
+                        isDragging = false; // Scrolled down
+@@ -8010,13 +8010,13 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+    <div id="global-fullscreen-btn"
+        style="position:fixed; top:20px; right:75px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+        onclick="toggleFullScreen()">
+        <span style="font-size:20px;">⛶</span>
+        <span style="font-size:20px;">?</span>
+    </div>
+
+    <div id="global-volume-btn"
+        style="position:fixed; top:20px; right:20px; z-index:200000; background:rgba(0,0,0,0.6); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.5); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+        onclick="toggleVolumePanel()">
+        <span style="font-size:20px;">🔊</span>
+        <span style="font-size:20px;">??</span>
+    </div>
+
+    <!-- VOLUME PANEL OVERLAY (Relocated to Body) -->
+@@ -8030,15 +8030,15 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+        <!-- Playback Controls -->
+        <div
+            style="display:flex; align-items:center; justify-content:center; gap:25px; margin-bottom:25px; background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
+            <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏮️
+            <div onclick="bgMusicManager.playPrevious()" style="cursor:pointer; font-size:20px; opacity:0.8;">??
+            </div>
+            <div onclick="bgMusicManager.togglePlayback()"
+                style="cursor:pointer; font-size:28px; transform:scale(1.1);">⏯️</div>
+            <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">⏭️</div>
+                style="cursor:pointer; font-size:28px; transform:scale(1.1);">??</div>
+            <div onclick="bgMusicManager.playNext()" style="cursor:pointer; font-size:20px; opacity:0.8;">??</div>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <span style="font-size:16px; min-width:30px;">🎵</span>
+            <span style="font-size:16px; min-width:30px;">??</span>
+            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">WERK MUZIEK</span>
+                <input type="range" id="vol-music-live" min="0" max="1" step="0.1" value="0.4"
+@@ -8048,7 +8048,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <span style="font-size:16px; min-width:30px;">🧘</span>
+            <span style="font-size:16px; min-width:30px;">??</span>
+            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">RUST MUZIEK</span>
+                <input type="range" id="vol-music-rest-live" min="0" max="1" step="0.1" value="0.2"
+@@ -8058,7 +8058,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <span style="font-size:16px; min-width:30px;">🗣️</span>
+            <span style="font-size:16px; min-width:30px;">???</span>
+            <div style="flex:1; margin:0 10px; display:flex; flex-direction:column;">
+                <span style="font-size:10px; color:#aaa; margin-bottom:4px; font-weight:bold;">COACH VOLUME</span>
+                <input type="range" id="vol-coach-live" min="0" max="1" step="0.1" value="1.0"
+@@ -8076,7 +8076,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                <div
+                    style="display:flex; align-items:center; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; flex-direction:column; text-align:left;">
+                        <div style="font-size:13px; color:#fff; font-weight:bold;">🦾 Continuous Mode</div>
+                        <div style="font-size:13px; color:#fff; font-weight:bold;">?? Continuous Mode</div>
+                        <div style="font-size:10px; color:#888; margin-top:2px;">Alleen werkmuziek (geen dip)</div>
+                    </div>
+                    <label class="switch" style="position:relative; display:inline-block; width:40px; height:24px;">
+@@ -8134,10 +8134,10 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <button class="toggle-btn active" id="btn-audio-speech-live"
+                            onclick="setAudioMode('speech'); updateLiveAudioUI();"
+                            style="flex:1; padding:8px; font-size:11px;">🗣️ SPRAAK</button>
+                            style="flex:1; padding:8px; font-size:11px;">??? SPRAAK</button>
+                        <button class="toggle-btn" id="btn-audio-beep-live"
+                            onclick="setAudioMode('beep'); updateLiveAudioUI();"
+                            style="flex:1; padding:8px; font-size:11px;">🔔 PIEPJES</button>
+                            style="flex:1; padding:8px; font-size:11px;">?? PIEPJES</button>
+                    </div>
+
+                    <select id="coach-preset-live" class="text-input"
+@@ -8304,7 +8304,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                    // Expand/Collapse Arrow
+                    const arrowBtn = document.createElement('span');
+                    arrowBtn.id = `arrow-${uniqueId}`;
+                    arrowBtn.innerHTML = '▶'; // Right arrow
+                    arrowBtn.innerHTML = '?'; // Right arrow
+                    arrowBtn.style.cssText = 'font-size:10px; color:#888; transition:transform 0.2s; display:inline-block; width:15px;';
+
+                    // Click handler for arrow/row to toggle details
+@@ -8560,7 +8560,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+
+                    // PLAY ICON OVERLAY REMOVED BY USER REQUEST
+                    // const playOverlay = document.createElement('div');
+                    // playOverlay.innerHTML = '▶';
+                    // playOverlay.innerHTML = '?';
+                    // playOverlay.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:24px; text-shadow:0 2px 4px rgba(0,0,0,0.8); pointer-events:none; display:none;';
+
+                    // Link overly visibility to image visibility
+@@ -8587,11 +8587,11 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+
+            if (details.style.display === 'none') {
+                details.style.display = 'flex';
+                arrow.innerHTML = '▼'; // Down arrow
+                arrow.innerHTML = '?'; // Down arrow
+                arrow.style.color = '#30D158';
+            } else {
+                details.style.display = 'none';
+                arrow.innerHTML = '▶'; // Right arrow
+                arrow.innerHTML = '?'; // Right arrow
+                arrow.style.color = '#888';
+            }
+        }
+@@ -8921,14 +8921,14 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+            const isAllSelected = (selectedMaterials.size === uniqueMaterials.size);
+
+            if (isAllSelected) {
+                allBtn.innerText = "❌ NIETS";
+                allBtn.innerText = "? NIETS";
+                allBtn.onclick = () => {
+                    selectedMaterials.clear();
+                    renderMaterialFilters();
+                    renderMaterialExerciseList();
+                };
+            } else {
+                allBtn.innerText = "✅ ALLES";
+                allBtn.innerText = "? ALLES";
+                allBtn.onclick = () => {
+                    uniqueMaterials.forEach(m => selectedMaterials.add(m));
+                    renderMaterialFilters();
+@@ -9091,7 +9091,7 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+
+            const trigger = document.createElement('div');
+            trigger.className = 'exercise-menu-trigger';
+            trigger.innerHTML = '▼'; // Down arrow
+            trigger.innerHTML = '?'; // Down arrow
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                // REFRESH DATA ON OPEN
+@@ -9239,167 +9239,201 @@ <h2 style="margin:0 0 10px 0; color:#30D158; font-size:22px;">Volledig Scherm</h
+                }
+            }
