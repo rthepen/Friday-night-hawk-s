@@ -2785,7 +2785,7 @@
 
 
     <script>
-        const APP_VERSION = "v1.32.54"; // Improved Preview Visibility
+        const APP_VERSION = "v1.32.55"; // Fix Station Card Count Logic
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9438,12 +9438,20 @@
             grid.innerHTML = ''; // Clear
 
             const totalRounds = parseInt(document.getElementById('rounds').value) || 1;
-            const exCount = parseInt(document.getElementById('exercises').value) || 1;
             const setsCount = parseInt(document.getElementById('sets').value) || 1;
+            const defaultExCount = parseInt(document.getElementById('exercises').value) || 1;
 
             // Iterate EVERYTHING (filters only affect selection checkbox)
             for (let r = 1; r <= totalRounds; r++) {
-                for (let e = 1; e <= exCount; e++) {
+                // Determine Exercise Count for this specific round
+                let roundExCount = defaultExCount;
+                const roundCard = document.getElementById(`round-card-${r - 1}`);
+                if (roundCard) {
+                    const exInput = roundCard.querySelector('input[onchange*="\'exercises\'"]');
+                    if (exInput) roundExCount = parseInt(exInput.value) || defaultExCount;
+                }
+
+                for (let e = 1; e <= roundExCount; e++) {
                     for (let s = 1; s <= setsCount; s++) {
 
                         // DATA GATHERING (Same as PDF Logic)
