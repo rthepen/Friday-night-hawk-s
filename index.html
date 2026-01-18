@@ -2846,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.102"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.103"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -10168,25 +10168,25 @@
 
         async function fetchWorkoutData() {
             try {
-                // Check if already loaded
-                if (allExercises.length > 0) return;
+                // If data is missing or empty, fetch it
+                if (!allExercises || allExercises.length === 0) {
+                    console.log("Fetching workout data...");
+                    const response = await fetch('workoutdatabase.json');
+                    if (!response.ok) throw new Error("Failed to load workoutdatabase.json");
+                    const data = await response.json();
+                    allExercises = data;
+                }
 
-                console.log("Fetching workout data...");
-                const response = await fetch('workoutdatabase.json');
-                if (!response.ok) throw new Error("Failed to load workoutdatabase.json");
+                // Ensure Sync of ALL globals (even if already loaded by other means)
+                if (typeof WORKOUT_DB !== 'undefined') WORKOUT_DB = allExercises;
+                if (typeof workoutDatabase !== 'undefined') workoutDatabase = allExercises;
+                window.workoutDatabase = allExercises; // Force global
 
-                const data = await response.json();
-
-                // Sync ALL global references found in code
-                allExercises = data;
-                WORKOUT_DB = data;
-                workoutDatabase = data; // Essential for renderRoundExerciseList
-                window.workoutDatabase = data;
-
+                // Always populate datalist
                 populateExerciseDatalist();
-                console.log(`Loaded ${allExercises.length} exercises. Synced globals.`);
+                console.log(`Verified ${allExercises.length} exercises. Globals synced. Datalist populated.`);
             } catch (error) {
-                console.error("Error loading workout data:", error);
+                console.error("Error loading/syncing workout data:", error);
             }
         }
 
