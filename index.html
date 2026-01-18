@@ -2790,7 +2790,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.66"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.67"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -5340,7 +5340,9 @@
         }
 
         function renderPreviewList() {
-            const list = document.getElementById('preview-list'); list.innerHTML = ""; let runningDate = new Date();
+            const list = document.getElementById('preview-list');
+            if (!list) return;
+            list.innerHTML = ""; let runningDate = new Date();
             schedule.forEach((item) => {
                 if (item.type === 'finish') return;
                 let timeStr = runningDate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
