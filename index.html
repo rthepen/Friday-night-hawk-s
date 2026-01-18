@@ -2846,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.103"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.105"; // Fix Duplicate Declaration
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9382,7 +9382,8 @@
 
 
         // --- MATERIAL SELECTOR LOGIC ---
-        let allExercises = [];
+        if (typeof allExercises === 'undefined') window.allExercises = [];
+        // let allExercises = []; // Fixed duplicate declaration
         let uniqueMaterials = new Set();
         let selectedMaterials = new Set();
         let isDataLoaded = false;
@@ -10161,26 +10162,30 @@
             }
         })();
         // --- AUTOFILL DATA FETCHING ---
-        // Ensure globals exist
-        var allExercises = window.allExercises || [];
-        if (typeof WORKOUT_DB === 'undefined') var WORKOUT_DB = [];
-        if (typeof workoutDatabase === 'undefined') var workoutDatabase = [];
+        // Do NOT redeclare globals (allExercises, etc) to avoid SyntaxError with legacy code.
 
         async function fetchWorkoutData() {
             try {
+                // Use global allExercises (defined in legacy code)
                 // If data is missing or empty, fetch it
-                if (!allExercises || allExercises.length === 0) {
-                    console.log("Fetching workout data...");
+                if (!window.allExercises || window.allExercises.length === 0) {
+                    console.log("Fetching workout data (New Implementation)...");
                     const response = await fetch('workoutdatabase.json');
                     if (!response.ok) throw new Error("Failed to load workoutdatabase.json");
                     const data = await response.json();
-                    allExercises = data;
-                }
 
-                // Ensure Sync of ALL globals (even if already loaded by other means)
-                if (typeof WORKOUT_DB !== 'undefined') WORKOUT_DB = allExercises;
-                if (typeof workoutDatabase !== 'undefined') workoutDatabase = allExercises;
-                window.workoutDatabase = allExercises; // Force global
+                    // Assign to globals
+                    allExercises = data;
+                    if (typeof WORKOUT_DB !== 'undefined') WORKOUT_DB = data;
+                    // Ensure workoutDatabase is set for legacy render functions
+                    workoutDatabase = data;
+                    window.workoutDatabase = data;
+                } else {
+                    // Data exists, just sync globals
+                    if (typeof WORKOUT_DB !== 'undefined') WORKOUT_DB = allExercises;
+                    workoutDatabase = allExercises;
+                    window.workoutDatabase = allExercises;
+                }
 
                 // Always populate datalist
                 populateExerciseDatalist();
@@ -10195,8 +10200,12 @@
             if (!datalist) return;
 
             datalist.innerHTML = '';
+            // Use allExercises global
+            const exList = window.allExercises || [];
+            if (!exList.length && typeof workoutDatabase !== 'undefined') exList = workoutDatabase;
+
             // Unique names only
-            const uniqueNames = [...new Set(allExercises.map(ex => ex.exercise_name))].sort();
+            const uniqueNames = [...new Set(exList.map(ex => ex.exercise_name))].sort();
 
             uniqueNames.forEach(name => {
                 const option = document.createElement('option');
@@ -10205,9 +10214,10 @@
             });
         }
 
-        // Init load
+        // Init load - Overwrite any previous onload if needed or just add listener
         window.addEventListener('load', () => {
-            fetchWorkoutData();
+            // Delay slightly to ensure legacy scripts run
+            setTimeout(fetchWorkoutData, 100);
         });
     </script>
 </body>
