@@ -2797,7 +2797,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.76"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.77"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4078,12 +4078,12 @@
 
             if (roundCollapseState[index]) {
                 // Expand
-                if (arrow) { arrow.innerText = '▼'; arrow.style.transform = 'rotate(0deg)'; }
+                if (arrow) { arrow.innerText = '▲'; arrow.style.transform = 'rotate(0deg)'; }
                 if (listContainer) listContainer.style.display = 'block';
                 else renderRoundExerciseList(index); // Create if missing
             } else {
                 // Collapse
-                if (arrow) { arrow.innerText = '▶'; arrow.style.transform = 'rotate(0deg)'; }
+                if (arrow) { arrow.innerText = '▼'; arrow.style.transform = 'rotate(0deg)'; }
                 if (listContainer) listContainer.style.display = 'none';
             }
         }
@@ -4110,10 +4110,6 @@
                 const roundName = round.name || defaultName;
 
                 header.innerHTML = `
-                    <div id="round-arrow-${index}" onclick="toggleRoundExercises(${index})" 
-                         style="cursor:pointer; font-size:18px; color:#888; width:30px; display:flex; align-items:center; justify-content:center; margin-right:5px; transition: transform 0.2s;">
-                        ${roundCollapseState[index] ? '▼' : '▶'}
-                    </div>
                     <div style="flex:1;">
                         <input type="text" value="${roundName}" 
                                onchange="updateRound(${index}, 'name', this.value)"
@@ -4191,6 +4187,17 @@
                     </div>
                 `;
                 card.appendChild(grid);
+
+                // Footer Arrow (Centered)
+                const arrowFooter = document.createElement('div');
+                arrowFooter.style.cssText = 'display:flex; justify-content:center; align-items:center; padding:5px; cursor:pointer; width:100%; margin-top:-5px; margin-bottom:5px;';
+                arrowFooter.onclick = () => toggleRoundExercises(index);
+                arrowFooter.innerHTML = `
+                    <div id="round-arrow-${index}" style="font-size:24px; color:#888; transition:transform 0.2s;">
+                         ${roundCollapseState[index] ? '▲' : '▼'}
+                    </div>
+                `;
+                card.appendChild(arrowFooter);
 
                 // container.appendChild(card) moved to end of loop iteration
 
