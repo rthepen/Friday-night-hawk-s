@@ -2790,7 +2790,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.69"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.70"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9728,6 +9728,39 @@
 
             doc.save(`StationCards_${new Date().toISOString().slice(0, 10)}.pdf`);
         }
+
+        // --- DATABASE REPAIR TOOL (Fixes 404 Thumbnails) ---
+        (function () {
+            try {
+                const badUrl = "https://i.ytimg.com/vi/Vj22Nytv20E/hqdefault.jpg";
+                const storageKey = 'customDetails'; // Verified from code reading
+
+                const raw = localStorage.getItem(storageKey);
+                if (!raw) return;
+
+                let data = JSON.parse(raw);
+                let fixedCount = 0;
+
+                // Iterate keys (Exercise Names)
+                for (let key in data) {
+                    let entry = data[key];
+                    if (entry.thumbnail === badUrl) {
+                        console.log(`Fixing thumbnail for: ${key}`);
+                        entry.thumbnail = ""; // Reset to empty or delete field
+                        fixedCount++;
+                    }
+                }
+
+                if (fixedCount > 0) {
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    setTimeout(() => {
+                        alert(`REPARATIE SUCCESVOL: ${fixedCount} foute thumbnails verwijderd uit lokale opslag.`);
+                    }, 2000); // Wait for UI load
+                }
+            } catch (e) {
+                console.error("Auto-Repair failed:", e);
+            }
+        })();
     </script>
 </body>
 
