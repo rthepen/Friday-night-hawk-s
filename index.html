@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.96"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.97"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9044,6 +9044,38 @@
                     customDetails[uniqueId].thumbUrl = match.thumbnail || '';
                     customDetails[uniqueId].videoUrl = match.video_search_url || '';
                     customDetails[uniqueId].checkNum = match.check_number || '';
+
+                    // UPDATE UI FIELDS SIBLING TO THIS INPUT
+                    setTimeout(() => {
+                        const descElem = document.getElementById(`desc-${uniqueId}`);
+                        if (descElem) descElem.value = match.instructions || '';
+                        const matElem = document.getElementById(`mat-${uniqueId}`);
+                        if (matElem) matElem.value = match.material_name || '';
+                        const matDescElem = document.getElementById(`matdesc-${uniqueId}`);
+                        if (matDescElem) matDescElem.value = match.material_description || '';
+
+                        const thumbInput = document.getElementById(`thumb-url-${uniqueId}`);
+                        if (thumbInput) thumbInput.value = match.thumbnail || '';
+
+                        // Refresh Thumbnail/Youtube
+                        const img = document.getElementById(`img-${uniqueId}`);
+                        const details = document.getElementById(`details-${uniqueId}`);
+                        if (img && details) {
+                            // If there was an iframe, remove it and restore img first
+                            const existingIframe = details.querySelector('iframe');
+                            if (existingIframe) existingIframe.remove();
+
+                            // Re-append img if missing (though usually we just hide it)
+                            if (!details.contains(img)) details.appendChild(img);
+
+                            if (match.thumbnail) {
+                                img.src = match.thumbnail;
+                                img.style.display = 'block';
+                            } else {
+                                img.style.display = 'none';
+                            }
+                        }
+                    }, 50);
                 });
             }
 
