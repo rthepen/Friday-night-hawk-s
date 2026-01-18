@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.90"; // Removed duplicate logic
+        const APP_VERSION = "1.32.92"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4751,8 +4751,18 @@
                             if (customWorkTimes[key]) workT = customWorkTimes[key];
 
                             roundDurationSec += workT;
-                            if (s < sts) roundDurationSec += r.restTime;
-                            else if (e < ex) roundDurationSec += (r.exerciseRest || 15);
+
+                            // Rest logic with overrides
+                            if (s < sts) {
+                                let restT = r.restTime;
+                                if (customRestTimes[key]) restT = customRestTimes[key];
+                                roundDurationSec += restT;
+                            }
+                            else if (e < ex) {
+                                let switchT = r.exerciseRest || 15;
+                                if (customSwitchTimes[key]) switchT = customSwitchTimes[key];
+                                roundDurationSec += switchT;
+                            }
                             else roundDurationSec += r.roundRest; // End Round
                         }
                     }
