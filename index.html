@@ -2200,7 +2200,7 @@
         <div onclick="setNow()"
             style="cursor:pointer; background:rgba(48, 209, 88, 0.2); border:1px solid rgba(48, 209, 88, 0.5); border-radius:8px; padding:2px 6px; margin-right:4px; display:flex; align-items:center; justify-content:center;"
             title="Zet op huidige tijd + 1 min">
-            <span style="font-size:10px; font-weight:bold; color:#30D158;">NU+1</span>
+            <span style="font-size:10px; font-weight:bold; color:#30D158;">NU</span>
         </div>
 
         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.78"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.79"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -3672,6 +3672,10 @@
             ];
             customNames = {};
             roundExercises = {};
+            // NEW: Clear custom time overrides
+            customWorkTimes = {};
+            customRestTimes = {};
+            customSwitchTimes = {};
 
             // Update Rounds UI explicitly
             if (document.getElementById('rounds')) document.getElementById('rounds').value = 1;
@@ -3716,6 +3720,10 @@
             ];
             customNames = {};
             roundExercises = {};
+            // NEW: Clear custom time overrides
+            customWorkTimes = {};
+            customRestTimes = {};
+            customSwitchTimes = {};
 
             // 2. Update Globals for new structure
             document.getElementById('exercises').value = 8;
