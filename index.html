@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.93"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.94"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4495,23 +4495,32 @@
                     nameDiv.style.flex = '1';
                     nameDiv.style.display = 'flex';
                     nameDiv.style.flexDirection = 'column';
-                    // Clicking name also toggles details for UX
-                    nameDiv.onclick = () => {
-                        if (typeof toggleExerciseDetails === 'function') {
-                            toggleExerciseDetails(uniqueId);
-                        }
+                    // Removed click handler on container to avoid conflict with input focus
+
+                    const nameInput = document.createElement('input');
+                    nameInput.type = 'text';
+                    nameInput.value = exName;
+                    nameInput.placeholder = `Oefening ${e}.${s}`;
+                    nameInput.style.background = 'transparent';
+                    nameInput.style.border = 'none';
+                    nameInput.style.color = exName ? 'white' : '#777';
+                    nameInput.style.fontWeight = exName ? 'bold' : 'normal';
+                    nameInput.style.fontSize = '16px';
+                    nameInput.style.fontFamily = "'Outfit', sans-serif";
+                    nameInput.style.width = '100%';
+                    nameInput.style.outline = 'none';
+
+                    // Event Handling
+                    nameInput.onclick = (e) => e.stopPropagation(); // Allow focus
+                    nameInput.onchange = (e) => updateExerciseSlot(roundIndex, e - 1, s - 1, e.target.value);
+
+                    // Auto-update color on input
+                    nameInput.oninput = (e) => {
+                        e.target.style.color = e.target.value ? 'white' : '#777';
+                        e.target.style.fontWeight = e.target.value ? 'bold' : 'normal';
                     };
-                    nameDiv.style.cursor = 'pointer';
 
-                    const label = document.createElement('span');
-                    label.innerText = exName || `Oefening ${e}.${s}`;
-                    label.style.color = exName ? 'white' : '#777';
-                    label.style.fontWeight = exName ? 'bold' : 'normal';
-                    label.style.fontFamily = "'Outfit', sans-serif";
-                    // Add unique ID for auto-update targeting (used by autoLoadFromCheckNumber)
-                    label.setAttribute('contenteditable', 'false');
-
-                    nameDiv.appendChild(label);
+                    nameDiv.appendChild(nameInput);
                     row.appendChild(nameDiv);
 
                     // Smart Menu Trigger (The ? button)
