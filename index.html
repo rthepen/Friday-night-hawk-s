@@ -2846,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.105"; // Fix Duplicate Declaration
+        const APP_VERSION = "1.32.107"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -10201,7 +10201,7 @@
 
             datalist.innerHTML = '';
             // Use allExercises global
-            const exList = window.allExercises || [];
+            let exList = window.allExercises || [];
             if (!exList.length && typeof workoutDatabase !== 'undefined') exList = workoutDatabase;
 
             // Unique names only
