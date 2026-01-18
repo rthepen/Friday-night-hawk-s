@@ -2797,7 +2797,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.74"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.75"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9003,6 +9003,60 @@
             document.addEventListener('DOMContentLoaded', initializeRoundExerciseLists);
         } else {
             initializeRoundExerciseLists();
+        }
+
+        // --- START BUTTON COUNTDOWN ---
+        setInterval(updateStartButtonCountdown, 1000);
+
+        function updateStartButtonCountdown() {
+            const btn = document.getElementById('btn-start-app');
+            const startInput = document.getElementById('startTimeValue');
+
+            if (!btn || !startInput) return;
+
+            const timeValue = startInput.value;
+            if (!timeValue) {
+                if (btn.innerText.includes("START OVER")) btn.innerText = "START TRAINING";
+                return;
+            }
+
+            const now = new Date();
+            const [hours, minutes] = timeValue.split(':').map(Number);
+            const target = new Date();
+            target.setHours(hours, minutes, 0, 0);
+
+            const diff = target - now;
+
+            if (diff > 0) {
+                const totalSeconds = Math.floor(diff / 1000);
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+
+                let timeStr = "";
+                if (h > 0) {
+                    timeStr += h + ":";
+                    timeStr += String(m).padStart(2, '0') + ":";
+                } else {
+                    timeStr += m + ":"; // 8:05
+                }
+                // Ensure seconds are always 2 digits
+                // Actually let's make minutes 2 digits if hours exist, but 1 or 2 if not? 
+                // Standard timer format is usually M:SS or H:MM:SS
+
+                // Resetting format for consistency:
+                // If H > 0: H:MM:SS
+                // If H = 0: M:SS
+
+                if (h > 0) {
+                    btn.innerText = `START OVER ${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                } else {
+                    btn.innerText = `START OVER ${m}:${String(s).padStart(2, '0')}`;
+                }
+            } else {
+                // Time has passed
+                if (btn.innerText.includes("START OVER")) btn.innerText = "START TRAINING";
+            }
         }
 
 
