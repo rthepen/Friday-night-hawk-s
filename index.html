@@ -2797,7 +2797,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.75"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.76"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4060,6 +4060,34 @@
             { id: 1, exercises: 5, sets: 3, workTime: 45, restTime: 15, roundRest: 60 }
         ];
 
+        // New: Track Round Collapse State (true=expanded, false=collapsed)
+        // Default is undefined/false (collapsed)
+        let roundCollapseState = {};
+
+        function toggleRoundExercises(index) {
+            // Toggle state
+            roundCollapseState[index] = !roundCollapseState[index];
+
+            // Re-render only the exercise list for this round to update view and arrow
+            // We can do this efficiently by selecting elements
+            const card = document.getElementById(`round-card-${index}`);
+            if (!card) return;
+
+            const arrow = document.getElementById(`round-arrow-${index}`);
+            const listContainer = card.querySelector('.exercise-list-container');
+
+            if (roundCollapseState[index]) {
+                // Expand
+                if (arrow) { arrow.innerText = '▼'; arrow.style.transform = 'rotate(0deg)'; }
+                if (listContainer) listContainer.style.display = 'block';
+                else renderRoundExerciseList(index); // Create if missing
+            } else {
+                // Collapse
+                if (arrow) { arrow.innerText = '▶'; arrow.style.transform = 'rotate(0deg)'; }
+                if (listContainer) listContainer.style.display = 'none';
+            }
+        }
+
         function renderRoundsContainer() {
             const container = document.getElementById('rounds-container');
             if (!container) return;
@@ -4082,6 +4110,10 @@
                 const roundName = round.name || defaultName;
 
                 header.innerHTML = `
+                    <div id="round-arrow-${index}" onclick="toggleRoundExercises(${index})" 
+                         style="cursor:pointer; font-size:18px; color:#888; width:30px; display:flex; align-items:center; justify-content:center; margin-right:5px; transition: transform 0.2s;">
+                        ${roundCollapseState[index] ? '▼' : '▶'}
+                    </div>
                     <div style="flex:1;">
                         <input type="text" value="${roundName}" 
                                onchange="updateRound(${index}, 'name', this.value)"
@@ -8434,6 +8466,13 @@
                 exerciseListContainer.className = 'exercise-list-container';
                 exerciseListContainer.style.cssText = 'margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);';
                 roundCard.appendChild(exerciseListContainer);
+            }
+
+            // Sync visibility with state (Default: Collapsed)
+            if (roundCollapseState[roundIndex]) {
+                exerciseListContainer.style.display = 'block';
+            } else {
+                exerciseListContainer.style.display = 'none';
             }
 
             // Clear existing content
