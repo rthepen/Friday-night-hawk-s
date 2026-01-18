@@ -15,6 +15,7 @@
     <script>
         // FIX: Ensure jsPDF is available globally for autotable
         window.jsPDF = window.jspdf.jsPDF;
+        const APP_VERSION = "1.32.56";
     </script>
     <style>
         :root {
@@ -8856,6 +8857,7 @@
                 console.log("Workout Database Loaded:", workoutDatabase.length, "items");
                 populateExerciseDatalist(); // Populate datalist on load
                 hydrateMissingDetails(); // Auto-fill details for existing exercises
+                hydrateAllDetails(); // Force fill to ensure everything is consistent
             })
             .catch(err => console.error("Failed to load workout database:", err));
 
@@ -9215,9 +9217,108 @@
             }, 1000); // Check every second
         }
 
+
+        // AUTO-FILL LOGIC
+        function checkAndAutoFill(element, roundIdx, exIdx, setIdx) {
+            const val = element.value || element.innerText;
+            if (val && val.length > 2) {
+                // Check if we have a match in the DB
+                const match = workoutDatabase.find(e => e.exercise_name.toLowerCase() === val.toLowerCase());
+                if (match) {
+                    console.log("Auto-filling details for:", val);
+                    updateExerciseSlot(roundIdx, exIdx, setIdx, match.exercise_name);
+                }
+            }
+        }
+
+        // GLOBAL AUTO-FILL LISTENER
+        document.addEventListener('input', function (e) {
+            const target = e.target;
+            // Target specific inputs or contenteditable spans
+            if (target.getAttribute('list') === 'exercise-datalist' ||
+                (target.tagName === 'SPAN' && target.isContentEditable) ||
+                target.classList.contains('exercise-name-input')) {
+
+                let uniqueId = null;
+                // Try target ID first
+                if (target.id && target.id.match(/r\d+-e\d+-s\d+/)) {
+                    uniqueId = target.id.match(/(r\d+-e\d+-s\d+)/)[0];
+                }
+                // Try closest container with standard ID format
+                else {
+                    const parent = target.closest('[id*="r"][id*="e"][id*="s"]');
+                    if (parent && parent.id.match(/r\d+-e\d+-s\d+/)) {
+                        uniqueId = parent.id.match(/(r\d+-e\d+-s\d+)/)[0];
+                    }
+                }
+
+                if (uniqueId) {
+                    const parts = uniqueId.match(/r(\d+)-e(\d+)-s(\d+)/);
+                    if (parts) {
+                        const r = parseInt(parts[1]) - 1;
+                        const eIdx = parseInt(parts[2]) - 1;
+                        const s = parseInt(parts[3]) - 1;
+                        checkAndAutoFill(target, r, eIdx, s);
+                    }
+                }
+            }
+        });
+
+        // FORCE HYDRATION ON LOAD (Overwrite empty or fill all)
+        function hydrateAllDetails() {
+            console.log("Starting FULL hydration of details...");
+            let updatesMade = false;
+
+            // Iterate over all possible keys in customNames
+            if (customNames) {
+                Object.keys(customNames).forEach(key => {
+                    const exerciseName = customNames[key];
+                    if (!exerciseName) return;
+
+                    // ALWAYS check for match and update if found
+                    const match = workoutDatabase.find(e => e.exercise_name.toLowerCase() === exerciseName.toLowerCase());
+                    if (match) {
+                        if (!customDetails[key]) customDetails[key] = {};
+
+                        // We update even if values exist, to ensure consistency with DB?
+                        // User said: "trigger both when the page loads (for existing exercise names)"
+                        // Let's assume we populate if it matches.
+
+                        const hasDifferences =
+                            customDetails[key].desc !== (match.instructions || '') ||
+                            customDetails[key].mat !== (match.material_name || '') ||
+                            customDetails[key].matDesc !== (match.material_description || '') ||
+                            customDetails[key].thumbUrl !== (match.thumbnail || '') ||
+                            customDetails[key].videoUrl !== (match.video_search_url || '');
+
+                        if (hasDifferences) {
+                            customDetails[key].desc = match.instructions || '';
+                            customDetails[key].mat = match.material_name || '';
+                            customDetails[key].matDesc = match.material_description || '';
+                            customDetails[key].thumbUrl = match.thumbnail || '';
+                            customDetails[key].videoUrl = match.video_search_url || '';
+                            customDetails[key].checkNum = match.check_number || '';
+                            updatesMade = true;
+                        }
+                    }
+                });
+            }
+
+            if (updatesMade) {
+                saveToLocal();
+                console.log("Full hydration complete. Updates made.");
+            } else {
+                console.log("Full hydration complete. No changes.");
+            }
+        }
+
         // Initialize when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeRoundExerciseLists);
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeRoundExerciseLists();
+                // We need to wait for DB to load? DB loads fetch async.
+                // So we should call hydrateAllDetails inside the fetch .then()
+            });
         } else {
             initializeRoundExerciseLists();
         }
