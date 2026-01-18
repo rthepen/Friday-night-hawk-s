@@ -2151,8 +2151,8 @@
         <!-- NU Button -->
         <div onclick="setNow()"
             style="cursor:pointer; background:rgba(48, 209, 88, 0.2); border:1px solid rgba(48, 209, 88, 0.5); border-radius:8px; padding:2px 6px; margin-right:4px; display:flex; align-items:center; justify-content:center;"
-            title="Zet op huidige tijd">
-            <span style="font-size:10px; font-weight:bold; color:#30D158;">NU</span>
+            title="Zet op huidige tijd + 1 min">
+            <span style="font-size:10px; font-weight:bold; color:#30D158;">NU+1</span>
         </div>
 
         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
@@ -2797,7 +2797,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.73"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.74"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9017,6 +9017,7 @@
 
         function setNow() {
             const now = new Date();
+            now.setMinutes(now.getMinutes() + 1); // Add 1 minute
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const timeString = `${hours}:${minutes}`;
