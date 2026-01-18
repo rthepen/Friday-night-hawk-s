@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.79"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.81"; // Individual Rest/Switch Times
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4299,16 +4299,39 @@
                 }
 
                 // If Work Time changes, reset custom overrides for this round to ensure propagation
+                // If Work Time changes, reset custom overrides for this round to ensure propagation
                 if (field === 'workTime') {
                     const rNum = index + 1;
                     const prefix = `r${rNum}-`;
                     Object.keys(customWorkTimes).forEach(k => {
                         if (k.startsWith(prefix)) delete customWorkTimes[k];
                     });
-                    // Also refresh the list to remove the custom values from inputs
-                    // But we are outside the render scope? calculateRealTime calls renderRoundExerciseList? 
-                    // No, updateRound calls generateOrder -> renderPreview.
-                    // We need to trigger re-render of inline list inputs.
+                    const card = document.getElementById(`round-card-${index}`);
+                    if (card && card.querySelector('.exercise-list-container')) {
+                        setTimeout(() => renderRoundExerciseList(index), 50);
+                    }
+                }
+
+                // NEW: Clear Rest Overrides
+                if (field === 'restTime') {
+                    const rNum = index + 1;
+                    const prefix = `r${rNum}-`;
+                    Object.keys(customRestTimes).forEach(k => {
+                        if (k.startsWith(prefix)) delete customRestTimes[k];
+                    });
+                    const card = document.getElementById(`round-card-${index}`);
+                    if (card && card.querySelector('.exercise-list-container')) {
+                        setTimeout(() => renderRoundExerciseList(index), 50);
+                    }
+                }
+
+                // NEW: Clear Switch Overrides
+                if (field === 'exerciseRest') {
+                    const rNum = index + 1;
+                    const prefix = `r${rNum}-`;
+                    Object.keys(customSwitchTimes).forEach(k => {
+                        if (k.startsWith(prefix)) delete customSwitchTimes[k];
+                    });
                     const card = document.getElementById(`round-card-${index}`);
                     if (card && card.querySelector('.exercise-list-container')) {
                         setTimeout(() => renderRoundExerciseList(index), 50);
@@ -4356,6 +4379,203 @@
             calculateRealTime();
             // Re-render to update UI (other sets might have changed)
             renderRoundExerciseList(r);
+        }
+
+        function setCustomRestTime(r, e, s, val) {
+            const rNum = r + 1;
+            const key = `r${rNum}-e${e + 1}-s${s + 1}`;
+            const intVal = parseInt(val);
+            const round = workoutRounds[r];
+            const defaultTime = round ? round.restTime : 15;
+
+            if (!isNaN(intVal) && intVal > 0 && intVal !== defaultTime) {
+                customRestTimes[key] = intVal;
+            } else {
+                delete customRestTimes[key];
+            }
+            saveToLocal();
+            calculateRealTime();
+        }
+
+        function setCustomSwitchTime(r, e, s, val) {
+            const rNum = r + 1;
+            const key = `r${rNum}-e${e + 1}-s${s + 1}`;
+            const intVal = parseInt(val);
+            const round = workoutRounds[r];
+            const defaultTime = round ? (round.exerciseRest || 15) : 15;
+
+            if (!isNaN(intVal) && intVal > 0 && intVal !== defaultTime) {
+                customSwitchTimes[key] = intVal;
+            } else {
+                delete customSwitchTimes[key];
+            }
+            saveToLocal();
+            calculateRealTime();
+        }
+
+        let currentExContext = null;
+        function openExerciseSelector(r, e, s) {
+            currentExContext = { r: r + 1, e: e, s: s };
+            document.getElementById('edit-round-idx').value = r + 1;
+            document.getElementById('edit-ex-idx').value = e;
+            document.getElementById('edit-set-idx').value = s;
+            document.getElementById('exercise-selector-modal').style.display = 'flex';
+            if (window.backToExList) window.backToExList();
+        }
+
+        function renderRoundExerciseList(roundIndex) {
+            const card = document.getElementById(`round-card-${roundIndex}`);
+            if (!card) return;
+
+            // Remove existing list if present
+            let container = card.querySelector('.exercise-list-container');
+            if (container) container.remove();
+
+            container = document.createElement('div');
+            container.className = 'exercise-list-container';
+            container.style.marginTop = '15px';
+            container.style.borderTop = '1px solid #333';
+            container.style.paddingTop = '10px';
+
+            // Respect collapse state
+            if (typeof roundCollapseState !== 'undefined' && !roundCollapseState[roundIndex]) {
+                container.style.display = 'none';
+            }
+
+            const round = workoutRounds[roundIndex];
+            if (!round) return;
+
+            const rNum = roundIndex + 1;
+
+            for (let e = 1; e <= round.exercises; e++) {
+                // Separation / Header for Exercise grouping
+                if (round.sets > 1) {
+                    const exHeader = document.createElement('div');
+                    exHeader.style.padding = '5px 0 2px 0';
+                    exHeader.style.color = '#888';
+                    exHeader.style.fontSize = '11px';
+                    exHeader.style.fontWeight = 'bold';
+                    exHeader.style.textTransform = 'uppercase';
+                    exHeader.innerText = `Oefening ${e}`;
+                    container.appendChild(exHeader);
+                }
+
+                for (let s = 1; s <= round.sets; s++) {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '8px';
+                    row.style.marginBottom = '8px';
+                    row.style.padding = '8px';
+                    row.style.background = '#1c1c1e';
+                    row.style.borderRadius = '8px';
+                    row.style.border = '1px solid #333';
+
+                    const uniqueId = `r${rNum}-e${e}-s${s}`;
+                    const timeKey = uniqueId;
+
+                    // 1. Name Input (Click to Select)
+                    let exName = "";
+                    if (roundExercises[roundIndex] && roundExercises[roundIndex][e - 1] && roundExercises[roundIndex][e - 1][s - 1]) {
+                        exName = roundExercises[roundIndex][e - 1][s - 1];
+                    } else if (customNames[uniqueId]) {
+                        exName = customNames[uniqueId];
+                    }
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.style.flex = '1';
+                    nameDiv.style.display = 'flex';
+                    nameDiv.style.flexDirection = 'column';
+                    nameDiv.onclick = () => openExerciseSelector(roundIndex, e, s);
+                    nameDiv.style.cursor = 'pointer';
+
+                    const label = document.createElement('span');
+                    label.innerText = exName || `Oefening ${e}.${s}`;
+                    label.style.color = exName ? 'white' : '#777';
+                    label.style.fontWeight = exName ? 'bold' : 'normal';
+                    label.style.fontFamily = "'Outfit', sans-serif";
+
+                    nameDiv.appendChild(label);
+                    row.appendChild(nameDiv);
+
+                    // 2. Work Time (Green)
+                    const wVal = customWorkTimes[timeKey] || round.workTime;
+                    const wInput = document.createElement('input');
+                    wInput.type = 'number';
+                    wInput.value = wVal;
+                    wInput.style.width = '45px';
+                    wInput.style.textAlign = 'center';
+                    wInput.style.color = '#30D158';
+                    wInput.style.background = '#2c2c2e';
+                    wInput.style.border = '1px solid #30D158';
+                    wInput.style.borderRadius = '6px';
+                    wInput.style.padding = '5px';
+                    wInput.style.fontWeight = 'bold';
+                    wInput.onchange = (ev) => setCustomWorkTime(roundIndex, e - 1, s - 1, ev.target.value);
+                    row.appendChild(wInput);
+
+                    // 3. Rest or Switch
+                    const isLastSet = (s === round.sets);
+                    const isLastEx = (e === round.exercises);
+
+                    if (isLastSet) {
+                        if (!isLastEx) {
+                            // Switch Time (Purple)
+                            const swVal = customSwitchTimes[timeKey] || (round.exerciseRest || 15);
+                            const swInput = document.createElement('input');
+                            swInput.type = 'number';
+                            swInput.value = swVal;
+                            swInput.style.width = '45px';
+                            swInput.style.textAlign = 'center';
+                            swInput.style.color = '#BF5AF2';
+                            swInput.style.background = '#2c2c2e';
+                            swInput.style.border = '1px solid #BF5AF2';
+                            swInput.style.borderRadius = '6px';
+                            swInput.style.padding = '5px';
+                            swInput.style.fontWeight = 'bold';
+                            swInput.title = "Wisseltijd (na oefening)";
+                            swInput.onchange = (ev) => setCustomSwitchTime(roundIndex, e - 1, s - 1, ev.target.value);
+                            row.appendChild(swInput);
+                        } else {
+                            // End of Round - Show Spacer or Round Rest Indicator?
+                            // Just a placeholder to align grid
+                            const spacer = document.createElement('div');
+                            spacer.style.width = '45px';
+                            spacer.innerText = "🏁";
+                            spacer.style.textAlign = 'center';
+                            spacer.title = "Einde Ronde";
+                            row.appendChild(spacer);
+                        }
+                    } else {
+                        // Set Rest (Red)
+                        const rVal = customRestTimes[timeKey] || round.restTime;
+                        const rInput = document.createElement('input');
+                        rInput.type = 'number';
+                        rInput.value = rVal;
+                        rInput.style.width = '45px';
+                        rInput.style.textAlign = 'center';
+                        rInput.style.color = '#FF453A';
+                        rInput.style.background = '#2c2c2e';
+                        rInput.style.border = '1px solid #FF453A';
+                        rInput.style.borderRadius = '6px';
+                        rInput.style.padding = '5px';
+                        rInput.style.fontWeight = 'bold';
+                        rInput.title = "Rusttijd (tussen sets)";
+                        rInput.onchange = (ev) => setCustomRestTime(roundIndex, e - 1, s - 1, ev.target.value);
+                        row.appendChild(rInput);
+                    }
+
+                    container.appendChild(row);
+                }
+            }
+
+            // Insert before arrow footer
+            const footer = card.querySelector(`#round-arrow-${roundIndex}`)?.parentElement;
+            if (footer) {
+                card.insertBefore(container, footer);
+            } else {
+                card.appendChild(container);
+            }
         }
 
         function addRound() {
@@ -4467,8 +4687,16 @@
                             totalSeconds += workT; // custom or default
 
                             // Rest logic
-                            if (s < sts) totalSeconds += r.restTime;
-                            else if (e < ex) totalSeconds += 15; // Switch Time hardcoded/default logic for now
+                            if (s < sts) {
+                                let restT = r.restTime;
+                                if (customRestTimes[key]) restT = customRestTimes[key];
+                                totalSeconds += restT;
+                            }
+                            else if (e < ex) {
+                                let switchT = r.exerciseRest || 15;
+                                if (customSwitchTimes[key]) switchT = customSwitchTimes[key];
+                                totalSeconds += switchT;
+                            }
                             else totalSeconds += r.roundRest; // End of Round
                         }
                     }
@@ -4618,18 +4846,24 @@
                                 });
                             }
                         } else if (isLastSetOfExercise) {
+                            let switchTime = round.exerciseRest || 15;
+                            if (customSwitchTimes[key]) switchTime = customSwitchTimes[key];
+
                             schedule.push({
                                 type: 'rest-exercise',
-                                time: round.exerciseRest || 15,
-                                initialTime: round.exerciseRest || 15,
+                                time: switchTime,
+                                initialTime: switchTime,
                                 label: "WISSEL OEFENING",
                                 info: { round: roundNum, text: "Volgende oefening" }
                             });
                         } else {
+                            let restTime = round.restTime;
+                            if (customRestTimes[key]) restTime = customRestTimes[key];
+
                             schedule.push({
                                 type: 'rest',
-                                time: round.restTime,
-                                initialTime: round.restTime,
+                                time: restTime,
+                                initialTime: restTime,
                                 label: "RUST",
                                 info: { round: roundNum, text: "Even ontspannen" }
                             });
