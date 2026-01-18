@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.97"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.98"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4489,6 +4489,24 @@
                         exName = roundExercises[roundIndex][e - 1][s - 1];
                     } else if (customNames[uniqueId]) {
                         exName = customNames[uniqueId];
+                    }
+
+                    // JIT Hydration: If we have a name but no details, try to find them in the DB immediately
+                    if (exName && typeof workoutDatabase !== 'undefined' && workoutDatabase.length > 0) {
+                        if (!customDetails[uniqueId] || (!customDetails[uniqueId].desc && !customDetails[uniqueId].mat)) {
+                            const match = workoutDatabase.find(e => e.exercise_name.toLowerCase() === exName.toLowerCase());
+                            if (match) {
+                                if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
+                                customDetails[uniqueId].desc = match.instructions || '';
+                                customDetails[uniqueId].mat = match.material_name || '';
+                                customDetails[uniqueId].matDesc = match.material_description || '';
+                                customDetails[uniqueId].thumbUrl = match.thumbnail || '';
+                                customDetails[uniqueId].videoUrl = match.video_search_url || '';
+                                customDetails[uniqueId].checkNum = match.check_number || '';
+                                // We don't force save here to avoid performance hit during render loop, 
+                                // but the data is now available for the input values below.
+                            }
+                        }
                     }
 
                     const nameDiv = document.createElement('div');
