@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.86"; // Fix missing renders
+        const APP_VERSION = "1.32.88"; // Interleaved Rest/Switch Rows
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4443,33 +4443,29 @@
             const rNum = roundIndex + 1;
 
             for (let e = 1; e <= round.exercises; e++) {
-                // Separation / Header for Exercise grouping
-                if (round.sets > 1) {
-                    const exHeader = document.createElement('div');
-                    exHeader.style.padding = '5px 0 2px 0';
-                    exHeader.style.color = '#888';
-                    exHeader.style.fontSize = '11px';
-                    exHeader.style.fontWeight = 'bold';
-                    exHeader.style.textTransform = 'uppercase';
-                    exHeader.innerText = `Oefening ${e}`;
-                    container.appendChild(exHeader);
+                // Header for Exercise grouping (Minimal, maybe just spacing)
+                if (e > 1) {
+                    // Spacing handled by switch row usually, but if sets=1...
                 }
 
                 for (let s = 1; s <= round.sets; s++) {
+                    const uniqueId = `r${rNum}-e${e}-s${s}`;
+                    const timeKey = uniqueId;
+
+                    // --- 1. WORK ROW (Exercise Name + Work Time) ---
                     const row = document.createElement('div');
                     row.style.display = 'flex';
                     row.style.alignItems = 'center';
                     row.style.gap = '8px';
-                    row.style.marginBottom = '8px';
-                    row.style.padding = '8px';
+                    row.style.marginBottom = '4px'; // Tighter bottom margin
+                    row.style.padding = '10px';
                     row.style.background = '#1c1c1e';
                     row.style.borderRadius = '8px';
                     row.style.border = '1px solid #333';
+                    row.style.position = 'relative';
+                    row.style.zIndex = '2';
 
-                    const uniqueId = `r${rNum}-e${e}-s${s}`;
-                    const timeKey = uniqueId;
-
-                    // 1. Name Input (Click to Select)
+                    // Name Input (Click to Select)
                     let exName = "";
                     if (roundExercises[roundIndex] && roundExercises[roundIndex][e - 1] && roundExercises[roundIndex][e - 1][s - 1]) {
                         exName = roundExercises[roundIndex][e - 1][s - 1];
@@ -4493,74 +4489,79 @@
                     nameDiv.appendChild(label);
                     row.appendChild(nameDiv);
 
-                    // 2. Work Time (Green)
+                    // Work Time (Green) - Right Aligned
                     const wVal = customWorkTimes[timeKey] || round.workTime;
                     const wInput = document.createElement('input');
                     wInput.type = 'number';
                     wInput.value = wVal;
-                    wInput.style.width = '45px';
+                    wInput.style.width = '50px';
                     wInput.style.textAlign = 'center';
                     wInput.style.color = '#30D158';
                     wInput.style.background = '#2c2c2e';
                     wInput.style.border = '1px solid #30D158';
                     wInput.style.borderRadius = '6px';
-                    wInput.style.padding = '5px';
+                    wInput.style.padding = '8px';
                     wInput.style.fontWeight = 'bold';
+                    wInput.style.fontSize = '14px';
                     wInput.onchange = (ev) => setCustomWorkTime(roundIndex, e - 1, s - 1, ev.target.value);
                     row.appendChild(wInput);
 
-                    // 3. Rest or Switch
+                    container.appendChild(row);
+
+                    // --- 2. INTERSTITIAL ROW (Rest or Switch) ---
                     const isLastSet = (s === round.sets);
                     const isLastEx = (e === round.exercises);
 
-                    if (isLastSet) {
-                        if (!isLastEx) {
-                            // Switch Time (Purple)
-                            const swVal = customSwitchTimes[timeKey] || (round.exerciseRest || 15);
-                            const swInput = document.createElement('input');
-                            swInput.type = 'number';
-                            swInput.value = swVal;
-                            swInput.style.width = '45px';
-                            swInput.style.textAlign = 'center';
-                            swInput.style.color = '#BF5AF2';
-                            swInput.style.background = '#2c2c2e';
-                            swInput.style.border = '1px solid #BF5AF2';
-                            swInput.style.borderRadius = '6px';
-                            swInput.style.padding = '5px';
-                            swInput.style.fontWeight = 'bold';
-                            swInput.title = "Wisseltijd (na oefening)";
-                            swInput.onchange = (ev) => setCustomSwitchTime(roundIndex, e - 1, s - 1, ev.target.value);
-                            row.appendChild(swInput);
-                        } else {
-                            // End of Round - Show Spacer or Round Rest Indicator?
-                            // Just a placeholder to align grid
-                            const spacer = document.createElement('div');
-                            spacer.style.width = '45px';
-                            spacer.innerText = "🏁";
-                            spacer.style.textAlign = 'center';
-                            spacer.title = "Einde Ronde";
-                            row.appendChild(spacer);
-                        }
-                    } else {
-                        // Set Rest (Red)
-                        const rVal = customRestTimes[timeKey] || round.restTime;
-                        const rInput = document.createElement('input');
-                        rInput.type = 'number';
-                        rInput.value = rVal;
-                        rInput.style.width = '45px';
-                        rInput.style.textAlign = 'center';
-                        rInput.style.color = '#FF453A';
-                        rInput.style.background = '#2c2c2e';
-                        rInput.style.border = '1px solid #FF453A';
-                        rInput.style.borderRadius = '6px';
-                        rInput.style.padding = '5px';
-                        rInput.style.fontWeight = 'bold';
-                        rInput.title = "Rusttijd (tussen sets)";
-                        rInput.onchange = (ev) => setCustomRestTime(roundIndex, e - 1, s - 1, ev.target.value);
-                        row.appendChild(rInput);
-                    }
+                    if (!(isLastSet && isLastEx)) {
+                        const midRow = document.createElement('div');
+                        midRow.style.display = 'flex';
+                        midRow.style.justifyContent = 'center'; // Center the bubble
+                        midRow.style.alignItems = 'center';
+                        midRow.style.position = 'relative';
+                        midRow.style.height = '40px'; // Space for the input
+                        midRow.style.zIndex = '1';
 
-                    container.appendChild(row);
+                        // Vertical Line
+                        const line = document.createElement('div');
+                        line.style.position = 'absolute';
+                        line.style.top = '-5px';
+                        line.style.bottom = '-5px';
+                        line.style.left = '50%';
+                        line.style.width = '2px';
+                        line.style.background = '#333';
+                        line.style.zIndex = '0';
+                        midRow.appendChild(line);
+
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.style.width = '60px'; // Slightly wider
+                        input.style.textAlign = 'center';
+                        input.style.background = '#000'; // Black bg to cover line
+                        input.style.borderRadius = '12px';
+                        input.style.padding = '4px';
+                        input.style.fontWeight = 'bold';
+                        input.style.zIndex = '1';
+                        input.style.position = 'relative';
+
+                        if (isLastSet) {
+                            // SWITCH (Purple)
+                            const swVal = customSwitchTimes[timeKey] || (round.exerciseRest || 15);
+                            input.value = swVal;
+                            input.style.color = '#BF5AF2';
+                            input.style.border = '2px solid #BF5AF2';
+                            input.onchange = (ev) => setCustomSwitchTime(roundIndex, e - 1, s - 1, ev.target.value);
+                            midRow.appendChild(input);
+                        } else {
+                            // REST (Red)
+                            const rVal = customRestTimes[timeKey] || round.restTime;
+                            input.value = rVal;
+                            input.style.color = '#FF453A';
+                            input.style.border = '2px solid #FF453A';
+                            input.onchange = (ev) => setCustomRestTime(roundIndex, e - 1, s - 1, ev.target.value);
+                            midRow.appendChild(input);
+                        }
+                        container.appendChild(midRow);
+                    }
                 }
             }
 
