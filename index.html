@@ -2170,6 +2170,13 @@
         </div>
     </div>
 
+    <!-- GLOBAL MATERIAL BTN (Fixed Top Right - Between Time & Audio) -->
+    <div id="global-material-btn"
+        style="position:fixed; top:20px; right:85px; z-index:200000; background:rgba(255,159,10,0.9); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.3); backdrop-filter:blur(10px); color:white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+        onclick="openMaterialModal()">
+        <span style="font-size:20px;">🏋️</span>
+    </div>
+
     <div id="setup-screen" class="container">
 
 
@@ -2183,7 +2190,7 @@
                 <button class="btn-header btn-reset" onclick="resetToDefaults()">🔄 Reset</button>
                 <button class="btn-header" style="background:#ddd; color:#000;" onclick="openPrintMenu()">🖨️
                     Cards</button>
-                <button class="btn-header btn-dumbbell" onclick="openMaterialModal()"><span>🏋️</span></button>
+
                 <button class="btn-header btn-reset" style="background:#FF9F0A; color:white;"
                     onclick="applyTabataPreset()">⏱️ Tabata</button>
                 <button class="btn-header btn-save" onclick="shareSettings()">💾 Save</button>
@@ -2791,7 +2798,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.62"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.63"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
