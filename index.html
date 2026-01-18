@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.95"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.96"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4499,6 +4499,7 @@
 
                     const nameInput = document.createElement('input');
                     nameInput.type = 'text';
+                    nameInput.setAttribute('list', 'exercise-datalist'); // Enable Autocomplete
                     nameInput.value = exName;
                     nameInput.placeholder = `Oefening ${e}.${s}`;
                     nameInput.style.background = 'transparent';
