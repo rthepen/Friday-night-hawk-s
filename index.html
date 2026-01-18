@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.92"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.93"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4465,6 +4465,24 @@
                     row.style.position = 'relative';
                     row.style.zIndex = '2';
 
+                    // Arrow for Details
+                    const arrow = document.createElement('div');
+                    arrow.id = `arrow-${uniqueId}`;
+                    arrow.innerHTML = '▶'; // Right arrow default
+                    arrow.style.color = '#888';
+                    arrow.style.cursor = 'pointer';
+                    arrow.style.fontSize = '14px';
+                    arrow.style.width = '20px';
+                    arrow.onclick = (ev) => {
+                        ev.stopPropagation();
+                        if (typeof toggleExerciseDetails === 'function') {
+                            toggleExerciseDetails(uniqueId);
+                        } else {
+                            console.error("toggleExerciseDetails missing");
+                        }
+                    };
+                    row.appendChild(arrow);
+
                     // Name Input (Click to Select)
                     let exName = "";
                     if (roundExercises[roundIndex] && roundExercises[roundIndex][e - 1] && roundExercises[roundIndex][e - 1][s - 1]) {
@@ -4477,7 +4495,12 @@
                     nameDiv.style.flex = '1';
                     nameDiv.style.display = 'flex';
                     nameDiv.style.flexDirection = 'column';
-                    nameDiv.onclick = () => openExerciseSelector(rNum, e, s);
+                    // Clicking name also toggles details for UX
+                    nameDiv.onclick = () => {
+                        if (typeof toggleExerciseDetails === 'function') {
+                            toggleExerciseDetails(uniqueId);
+                        }
+                    };
                     nameDiv.style.cursor = 'pointer';
 
                     const label = document.createElement('span');
@@ -4485,9 +4508,17 @@
                     label.style.color = exName ? 'white' : '#777';
                     label.style.fontWeight = exName ? 'bold' : 'normal';
                     label.style.fontFamily = "'Outfit', sans-serif";
+                    // Add unique ID for auto-update targeting (used by autoLoadFromCheckNumber)
+                    label.setAttribute('contenteditable', 'false');
 
                     nameDiv.appendChild(label);
                     row.appendChild(nameDiv);
+
+                    // Smart Menu Trigger (The ? button)
+                    if (typeof createExerciseMenu === 'function') {
+                        const menu = createExerciseMenu(uniqueId, roundIndex, e - 1, s - 1);
+                        row.appendChild(menu);
+                    }
 
                     // Work Time (Green) - Right Aligned
                     const wVal = customWorkTimes[timeKey] || round.workTime;
@@ -4508,7 +4539,98 @@
 
                     container.appendChild(row);
 
-                    // --- 2. INTERSTITIAL ROW (Rest or Switch) ---
+                    // --- 2. DETAILS ROW (Hidden by Default) ---
+                    const details = document.createElement('div');
+                    details.id = `details-${uniqueId}`;
+                    details.style.display = 'none';
+                    details.style.flexDirection = 'column';
+                    details.style.gap = '10px';
+                    details.style.padding = '10px';
+                    details.style.background = '#252525';
+                    details.style.marginBottom = '10px';
+                    details.style.borderRadius = '8px';
+                    details.style.border = '1px solid #444';
+
+                    // Description
+                    details.innerHTML = `
+                        <div style="display:flex; flex-direction:column;">
+                            <label style="color:#aaa; font-size:10px; margin-bottom:2px;">INSTRUCTIES</label>
+                            <textarea id="desc-${uniqueId}" class="text-input" rows="2" placeholder="Beschrijving..." 
+                                onchange="updateExerciseDetail('${uniqueId}', 'desc', this.value)"
+                                style="background:#1c1c1e; border:1px solid #444; color:white; padding:8px; border-radius:6px; font-family:sans-serif;">${(customDetails[uniqueId]?.desc || '')}</textarea>
+                        </div>
+                    `;
+
+                    // Material (+ Description)
+                    const matRow = document.createElement('div');
+                    matRow.style.display = 'grid';
+                    matRow.style.gridTemplateColumns = '1fr 1fr';
+                    matRow.style.gap = '10px';
+
+                    matRow.innerHTML = `
+                        <div style="display:flex; flex-direction:column;">
+                            <label style="color:#aaa; font-size:10px; margin-bottom:2px;">MATERIAAL</label>
+                            <input id="mat-${uniqueId}" type="text" value="${(customDetails[uniqueId]?.mat || '')}" 
+                                onchange="updateExerciseDetail('${uniqueId}', 'mat', this.value)"
+                                style="background:#1c1c1e; border:1px solid #444; color:white; padding:8px; border-radius:6px;">
+                        </div>
+                        <div style="display:flex; flex-direction:column;">
+                            <label style="color:#aaa; font-size:10px; margin-bottom:2px;">MATERIAAL DETAILS</label>
+                            <input id="matdesc-${uniqueId}" type="text" value="${(customDetails[uniqueId]?.matDesc || '')}" 
+                                onchange="updateExerciseDetail('${uniqueId}', 'matDesc', this.value)"
+                                style="background:#1c1c1e; border:1px solid #444; color:white; padding:8px; border-radius:6px;">
+                        </div>
+                    `;
+                    details.appendChild(matRow);
+
+                    // Media (Thumb + Check#)
+                    const mediaRow = document.createElement('div');
+                    mediaRow.style.display = 'grid';
+                    mediaRow.style.gridTemplateColumns = '1fr 1fr';
+                    mediaRow.style.gap = '10px';
+                    mediaRow.style.marginTop = '5px';
+
+                    // Check Number logic
+                    mediaRow.innerHTML = `
+                         <div style="display:flex; flex-direction:column;">
+                            <label style="color:#aaa; font-size:10px; margin-bottom:2px;">THUMBNAIL URL</label>
+                            <input id="thumb-url-${uniqueId}" type="text" placeholder="https://..." 
+                                   value="${(customDetails[uniqueId]?.thumbUrl || '')}"
+                                   onchange="updateExerciseDetail('${uniqueId}', 'thumbUrl', this.value)"
+                                   style="background:#1c1c1e; border:1px solid #444; color:white; padding:8px; border-radius:6px;">
+                         </div>
+                         <div style="display:flex; flex-direction:column;">
+                            <label style="color:#aaa; font-size:10px; margin-bottom:2px;">CHECK #</label>
+                            <input type="number" placeholder="#" 
+                                   value="${(customDetails[uniqueId]?.checkNum || '')}"
+                                   onchange="autoLoadFromCheckNumber(this.value, '${uniqueId}', ${roundIndex}, ${e - 1}, ${s - 1})"
+                                   style="background:#1c1c1e; border:1px solid #444; color:#30D158; padding:8px; border-radius:6px; font-weight:bold;">
+                         </div>
+                    `;
+                    details.appendChild(mediaRow);
+
+                    // Thumbnail Preview
+                    const thumbPreview = document.createElement('img');
+                    thumbPreview.id = `img-${uniqueId}`;
+                    thumbPreview.style.width = '100px';
+                    thumbPreview.style.height = '60px'; // fixed aspect roughly
+                    thumbPreview.style.objectFit = 'cover';
+                    thumbPreview.style.borderRadius = '6px';
+                    thumbPreview.style.marginTop = '10px';
+                    thumbPreview.style.backgroundColor = '#000';
+                    if (customDetails[uniqueId]?.thumbUrl) {
+                        thumbPreview.src = customDetails[uniqueId].thumbUrl;
+                        thumbPreview.style.display = 'block';
+                    } else {
+                        thumbPreview.style.display = 'none';
+                    }
+                    details.appendChild(thumbPreview);
+
+
+                    container.appendChild(details);
+
+
+                    // --- 3. INTERSTITIAL ROW (Rest or Switch) ---
                     const isLastSet = (s === round.sets);
                     const isLastEx = (e === round.exercises);
 
