@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.82"; // Individual Rest/Switch Times
+        const APP_VERSION = "1.32.84"; // Fix ReferenceError
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -2859,6 +2859,8 @@
         let customNames = {};
         let customDetails = {}; // Stores per-exercise overrides (img, check #, etc.)
         let customWorkTimes = {}; // Format: { "rX-eY-sZ": seconds }
+        let customRestTimes = {}; // Format: { "rX-eY-sZ": seconds }
+        let customSwitchTimes = {}; // Format: { "rX-eY-sZ": seconds }
         let roundExercises = {}; // Format: { roundIndex: { exerciseIndex: { setIndex: exerciseName } } }
         let failedAudioKeys = new Set(); // Cache for missing MP3s
 
