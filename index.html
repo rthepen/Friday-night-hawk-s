@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.84"; // Fix ReferenceError
+        const APP_VERSION = "1.32.86"; // Fix missing renders
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4264,6 +4264,7 @@
                 // const infoDiv = document.createElement('div'); ... removed
 
                 container.appendChild(card);
+                renderRoundExerciseList(index);
 
                 // Add Connector if not last round
                 if (index < workoutRounds.length - 1) {
