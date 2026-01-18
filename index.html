@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.81"; // Individual Rest/Switch Times
+        const APP_VERSION = "1.32.82"; // Individual Rest/Switch Times
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4413,15 +4413,7 @@
             calculateRealTime();
         }
 
-        let currentExContext = null;
-        function openExerciseSelector(r, e, s) {
-            currentExContext = { r: r + 1, e: e, s: s };
-            document.getElementById('edit-round-idx').value = r + 1;
-            document.getElementById('edit-ex-idx').value = e;
-            document.getElementById('edit-set-idx').value = s;
-            document.getElementById('exercise-selector-modal').style.display = 'flex';
-            if (window.backToExList) window.backToExList();
-        }
+
 
         function renderRoundExerciseList(roundIndex) {
             const card = document.getElementById(`round-card-${roundIndex}`);
@@ -4486,7 +4478,7 @@
                     nameDiv.style.flex = '1';
                     nameDiv.style.display = 'flex';
                     nameDiv.style.flexDirection = 'column';
-                    nameDiv.onclick = () => openExerciseSelector(roundIndex, e, s);
+                    nameDiv.onclick = () => openExerciseSelector(rNum, e, s);
                     nameDiv.style.cursor = 'pointer';
 
                     const label = document.createElement('span');
