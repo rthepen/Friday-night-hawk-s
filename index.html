@@ -2845,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.94"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.95"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4594,7 +4594,7 @@
 
                     // Media (Thumb + Check#)
                     const mediaRow = document.createElement('div');
-                    mediaRow.style.display = 'grid';
+                    mediaRow.style.display = 'none'; // Hidden as per request
                     mediaRow.style.gridTemplateColumns = '1fr 1fr';
                     mediaRow.style.gap = '10px';
                     mediaRow.style.marginTop = '5px';
@@ -4621,18 +4621,53 @@
                     // Thumbnail Preview
                     const thumbPreview = document.createElement('img');
                     thumbPreview.id = `img-${uniqueId}`;
-                    thumbPreview.style.width = '100px';
-                    thumbPreview.style.height = '60px'; // fixed aspect roughly
+                    thumbPreview.style.width = '100%'; // Full width
+                    thumbPreview.style.height = 'auto'; // Maintain aspect ratio
+                    thumbPreview.style.aspectRatio = '16/9';
                     thumbPreview.style.objectFit = 'cover';
                     thumbPreview.style.borderRadius = '6px';
                     thumbPreview.style.marginTop = '10px';
                     thumbPreview.style.backgroundColor = '#000';
+                    thumbPreview.style.cursor = 'pointer'; // Clickable
+
                     if (customDetails[uniqueId]?.thumbUrl) {
                         thumbPreview.src = customDetails[uniqueId].thumbUrl;
                         thumbPreview.style.display = 'block';
                     } else {
                         thumbPreview.style.display = 'none';
                     }
+
+                    // Click to Play Logic
+                    thumbPreview.onclick = () => {
+                        const url = customDetails[uniqueId]?.thumbUrl || "";
+                        let videoId = "";
+                        // Regex for standard YouTube URLs
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                        const match = url.match(regExp);
+                        if (match && match[2].length === 11) {
+                            videoId = match[2];
+                        } else {
+                            // Fallback for ytimg thumbnails (e.g. https://i.ytimg.com/vi/ID/...)
+                            const imgMatch = url.match(/vi\/([^\/]+)\//);
+                            if (imgMatch && imgMatch[1]) videoId = imgMatch[1];
+                        }
+
+                        if (videoId) {
+                            const iframe = document.createElement('iframe');
+                            iframe.width = "100%";
+                            iframe.style.aspectRatio = '16/9';
+                            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                            iframe.frameBorder = "0";
+                            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+                            iframe.allowFullscreen = true;
+                            iframe.style.borderRadius = "6px";
+                            iframe.style.marginTop = '10px';
+
+                            // Replace image with iframe
+                            details.replaceChild(iframe, thumbPreview);
+                        }
+                    };
+
                     details.appendChild(thumbPreview);
 
 
