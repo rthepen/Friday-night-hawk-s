@@ -2136,6 +2136,55 @@
             flex: 1;
             min-width: 150px;
         }
+
+        /* GLOBAL TIME BAR RESPONSIVE */
+        .global-time-bar {
+            position: fixed;
+            top: 20px;
+            right: 150px;
+            z-index: 200000;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            height: 44px;
+            transition: all 0.2s ease;
+        }
+
+        @media (max-width: 600px) {
+            .global-time-bar {
+                right: 135px !important;
+                /* Reduce gap to material button */
+                gap: 6px !important;
+                padding: 4px 8px !important;
+            }
+
+            .global-time-bar label {
+                display: none !important;
+                /* Hide labels to save space */
+            }
+
+            .global-time-bar input[type="time"] {
+                width: 60px !important;
+                /* Smaller time inputs */
+                font-size: 13px !important;
+            }
+
+            #totalMin {
+                width: 30px !important;
+                font-size: 13px !important;
+            }
+
+            /* Make dividers smaller */
+            .global-time-bar>div[style*="width:1px"] {
+                margin: 0 2px !important;
+            }
+        }
     </style>
 </head>
 
@@ -2146,8 +2195,7 @@
     </div>
 
     <!-- TIME BAR (Fixed Top Right / Global) -->
-    <div id="global-time-bar"
-        style="position:fixed; top:20px; right:150px; z-index:200000; display:flex; align-items:center; background:rgba(0,0,0,0.6); padding:4px 12px; border-radius:30px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); gap:12px; box-shadow:0 4px 12px rgba(0,0,0,0.3); height:44px;">
+    <div id="global-time-bar" class="global-time-bar">
         <!-- NU Button -->
         <div onclick="setNow()"
             style="cursor:pointer; background:rgba(48, 209, 88, 0.2); border:1px solid rgba(48, 209, 88, 0.5); border-radius:8px; padding:2px 6px; margin-right:4px; display:flex; align-items:center; justify-content:center;"
@@ -2797,7 +2845,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.77"; // Station Card Number Pitch Black
+        const APP_VERSION = "1.32.78"; // Station Card Number Pitch Black
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
