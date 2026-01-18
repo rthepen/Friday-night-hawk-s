@@ -2189,6 +2189,7 @@
 </head>
 
 <body>
+    <datalist id="exercise-datalist"></datalist>
     <!-- Hourglass Background -->
     <div id="hourglass-bg">
         <div id="hourglass-fill"></div>
@@ -2845,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.101"; // Fix Round Duration Calc
+        const APP_VERSION = "1.32.102"; // Fix Round Duration Calc
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -10159,6 +10160,55 @@
                 console.error("Auto-Repair failed:", e);
             }
         })();
+        // --- AUTOFILL DATA FETCHING ---
+        // Ensure globals exist
+        var allExercises = window.allExercises || [];
+        if (typeof WORKOUT_DB === 'undefined') var WORKOUT_DB = [];
+        if (typeof workoutDatabase === 'undefined') var workoutDatabase = [];
+
+        async function fetchWorkoutData() {
+            try {
+                // Check if already loaded
+                if (allExercises.length > 0) return;
+
+                console.log("Fetching workout data...");
+                const response = await fetch('workoutdatabase.json');
+                if (!response.ok) throw new Error("Failed to load workoutdatabase.json");
+
+                const data = await response.json();
+
+                // Sync ALL global references found in code
+                allExercises = data;
+                WORKOUT_DB = data;
+                workoutDatabase = data; // Essential for renderRoundExerciseList
+                window.workoutDatabase = data;
+
+                populateExerciseDatalist();
+                console.log(`Loaded ${allExercises.length} exercises. Synced globals.`);
+            } catch (error) {
+                console.error("Error loading workout data:", error);
+            }
+        }
+
+        function populateExerciseDatalist() {
+            const datalist = document.getElementById('exercise-datalist');
+            if (!datalist) return;
+
+            datalist.innerHTML = '';
+            // Unique names only
+            const uniqueNames = [...new Set(allExercises.map(ex => ex.exercise_name))].sort();
+
+            uniqueNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalist.appendChild(option);
+            });
+        }
+
+        // Init load
+        window.addEventListener('load', () => {
+            fetchWorkoutData();
+        });
     </script>
 </body>
 
