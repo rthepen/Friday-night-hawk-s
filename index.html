@@ -2846,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.107"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.108"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4532,7 +4532,7 @@
 
                     // Event Handling
                     nameInput.onclick = (e) => e.stopPropagation(); // Allow focus
-                    nameInput.onchange = (e) => updateExerciseSlot(roundIndex, e - 1, s - 1, e.target.value);
+                    nameInput.onchange = (ev) => updateExerciseSlot(roundIndex, e - 1, s - 1, ev.target.value);
 
                     // Auto-update color on input
                     nameInput.oninput = (e) => {
