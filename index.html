@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.117"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.118"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4235,7 +4235,7 @@
                 }
 
                 grid.innerHTML = `
-                    ${createBox('Oefeningen', 'exercises', round.exercises, '#555')}
+                    ${createBox('Oefeningen', 'exercises', round.exercises, '#0A84FF')}
                     ${createBox('Sets', 'sets', round.sets, '#FF9F0A')}
                     ${createBox('Werk (s)', 'workTime', round.workTime, '#30D158')}
                     ${createBox('Rust (s)', 'restTime', round.restTime, '#FF453A')}
@@ -4458,7 +4458,7 @@
                     row.style.padding = '10px';
                     row.style.background = '#1c1c1e';
                     row.style.borderRadius = '8px';
-                    row.style.border = '1px solid #333';
+                    row.style.border = '1px solid #0A84FF';
                     row.style.position = 'relative';
                     row.style.zIndex = '2';
 
