@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.120"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.121"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4465,7 +4465,8 @@
                     row.style.alignItems = 'center';
                     row.style.gap = '6px';
                     row.style.marginBottom = '2px'; // Tighter bottom margin
-                    row.style.padding = '4px 8px';
+                    row.style.padding = '0px 8px';
+                    row.style.height = '32px';
                     row.style.background = '#1c1c1e';
                     row.style.borderRadius = '8px';
                     row.style.border = '1px solid #0A84FF';
@@ -4566,7 +4567,8 @@
                     wInput.style.background = '#2c2c2e';
                     wInput.style.border = '1px solid #30D158';
                     wInput.style.borderRadius = '6px';
-                    wInput.style.padding = '4px';
+                    wInput.style.padding = '2px';
+                    wInput.style.height = '24px';
                     wInput.style.fontWeight = 'bold';
                     wInput.style.fontSize = '14px';
                     wInput.onchange = (ev) => setCustomWorkTime(roundIndex, e - 1, s - 1, ev.target.value);
