@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.113"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.114"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4496,9 +4496,9 @@
                     }
 
                     // JIT Hydration: If we have a name but no details, try to find them in the DB immediately
-                    if (exName && typeof workoutDatabase !== 'undefined' && workoutDatabase.length > 0) {
+                    if (exName && typeof WORKOUT_DB !== 'undefined' && WORKOUT_DB.length > 0) {
                         if (!customDetails[uniqueId] || (!customDetails[uniqueId].desc && !customDetails[uniqueId].mat)) {
-                            const match = workoutDatabase.find(e => e.exercise_name.toLowerCase() === exName.toLowerCase());
+                            const match = WORKOUT_DB.find(e => e.exercise_name.toLowerCase() === exName.toLowerCase());
                             if (match) {
                                 if (!customDetails[uniqueId]) customDetails[uniqueId] = {};
                                 customDetails[uniqueId].desc = match.instructions || '';
