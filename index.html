@@ -2846,7 +2846,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.108"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.109"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -3926,7 +3926,8 @@
                 // Save Custom Names
                 customNames: customNames,
                 customWorkTimes: customWorkTimes, // Pro-feature: per-exercise time
-                roundExercises: roundExercises // Save per-set exercise assignments
+                roundExercises: roundExercises, // Save per-set exercise assignments
+                customDetails: customDetails // SAVE DETAILS
             };
             localStorage.setItem('fnh_settings_v8', JSON.stringify(data));
         }
@@ -3949,6 +3950,7 @@
                     if (data.customNames) customNames = data.customNames;
                     if (data.customWorkTimes) customWorkTimes = data.customWorkTimes;
                     if (data.roundExercises) roundExercises = data.roundExercises;
+                    if (data.customDetails) customDetails = data.customDetails; // RESTORE DETAILS
 
                     // Restore Volumes
                     if (data.volMusic) {
