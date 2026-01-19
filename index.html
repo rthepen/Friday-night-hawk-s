@@ -1922,7 +1922,8 @@
             display: none;
             position: absolute;
             top: 110%;
-            left: 0;
+            right: 0;
+            left: auto;
             width: 280px;
             /* Wider than trigger */
             max-height: 250px;
@@ -1931,7 +1932,7 @@
             border: 1px solid #333;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            z-index: 100;
+            z-index: 10000;
         }
 
         .exercise-dropdown.active {
@@ -2846,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.110"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.111"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
