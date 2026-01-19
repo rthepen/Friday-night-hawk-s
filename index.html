@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.116"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.117"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4217,19 +4217,19 @@
                 // Grid Container
                 const grid = document.createElement('div');
                 grid.style.display = 'grid';
-                grid.style.gridTemplateColumns = '1fr 1fr';
-                grid.style.gap = '10px';
+                grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+                grid.style.gap = '8px';
                 grid.style.marginBottom = '10px';
 
                 // Helper to create input box
                 function createBox(label, field, val, borderColor) {
                     return `
-                        <div style="background:#1c1c1e; border:1px solid ${borderColor}; border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center;">
-                            <label style="font-size:10px; color:#888; text-transform:uppercase; margin-bottom:5px;">${label}</label>
+                        <div style="background:#1c1c1e; border:1px solid ${borderColor}; border-radius:12px; padding:10px 5px; display:flex; flex-direction:column; align-items:center;">
+                            <label style="font-size:9px; color:#888; text-transform:uppercase; margin-bottom:5px; white-space:nowrap;">${label}</label>
                             <input type="number" class="highlight-input" 
                                 value="${val}" 
                                 onchange="updateRound(${index}, '${field}', this.value)" 
-                                style="width:100%; text-align:center; background:transparent; border:none; color:white; font-size:20px; font-weight:bold; font-family:'Outfit',sans-serif; padding:0;">
+                                style="width:100%; text-align:center; background:transparent; border:none; color:white; font-size:18px; font-weight:bold; font-family:'Outfit',sans-serif; padding:0;">
                         </div>
                     `;
                 }
@@ -4239,14 +4239,7 @@
                     ${createBox('Sets', 'sets', round.sets, '#FF9F0A')}
                     ${createBox('Werk (s)', 'workTime', round.workTime, '#30D158')}
                     ${createBox('Rust (s)', 'restTime', round.restTime, '#FF453A')}
-                    <div style="grid-column: span 2; display: flex; gap: 10px; align-items: center;">
-                        <div style="flex: 1;">
-                            ${createBox('Rust (Oefening)', 'exerciseRest', round.exerciseRest || 15, '#BF5AF2')}
-                        </div>
-                        <div id="round-info-${index}" style="flex: 1; font-size: 11px; color: #888; text-align: left; padding: 5px;">
-                             ...
-                        </div>
-                    </div>
+                    ${createBox('Wissel (s)', 'exerciseRest', round.exerciseRest || 15, '#BF5AF2')}
                 `;
                 card.appendChild(grid);
 
