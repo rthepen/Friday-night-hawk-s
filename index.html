@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.111"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.112"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9678,19 +9678,41 @@
         function toggleExerciseMenu(uniqueId) {
             // Close all others first
             document.querySelectorAll('.exercise-dropdown.active').forEach(el => {
-                if (el.id !== `menu-dropdown-${uniqueId}`) el.classList.remove('active');
+                if (el.id !== `menu-dropdown-${uniqueId}`) {
+                    el.classList.remove('active');
+                    // Reset z-index of other rows
+                    if (el.parentElement && el.parentElement.parentElement) {
+                        el.parentElement.parentElement.style.zIndex = '2';
+                    }
+                }
             });
 
             const dropdown = document.getElementById(`menu-dropdown-${uniqueId}`);
             if (dropdown) {
                 dropdown.classList.toggle('active');
+
+                // Toggle z-index of CURRENT row
+                const container = document.getElementById(`menu-container-${uniqueId}`);
+                if (container && container.parentElement) {
+                    if (dropdown.classList.contains('active')) {
+                        container.parentElement.style.zIndex = '1000';
+                    } else {
+                        container.parentElement.style.zIndex = '2';
+                    }
+                }
             }
         }
 
         // Close menus when clicking elsewhere
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.exercise-menu-container')) {
-                document.querySelectorAll('.exercise-dropdown.active').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.exercise-dropdown.active').forEach(el => {
+                    el.classList.remove('active');
+                    // Reset z-index
+                    if (el.parentElement && el.parentElement.parentElement) {
+                        el.parentElement.parentElement.style.zIndex = '2';
+                    }
+                });
             }
         });
 
