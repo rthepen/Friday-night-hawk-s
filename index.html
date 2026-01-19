@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.112"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.113"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -9416,7 +9416,10 @@
             modal.classList.add('active');
 
             if (!isDataLoaded) {
-                fetchWorkoutData();
+                // Ensure data is fetched, then process it for this view
+                fetchWorkoutData().then(() => {
+                    processData();
+                });
             }
         }
 
@@ -9429,8 +9432,7 @@
             if (workoutDatabase && workoutDatabase.length > 0) {
                 console.log("Using existing workoutDatabase");
                 allExercises = workoutDatabase;
-                processData();
-                return;
+                return Promise.resolve(); // Return a resolved promise
             }
 
             try {
@@ -9443,11 +9445,11 @@
                 if (typeof workoutDatabase === 'undefined' || !workoutDatabase) {
                     workoutDatabase = data;
                 }
-
-                processData();
+                return Promise.resolve(); // Return a resolved promise
             } catch (err) {
                 console.error("Error loading workout data:", err);
                 // Fallback attempt if variable exists but fetch failed (unlikely)
+                return Promise.reject(err); // Return a rejected promise
             }
         }
 
