@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.119"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.120"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4450,8 +4450,8 @@
                 const exerciseGroup = document.createElement('div');
                 exerciseGroup.style.border = '2px solid #FF9F0A'; // Orange Border
                 exerciseGroup.style.borderRadius = '12px';
-                exerciseGroup.style.padding = '10px';
-                exerciseGroup.style.marginBottom = '10px';
+                exerciseGroup.style.padding = '4px';
+                exerciseGroup.style.marginBottom = '6px';
                 exerciseGroup.style.position = 'relative';
 
 
@@ -4463,9 +4463,9 @@
                     const row = document.createElement('div');
                     row.style.display = 'flex';
                     row.style.alignItems = 'center';
-                    row.style.gap = '8px';
-                    row.style.marginBottom = '4px'; // Tighter bottom margin
-                    row.style.padding = '10px';
+                    row.style.gap = '6px';
+                    row.style.marginBottom = '2px'; // Tighter bottom margin
+                    row.style.padding = '4px 8px';
                     row.style.background = '#1c1c1e';
                     row.style.borderRadius = '8px';
                     row.style.border = '1px solid #0A84FF';
@@ -4531,7 +4531,7 @@
                     nameInput.style.border = 'none';
                     nameInput.style.color = exName ? 'white' : '#777';
                     nameInput.style.fontWeight = exName ? 'bold' : 'normal';
-                    nameInput.style.fontSize = '16px';
+                    nameInput.style.fontSize = '14px';
                     nameInput.style.fontFamily = "'Outfit', sans-serif";
                     nameInput.style.width = '100%';
                     nameInput.style.outline = 'none';
@@ -4566,7 +4566,7 @@
                     wInput.style.background = '#2c2c2e';
                     wInput.style.border = '1px solid #30D158';
                     wInput.style.borderRadius = '6px';
-                    wInput.style.padding = '8px';
+                    wInput.style.padding = '4px';
                     wInput.style.fontWeight = 'bold';
                     wInput.style.fontSize = '14px';
                     wInput.onchange = (ev) => setCustomWorkTime(roundIndex, e - 1, s - 1, ev.target.value);
@@ -4708,7 +4708,7 @@
                         midRow.style.justifyContent = 'center';
                         midRow.style.alignItems = 'center';
                         midRow.style.position = 'relative';
-                        midRow.style.height = '40px';
+                        midRow.style.height = '20px';
                         midRow.style.zIndex = '1';
 
                         const line = document.createElement('div');
@@ -4723,11 +4723,13 @@
 
                         const input = document.createElement('input');
                         input.type = 'number';
-                        input.style.width = '60px';
+                        input.style.width = '50px';
                         input.style.textAlign = 'center';
                         input.style.background = '#000';
-                        input.style.borderRadius = '12px';
-                        input.style.padding = '4px';
+                        input.style.borderRadius = '10px';
+                        input.style.padding = '0px';
+                        input.style.height = '20px';
+                        input.style.fontSize = '12px';
                         input.style.fontWeight = 'bold';
                         input.style.zIndex = '1';
                         input.style.position = 'relative';
@@ -4767,7 +4769,7 @@
                     midRow.style.justifyContent = 'center';
                     midRow.style.alignItems = 'center';
                     midRow.style.position = 'relative';
-                    midRow.style.height = '40px';
+                    midRow.style.height = '20px';
                     midRow.style.zIndex = '1';
 
                     // No vertical line connecting groups? Or separate? 
@@ -4777,11 +4779,13 @@
 
                     const input = document.createElement('input');
                     input.type = 'number';
-                    input.style.width = '60px';
+                    input.style.width = '50px';
                     input.style.textAlign = 'center';
                     input.style.background = '#000';
-                    input.style.borderRadius = '12px';
-                    input.style.padding = '4px';
+                    input.style.borderRadius = '10px';
+                    input.style.padding = '0px';
+                    input.style.height = '20px'; // Compact switch
+                    input.style.fontSize = '12px';
                     input.style.fontWeight = 'bold';
                     input.style.zIndex = '1';
 
