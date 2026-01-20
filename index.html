@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.122"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.123"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4259,6 +4259,17 @@
                 // Info Footer
                 // Info footer moved inside grid
                 // const infoDiv = document.createElement('div'); ... removed
+
+                // Info Footer - Restored
+                const infoDiv = document.createElement('div');
+                infoDiv.id = `round-info-${index}`;
+                infoDiv.style.textAlign = 'center';
+                infoDiv.style.color = '#888';
+                infoDiv.style.fontSize = '12px';
+                infoDiv.style.marginBottom = '10px';
+                infoDiv.style.fontStyle = 'italic';
+                infoDiv.innerHTML = "Berekenen...";
+                card.appendChild(infoDiv);
 
                 container.appendChild(card);
                 renderRoundExerciseList(index);
