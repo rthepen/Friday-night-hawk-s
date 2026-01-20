@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.129"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.130"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4342,6 +4342,14 @@
                     Object.keys(customSwitchTimes).forEach(k => {
                         if (k.startsWith(prefix)) delete customSwitchTimes[k];
                     });
+                    const card = document.getElementById(`round-card-${index}`);
+                    if (card && card.querySelector('.exercise-list-container')) {
+                        setTimeout(() => renderRoundExerciseList(index), 50);
+                    }
+                }
+
+                // NEW: Re-render if Exercises or Sets count changes
+                if (field === 'exercises' || field === 'sets') {
                     const card = document.getElementById(`round-card-${index}`);
                     if (card && card.querySelector('.exercise-list-container')) {
                         setTimeout(() => renderRoundExerciseList(index), 50);
