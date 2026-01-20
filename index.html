@@ -2198,6 +2198,12 @@
 
     <!-- TIME BAR (Fixed Top Right / Global) -->
     <div id="global-time-bar" class="global-time-bar">
+        <!-- NEW TOP START BUTTON -->
+        <div id="btn-top-start" onclick="startWorkout()"
+            style="cursor:pointer; background:#30D158; color:black; border-radius:8px; padding:4px 10px; margin-right:8px; font-size:11px; font-weight:900; box-shadow:0 0 10px rgba(48,209,88,0.4); display:flex; align-items:center;">
+            START
+        </div>
+
         <!-- NU Button -->
         <div onclick="setNow()"
             style="cursor:pointer; background:rgba(48, 209, 88, 0.2); border:1px solid rgba(48, 209, 88, 0.5); border-radius:8px; padding:2px 6px; margin-right:4px; display:flex; align-items:center; justify-content:center;"
@@ -2847,7 +2853,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.130"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.131"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -8536,18 +8542,34 @@
 
         function updateStartButtonState() {
             const btn = document.getElementById('btn-start-app');
-            if (!btn) return;
+            const topBtn = document.getElementById('btn-top-start'); // NEW
 
             if (isWorkoutActive) {
-                btn.innerText = "⏮ TERUG NAAR TRAINING";
-                btn.classList.add('active-session-btn'); // CSS for pulsing green?
-                btn.style.background = "#30D158";
-                btn.style.color = "black";
+                if (btn) {
+                    btn.innerText = "⏮ TERUG NAAR TRAINING";
+                    btn.classList.add('active-session-btn');
+                    btn.style.background = "#30D158";
+                    btn.style.color = "black";
+                }
+                if (topBtn) {
+                    topBtn.innerText = "TERUG";
+                    topBtn.style.background = "#30D158";
+                    topBtn.style.color = "black";
+                    topBtn.style.boxShadow = "0 0 15px rgba(48,209,88,0.6)";
+                }
             } else {
-                btn.innerText = "START TRAINING";
-                btn.classList.remove('active-session-btn');
-                btn.style.background = ""; // Revert to default class style
-                btn.style.color = "";
+                if (btn) {
+                    btn.innerText = "START TRAINING";
+                    btn.classList.remove('active-session-btn');
+                    btn.style.background = "";
+                    btn.style.color = "";
+                }
+                if (topBtn) {
+                    // Will be handled by countdown timer mostly, but reset base here
+                    topBtn.innerText = "START";
+                    topBtn.style.background = "#30D158";
+                    topBtn.style.boxShadow = "0 0 10px rgba(48,209,88,0.4)";
+                }
             }
         }
 
@@ -9444,14 +9466,39 @@
                 // If H > 0: H:MM:SS
                 // If H = 0: M:SS
 
+
+                // Resetting format for consistency:
+                // If H > 0: H:MM:SS
+                // If H = 0: M:SS
+
                 if (h > 0) {
                     btn.innerText = `START OVER ${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 } else {
                     btn.innerText = `START OVER ${m}:${String(s).padStart(2, '0')}`;
                 }
+
+                // NEW: Update Top Button
+                const topBtn = document.getElementById('btn-top-start');
+                if (topBtn && !isWorkoutActive) {
+                    if (h > 0) {
+                        topBtn.innerText = `OVER ${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    } else {
+                        topBtn.innerText = `OVER ${m}:${String(s).padStart(2, '0')}`;
+                    }
+                    topBtn.style.background = "#ffcc00"; // Yellow/Orange warning? Or just keep green but text changes?
+                    topBtn.style.color = "black";
+                }
+
             } else {
                 // Time has passed
                 if (btn.innerText.includes("START OVER")) btn.innerText = "START TRAINING";
+
+                // NEW: Reset Top Button
+                const topBtn = document.getElementById('btn-top-start');
+                if (topBtn && !isWorkoutActive) {
+                    topBtn.innerText = "START";
+                    topBtn.style.background = "#30D158"; // Green
+                }
             }
         }
 
