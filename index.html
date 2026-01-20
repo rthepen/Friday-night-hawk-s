@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.127"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.128"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4717,54 +4717,39 @@
                     if (s < round.sets) {
                         const midRow = document.createElement('div');
                         midRow.style.display = 'flex';
-                        midRow.style.justifyContent = 'center';
                         midRow.style.alignItems = 'center';
+                        midRow.style.justifyContent = 'space-between'; // Label left, input right
+                        midRow.style.marginBottom = '2px';
+                        midRow.style.padding = '0px 8px';
+                        midRow.style.height = '32px';
+                        midRow.style.background = '#1c1c1e';
+                        midRow.style.borderRadius = '8px';
+                        midRow.style.border = '1px solid #FF453A'; // Red for Rest
                         midRow.style.position = 'relative';
-                        midRow.style.height = '20px';
                         midRow.style.zIndex = '1';
 
-                        const line = document.createElement('div');
-                        line.style.position = 'absolute';
-                        line.style.top = '-5px';
-                        line.style.bottom = '-5px';
-                        line.style.left = '50%';
-                        line.style.width = '2px';
-                        line.style.background = '#333';
-                        line.style.zIndex = '0';
-                        midRow.appendChild(line);
+                        // Label
+                        const label = document.createElement('span');
+                        label.innerText = "RUST";
+                        label.style.color = '#FF453A';
+                        label.style.fontSize = '12px';
+                        label.style.fontWeight = 'bold';
+                        label.style.fontFamily = "'Outfit', sans-serif";
+                        midRow.appendChild(label);
 
+                        // Input
                         const input = document.createElement('input');
                         input.type = 'number';
                         input.style.width = '50px';
                         input.style.textAlign = 'center';
-                        input.style.background = '#000';
-                        input.style.borderRadius = '10px';
-                        input.style.padding = '0px';
-                        input.style.height = '20px';
-                        input.style.fontSize = '12px';
+                        input.style.background = 'transparent'; // Transparent to blend
+                        input.style.border = 'none';
+                        input.style.color = '#FF453A';
+                        input.style.fontSize = '14px';
                         input.style.fontWeight = 'bold';
-                        input.style.zIndex = '1';
-                        input.style.position = 'relative';
-
-                        // REST (Red/Orange depending on pref - sticking to Orange as requested generally? Or keeping Red?)
-                        // User said "orange boxes around the sets". Separator inside typically implies shared color or distinct.
-                        // I will NOT change the logic for the separator color itself here unless requested. 
-                        // Wait, previous request was "orange boxes around sets". 
-                        // I will stick to the default RED for rest unless user specified otherwise in the plan (I planned generally).
-                        // Wait, my previous plan said "Change Rest separator to Orange", but user provided image shows just the box.
-                        // I'll stick to Red for Rest unless I see otherwise, but actually, let's make it Red for now.
-                        // The user said "ga door" (continue) on the plan "Group sets into Orange Box".
-                        // My previous plan actually said "I will change the color of the 'Rest' separator... to Orange".
-                        // BUT the user just said "ga door" on the grouping plan.
-                        // The grouping plan said "Rest Bubble (Red/Orange)".
-                        // I'll keep it RED to be safe as per standard, or Orange to match? 
-                        // Actually, let's make the bubble clear or standard.
-                        // Standard is Red.
 
                         const rVal = customRestTimes[timeKey] || round.restTime;
                         input.value = rVal;
-                        input.style.color = '#FF453A'; // Red
-                        input.style.border = '2px solid #FF453A';
                         input.onchange = (ev) => setCustomRestTime(roundIndex, e - 1, s - 1, ev.target.value);
                         midRow.appendChild(input);
 
@@ -4778,39 +4763,58 @@
                 if (e < round.exercises) {
                     const midRow = document.createElement('div');
                     midRow.style.display = 'flex';
-                    midRow.style.justifyContent = 'center';
                     midRow.style.alignItems = 'center';
+                    midRow.style.justifyContent = 'space-between';
+                    midRow.style.marginBottom = '6px';
+                    midRow.style.padding = '0px 8px';
+                    midRow.style.height = '32px';
+                    midRow.style.background = '#1c1c1e';
+                    midRow.style.borderRadius = '8px';
+                    midRow.style.border = '1px solid #BF5AF2'; // Purple for Switch
                     midRow.style.position = 'relative';
-                    midRow.style.height = '20px';
                     midRow.style.zIndex = '1';
 
-                    // No vertical line connecting groups? Or separate? 
-                    // Usually there is a line. If groups are separate, line might look weird or needed.
-                    // Let's add a small line to connect the switch bubble to the groups visually?
-                    // Or just the bubble. Let's keep the bubble.
+                    // Label
+                    const label = document.createElement('span');
+                    label.innerText = "WISSEL";
+                    label.style.color = '#BF5AF2';
+                    label.style.fontSize = '12px';
+                    label.style.fontWeight = 'bold';
+                    label.style.fontFamily = "'Outfit', sans-serif";
+                    midRow.appendChild(label);
 
                     const input = document.createElement('input');
                     input.type = 'number';
                     input.style.width = '50px';
                     input.style.textAlign = 'center';
-                    input.style.background = '#000';
-                    input.style.borderRadius = '10px';
-                    input.style.padding = '0px';
-                    input.style.height = '20px'; // Compact switch
-                    input.style.fontSize = '12px';
+                    input.style.background = 'transparent';
+                    input.style.border = 'none';
+                    input.style.color = '#BF5AF2';
+                    input.style.fontSize = '14px';
                     input.style.fontWeight = 'bold';
-                    input.style.zIndex = '1';
 
-                    // Switch uses the last set's key
-                    const lastSetKey = `r${rNum}-e${e}-s${round.sets}`;
-                    const swVal = customSwitchTimes[lastSetKey] || (round.exerciseRest || 15);
+                    // Switch time logic
+                    const rNum = roundIndex + 1;
+                    const switchKey = `r${rNum}-e${e}-s${round.sets}`; // Corresponds to last set of current exercise? 
+                    // Actually, switch is between exercises. 
+                    // Let's verify how switch time is stored.
+                    // setCustomSwitchTime uses `r${rNum}-e${e + 1}-s${s + 1}` ?? 
+                    // The old code had `r${rNum}-e${e}-s${round.sets}` in previous context maybe? 
+                    // Let's look at how "Switch" was handled before.
+                    // Wait, `setCustomSwitchTime` is called with (r, e, s, val).
+                    // In previous loop `for (let e = 1...`
+                    // This block is after the exercise group (so after all sets of exercise e).
+                    // So it represents switch from e to e+1.
 
-                    input.value = swVal;
-                    input.style.color = '#BF5AF2'; // Purple
-                    input.style.border = '2px solid #BF5AF2';
+                    const switchTimeKey = `r${rNum}-e${e}-s${round.sets}`; // Same as last set finish?
+                    // Actually, logic for switch time usually is keyed to the exercise it follows.
+
+                    const sVal = customSwitchTimes[switchTimeKey] || round.exerciseRest; // exerciseRest is actually 'switch time' in this app logic usually called 'Wissel'
+
+                    input.value = sVal;
                     input.onchange = (ev) => setCustomSwitchTime(roundIndex, e - 1, round.sets - 1, ev.target.value);
-
                     midRow.appendChild(input);
+
                     container.appendChild(midRow);
                 }
             }
