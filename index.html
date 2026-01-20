@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.123"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.124"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4172,11 +4172,14 @@
                 const roundName = round.name || defaultName;
 
                 header.innerHTML = `
-                    <div style="flex:1;">
+                    <div style="flex:1; display:flex; align-items:center; gap:10px;">
                         <input type="text" value="${roundName}" 
                                onchange="updateRound(${index}, 'name', this.value)"
                                placeholder="${defaultName}"
-                               style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; width:100%; font-family:'Outfit',sans-serif;">
+                               style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; min-width:100px; flex-shrink:0; font-family:'Outfit',sans-serif;">
+                        
+                        <!-- Info Span moved to Header -->
+                        <span id="round-info-${index}" style="color:#888; font-size:12px; font-style:italic; white-space:nowrap;">Berekenen...</span>
                     </div>
                 `;
                 card.appendChild(header);
@@ -4260,16 +4263,8 @@
                 // Info footer moved inside grid
                 // const infoDiv = document.createElement('div'); ... removed
 
-                // Info Footer - Restored
-                const infoDiv = document.createElement('div');
-                infoDiv.id = `round-info-${index}`;
-                infoDiv.style.textAlign = 'center';
-                infoDiv.style.color = '#888';
-                infoDiv.style.fontSize = '12px';
-                infoDiv.style.marginBottom = '10px';
-                infoDiv.style.fontStyle = 'italic';
-                infoDiv.innerHTML = "Berekenen...";
-                card.appendChild(infoDiv);
+                // Info Footer REMOVED (Moved to Header)
+
 
                 container.appendChild(card);
                 renderRoundExerciseList(index);
@@ -5029,7 +5024,8 @@
                 // Format duration (minutes if > 60)
                 const durMin = Math.round(roundDurationSec / 60);
 
-                infoEl.innerHTML = `De ronde is klaar om <b>${finishStr}</b> en duurt <b>${durMin} min</b>`;
+                // Emoji Layout
+                infoEl.innerHTML = `🏁 <b>${finishStr}</b>  |  ⏱️ <b>${durMin} min</b>`;
 
                 // Apply Highlight
                 const now = new Date();
