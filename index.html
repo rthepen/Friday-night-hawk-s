@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.124"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.125"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4171,12 +4171,16 @@
                 const defaultName = "RONDE " + roundNum;
                 const roundName = round.name || defaultName;
 
+                // Calculate initial width (approximate based on font)
+                const initialWidth = ((roundName.length > 0 ? roundName.length : defaultName.length) * 11) + 20;
+
                 header.innerHTML = `
                     <div style="flex:1; display:flex; align-items:center; gap:10px;">
                         <input type="text" value="${roundName}" 
                                onchange="updateRound(${index}, 'name', this.value)"
+                               oninput="this.style.width = ((this.value.length || 1) * 11 + 20) + 'px'"
                                placeholder="${defaultName}"
-                               style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; min-width:100px; flex-shrink:0; font-family:'Outfit',sans-serif;">
+                               style="background:transparent; border:none; color:#30D158; font-weight:bold; font-size:16px; width:${initialWidth}px; min-width:80px; flex-shrink:0; font-family:'Outfit',sans-serif; text-align:left; padding:0;">
                         
                         <!-- Info Span moved to Header -->
                         <span id="round-info-${index}" style="color:#888; font-size:12px; font-style:italic; white-space:nowrap;">Berekenen...</span>
