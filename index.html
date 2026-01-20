@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.128"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.129"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4458,7 +4458,8 @@
                 // --- EXERCISE GROUP BOX ---
                 // Wraps all sets of one exercise in an Orange Box
                 const exerciseGroup = document.createElement('div');
-                exerciseGroup.style.border = '2px solid #FF9F0A'; // Orange Border
+                exerciseGroup.style.border = '3px solid #FF9F0A'; // Orange Border (Thicker)
+                exerciseGroup.style.boxShadow = '0 0 10px rgba(255, 159, 10, 0.4)'; // Glowing Effect
                 exerciseGroup.style.borderRadius = '12px';
                 exerciseGroup.style.padding = '4px';
                 exerciseGroup.style.marginBottom = '6px';
