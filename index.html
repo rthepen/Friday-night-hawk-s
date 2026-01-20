@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.121"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.122"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -5018,7 +5018,7 @@
                 // Format duration (minutes if > 60)
                 const durMin = Math.round(roundDurationSec / 60);
 
-                infoEl.innerHTML = `Deze ronde duurt <b>${durMin} min</b> (Klaar om ${finishStr})`;
+                infoEl.innerHTML = `De ronde is klaar om <b>${finishStr}</b> en duurt <b>${durMin} min</b>`;
 
                 // Apply Highlight
                 const now = new Date();
