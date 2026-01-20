@@ -2847,7 +2847,7 @@
 
 
     <script>
-        const APP_VERSION = "1.32.125"; // Fix Const Assignment Error
+        const APP_VERSION = "1.32.126"; // Fix Const Assignment Error
         // GLOBAL START TIME REFERENCE
         // We use this to calculate sync when returning from "Edit Mode"
         let globalWorkoutStartVal = null; // Date.now() timestamp
@@ -4537,7 +4537,7 @@
                     nameInput.type = 'text';
                     nameInput.setAttribute('list', 'exercise-datalist'); // Enable Autocomplete
                     nameInput.value = exName;
-                    nameInput.placeholder = `Oefening ${e}.${s}`;
+                    nameInput.placeholder = `${rNum}.${e}.${s}`;
                     nameInput.style.background = 'transparent';
                     nameInput.style.border = 'none';
                     nameInput.style.color = exName ? 'white' : '#777';
